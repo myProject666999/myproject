@@ -87,12 +87,22 @@ func GetActivityDetail(c *gin.Context) {
 		Order("created_at desc").
 		Find(&comments)
 
+	userID := c.GetUint("user_id")
+	var registration models.Registration
+	var userRegistration *models.Registration
+	if err := config.DB.Where("user_id = ? AND activity_id = ? AND status != ?", 
+		userID, id, string(models.RegCancelled)).
+		First(&registration).Error; err == nil {
+		userRegistration = &registration
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"message": "获取成功",
 		"data": gin.H{
-			"activity": activity,
-			"comments": comments,
+			"activity":        activity,
+			"comments":        comments,
+			"user_registration": userRegistration,
 		},
 	})
 }

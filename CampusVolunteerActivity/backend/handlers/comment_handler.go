@@ -36,8 +36,8 @@ func CreateComment(c *gin.Context) {
 	}
 
 	var registration models.Registration
-	if err := config.DB.Where("user_id = ? AND activity_id = ? AND status IN (?)", 
-		userID, activityID, []string{string(models.RegAttended), string(models.RegCompleted)}).
+	if err := config.DB.Where("user_id = ? AND activity_id = ? AND status != ?", 
+		userID, activityID, string(models.RegCancelled)).
 		First(&registration).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code":    400,

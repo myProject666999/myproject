@@ -40,6 +40,7 @@ func main() {
 	r := gin.Default()
 
 	r.Use(middleware.CorsMiddleware())
+	r.Use(middleware.EncodingMiddleware())
 
 	r.Static("/uploads", cfg.UploadDir)
 

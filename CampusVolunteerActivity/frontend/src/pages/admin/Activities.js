@@ -14,6 +14,8 @@ import {
   Upload,
   message,
   Popconfirm,
+  Row,
+  Col,
 } from 'antd';
 import {
   PlusOutlined,
