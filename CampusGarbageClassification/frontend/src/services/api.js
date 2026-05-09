@@ -58,4 +58,12 @@ export const advocateAPI = {
   getAdminList: (params) => api.get('/admin/advocates', { params }),
   create: (data) => api.post('/admin/advocates', data),
   update: (id, data) => api.put(`/admin/advocates/${id}`, data),
-  delete: (id) => api.delete(`/admin/adv
+  delete: (id) => api.delete(`/admin/advocates/${id}`),
+};
+
+export const bagAPI = {
+  getTypes: () => api.get('/bag-types'),
+  getList: (params) => api.get('/bags', { params }),
+  getDetail: (id) => api.get(`/bags/${id}`),
+  purchase: (data) => api.post('/bags/purchase', data),
+  getMyPurchases: (params) => api.get('/my-purchases
