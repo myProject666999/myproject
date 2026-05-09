@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,10 +12,22 @@ function JobDetailPage() {
   const [message, setMessage] = useState('');
   const [applyLoading, setApplyLoading] = useState(false);
   const [applyResult, setApplyResult] = useState(null);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    fetchedRef.current = false;
+    setJob(null);
+    setLoading(true);
+  }, [id]);
+
+  useEffect(() => {
+    if (fetchedRef.current) {
+      return;
+    }
+
     const fetchJob = async () => {
       try {
+        fetchedRef.current = true;
         const response = await api.get(`/jobs/${id}`);
         setJob(response.data.job);
       } catch (err) {

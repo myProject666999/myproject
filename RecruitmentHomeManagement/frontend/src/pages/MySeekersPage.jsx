@@ -46,10 +46,16 @@ function MySeekersPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const submitData = {
+        ...formData,
+        salary_min: Number(formData.salary_min) || 0,
+        salary_max: Number(formData.salary_max) || 0,
+      };
+
       if (editId) {
-        await api.put(`/seekers/${editId}`, formData);
+        await api.put(`/seekers/${editId}`, submitData);
       } else {
-        await api.post('/seekers', formData);
+        await api.post('/seekers', submitData);
       }
       setShowForm(false);
       setEditId(null);

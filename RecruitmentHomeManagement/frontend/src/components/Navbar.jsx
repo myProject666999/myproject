@@ -43,8 +43,8 @@ function Navbar() {
     if (user.role === 'user') {
       return (
         <div className="nav-user">
-          <Link to="/seeker/profile" className="nav-link">我的求职</Link>
-          <Link to="/seeker/my-seekers" className="nav-link">我的简历</Link>
+          <Link to="/seeker/my-seekers" className="nav-link">我的求职</Link>
+          <Link to="/seeker/profile" className="nav-link">我的简历</Link>
           <span className="nav-username">{user.name}</span>
           <button onClick={handleLogout} className="nav-link nav-link-logout">退出</button>
         </div>

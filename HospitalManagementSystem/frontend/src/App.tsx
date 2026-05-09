@@ -5,6 +5,14 @@ import zhCN from 'antd/locale/zh_CN'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { UserManagement } from './pages/admin/UserManagement'
+import { DepartmentManagement } from './pages/admin/DepartmentManagement'
+import { RegistrationLevelManagement } from './pages/admin/RegistrationLevelManagement'
+import { SettlementCategoryManagement } from './pages/admin/SettlementCategoryManagement'
+import { DiagnosisCatalogManagement } from './pages/admin/DiagnosisCatalogManagement'
+import { ChargeItemManagement } from './pages/admin/ChargeItemManagement'
+import { MedicineManagement } from './pages/admin/MedicineManagement'
+import { DoctorScheduleManagement } from './pages/admin/DoctorScheduleManagement'
+import { ExpenseSubjectManagement } from './pages/admin/ExpenseSubjectManagement'
 import { AppLayout } from './components/Layout'
 import { useAuthStore } from './store/useAuthStore'
 
@@ -40,6 +48,86 @@ const App: React.FC = () => {
               <PrivateRoute>
                 <AppLayout>
                   <UserManagement />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/departments"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <DepartmentManagement />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/registration-levels"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <RegistrationLevelManagement />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/settlement-categories"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <SettlementCategoryManagement />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/diagnosis-catalogs"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <DiagnosisCatalogManagement />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/charge-items"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <ChargeItemManagement />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/medicines"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <MedicineManagement />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/doctor-schedules"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <DoctorScheduleManagement />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/expense-subjects"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <ExpenseSubjectManagement />
                 </AppLayout>
               </PrivateRoute>
             }

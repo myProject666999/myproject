@@ -57,10 +57,16 @@ function MyJobsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const submitData = {
+        ...formData,
+        salary_min: Number(formData.salary_min) || 0,
+        salary_max: Number(formData.salary_max) || 0,
+      };
+
       if (editId) {
-        await api.put(`/jobs/${editId}`, formData);
+        await api.put(`/jobs/${editId}`, submitData);
       } else {
-        await api.post('/jobs', formData);
+        await api.post('/jobs', submitData);
       }
       setShowForm(false);
       setEditId(null);
@@ -282,7 +288,7 @@ function MyJobsPage() {
         ) : jobs.length === 0 ? (
           <div className="empty">
             <div className="empty-icon">💼</div>
-            <p>还没有发布任何职位</p>
+            <p>还没有发布职位</p>
             <p>点击上方按钮发布第一个职位</p>
           </div>
         ) : (
@@ -365,7 +371,7 @@ function MyJobsPage() {
                           {app.seeker?.title}
                         </div>
                       </td>
-                      <td>{new Date(app.createdAt).toLocaleDateString()}</td>
+                      <td>{new Date(app.created_at).toLocaleDateString()}</td>
                       <td>
                         <span className={`tag ${getStatusClass(app.status)}`}>
                           {getStatusText(app.status)}
@@ -373,10 +379,10 @@ function MyJobsPage() {
                       </td>
                       <td>
                         <select
+                          className="form-control"
+                          style={{ width: 120, display: 'inline-block' }}
                           value={app.status}
                           onChange={(e) => updateApplicationStatus(app.id, Number(e.target.value))}
-                          className="form-control"
-                          style={{ width: 'auto', padding: '4px 8px' }}
                         >
                           <option value={0}>待处理</option>
                           <option value={1}>已查看</option>

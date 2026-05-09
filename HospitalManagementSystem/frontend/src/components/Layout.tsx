@@ -134,11 +134,12 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       <Layout>
         <Header
           style={{
-            padding: '0 16px',
+            padding: '0 24px',
             background: colorBgContainer,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            boxShadow: '0 1px 4px rgba(0,21,41,0.08)',
           }}
         >
           <Button
@@ -148,13 +149,38 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             style={{ fontSize: '16px', width: 64, height: 64 }}
           />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <Dropdown menu={{ items: userMenuItems }}>
-              <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Avatar icon={<UserOutlined />} />
-                <div>
-                  <div style={{ fontWeight: 500 }}>{user?.name}</div>
-                  <div style={{ fontSize: 12, color: '#666' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <Dropdown
+              menu={{ items: userMenuItems }}
+              placement="bottomRight"
+            >
+              <div
+                style={{
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  transition: 'all 0.3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(0, 0, 0, 0.04)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                <Avatar
+                  style={{ backgroundColor: '#1677ff', verticalAlign: 'middle' }}
+                  icon={<UserOutlined />}
+                  size={36}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{ fontWeight: 500, fontSize: 14, lineHeight: 1.4 }}>
+                    {user?.name || '未登录'}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#666', lineHeight: 1.4 }}>
                     {role ? ROLE_NAME_MAP[role] : ''}
                   </div>
                 </div>

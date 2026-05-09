@@ -77,14 +77,17 @@ export const adminAPI = {
   updateUser: (id: number, data: any) => api.put(`/admin/users/${id}`, data),
   deleteUser: (id: number) => api.delete(`/admin/users/${id}`),
 
+  getDepartmentsList: (params?: any) => api.get('/admin/departments', { params }),
   createDepartment: (data: any) => api.post('/admin/departments', data),
   updateDepartment: (id: number, data: any) => api.put(`/admin/departments/${id}`, data),
   deleteDepartment: (id: number) => api.delete(`/admin/departments/${id}`),
 
+  getRegistrationLevelsList: (params?: any) => api.get('/admin/registration-levels', { params }),
   createRegistrationLevel: (data: any) => api.post('/admin/registration-levels', data),
   updateRegistrationLevel: (id: number, data: any) => api.put(`/admin/registration-levels/${id}`, data),
   deleteRegistrationLevel: (id: number) => api.delete(`/admin/registration-levels/${id}`),
 
+  getSettlementCategoriesList: (params?: any) => api.get('/admin/settlement-categories', { params }),
   createSettlementCategory: (data: any) => api.post('/admin/settlement-categories', data),
   updateSettlementCategory: (id: number, data: any) => api.put(`/admin/settlement-categories/${id}`, data),
   deleteSettlementCategory: (id: number) => api.delete(`/admin/settlement-categories/${id}`),
@@ -105,6 +108,7 @@ export const adminAPI = {
   deleteMedicine: (id: number) => api.delete(`/admin/medicines/${id}`),
 
   getExpenseSubjects: () => api.get('/admin/expense-subjects'),
+  getExpenseSubjectsList: (params?: any) => api.get('/admin/expense-subjects', { params }),
   createExpenseSubject: (data: any) => api.post('/admin/expense-subjects', data),
   updateExpenseSubject: (id: number, data: any) => api.put(`/admin/expense-subjects/${id}`, data),
   deleteExpenseSubject: (id: number) => api.delete(`/admin/expense-subjects/${id}`),
