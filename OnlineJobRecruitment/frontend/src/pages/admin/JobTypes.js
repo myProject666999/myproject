@@ -52,6 +52,9 @@ const JobTypes = () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      if (values.status !== undefined) {
+        values.status = values.status ? 1 : 0;
+      }
       if (editingItem) {
         await jobApi.updateJobType(editingItem.id, values);
         message.success('更新成功');

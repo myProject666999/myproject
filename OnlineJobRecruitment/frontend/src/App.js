@@ -12,6 +12,10 @@ import Admins from './pages/admin/Admins';
 import Recruiters from './pages/admin/Recruiters';
 import Users from './pages/admin/Users';
 import JobTypes from './pages/admin/JobTypes';
+import AdminJobs from './pages/admin/Jobs';
+import Exercises from './pages/admin/Exercises';
+import News from './pages/admin/News';
+import Reviews from './pages/admin/Reviews';
 
 function App() {
   return (
@@ -29,6 +33,10 @@ function App() {
         <Route path="recruiters" element={<Recruiters />} />
         <Route path="users" element={<Users />} />
         <Route path="job-types" element={<JobTypes />} />
+        <Route path="jobs" element={<AdminJobs />} />
+        <Route path="exercises" element={<Exercises />} />
+        <Route path="news" element={<News />} />
+        <Route path="reviews" element={<Reviews />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
       

@@ -69,9 +69,29 @@ func UpdateAdmin(c *gin.Context) {
 		return
 	}
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req struct {
+		Name   string `json:"name"`
+		Phone  string `json:"phone"`
+		Email  string `json:"email"`
+		Status *int   `json:"status"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "参数错误")
 		return
+	}
+
+	if req.Name != "" {
+		user.Name = req.Name
+	}
+	if req.Phone != "" {
+		user.Phone = req.Phone
+	}
+	if req.Email != "" {
+		user.Email = req.Email
+	}
+	if req.Status != nil {
+		user.Status = *req.Status
 	}
 
 	if err := database.DB.Save(&user).Error; err != nil {
@@ -158,9 +178,37 @@ func UpdateRecruiter(c *gin.Context) {
 		return
 	}
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req struct {
+		Name     string `json:"name"`
+		Phone    string `json:"phone"`
+		Email    string `json:"email"`
+		Company  string `json:"company"`
+		Position string `json:"position"`
+		Status   *int   `json:"status"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "参数错误")
 		return
+	}
+
+	if req.Name != "" {
+		user.Name = req.Name
+	}
+	if req.Phone != "" {
+		user.Phone = req.Phone
+	}
+	if req.Email != "" {
+		user.Email = req.Email
+	}
+	if req.Company != "" {
+		user.Company = req.Company
+	}
+	if req.Position != "" {
+		user.Position = req.Position
+	}
+	if req.Status != nil {
+		user.Status = *req.Status
 	}
 
 	if err := database.DB.Save(&user).Error; err != nil {

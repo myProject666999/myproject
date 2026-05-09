@@ -96,6 +96,7 @@ func SetupRoutes() *gin.Engine {
 			admin.PUT("/news/:id", controllers.UpdateNews)
 			admin.DELETE("/news/:id", controllers.DeleteNews)
 
+			admin.GET("/reviews", controllers.GetReviews)
 			admin.DELETE("/reviews/:id", controllers.DeleteReview)
 		}
 

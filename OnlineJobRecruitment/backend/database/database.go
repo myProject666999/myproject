@@ -5,6 +5,7 @@ import (
 	"log"
 	"online-job-recruitment/config"
 	"online-job-recruitment/models"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -26,6 +27,16 @@ func Connect() {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatal("Failed to get sql.DB:", err)
+	}
+
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
 
 	log.Println("Database connected successfully")
 }

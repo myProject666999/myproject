@@ -76,6 +76,7 @@ export const newsApi = {
 
 export const reviewApi = {
   getReviews: (params) => request.get('/reviews', { params }),
+  getAllReviews: (params) => request.get('/admin/reviews', { params }),
   getMyReviews: () => request.get('/reviews/my'),
   createReview: (data) => request.post('/reviews', data),
   deleteReview: (id) => request.delete(`/admin/reviews/${id}`),
