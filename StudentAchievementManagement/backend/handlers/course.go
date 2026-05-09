@@ -75,6 +75,10 @@ func UpdateCourse(c *gin.Context) {
 	}
 	
 	if err := database.DB.Save(&course).Error; err != nil {
+		if IsForeignKeyError(err) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot update course: there are grades associated with this course"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -85,14 +89,28 @@ func UpdateCourse(c *gin.Context) {
 func DeleteCourse(c *gin.Context) {
 	id := c.Param("id")
 	
-	result := database.DB.Delete(&models.Course{}, id)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	var course models.Course
+	if err := database.DB.First(&course, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
 		return
 	}
 	
-	if result.RowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+	hasGrades, err := CourseHasGrades(course.CourseNo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check grades"})
+		return
+	}
+	if hasGrades {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":  "Cannot delete course: there are grades associated with this course",
+			"detail": "CourseNo: " + course.CourseNo,
+		})
+		return
+	}
+	
+	result := database.DB.Delete(&models.Course{}, id)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 	
@@ -110,6 +128,27 @@ func BatchDeleteCourses(c *gin.Context) {
 	if len(req.IDs) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No IDs provided"})
 		return
+	}
+	
+	var courses []models.Course
+	if err := database.DB.Find(&courses, req.IDs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find courses"})
+		return
+	}
+	
+	for _, course := range courses {
+		hasGrades, err := CourseHasGrades(course.CourseNo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check grades"})
+			return
+		}
+		if hasGrades {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":  "Cannot delete course: there are grades associated with this course",
+				"detail": "CourseNo: " + course.CourseNo,
+			})
+			return
+		}
 	}
 	
 	result := database.DB.Delete(&models.Course{}, req.IDs)

@@ -10,7 +10,7 @@ const instance: AxiosInstance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
-    if (token) {
+    if (token && config.url !== '/login') {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -23,7 +23,7 @@ instance.interceptors.response.use(
     const { code, message: msg, data } = response.data
 
     if (code === 200) {
-      return { ...response, data } as any
+      return data as any
     }
 
     message.error(msg || '请求失败')

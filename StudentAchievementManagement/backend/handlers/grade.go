@@ -46,7 +46,31 @@ func CreateGrade(c *gin.Context) {
 		return
 	}
 	
+	exists, err := StudentExists(grade.StudentNo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check student existence"})
+		return
+	}
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "StudentNo does not exist: " + grade.StudentNo})
+		return
+	}
+	
+	exists, err = CourseExists(grade.CourseNo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check course existence"})
+		return
+	}
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "CourseNo does not exist: " + grade.CourseNo})
+		return
+	}
+	
 	if err := database.DB.Create(&grade).Error; err != nil {
+		if IsForeignKeyError(err) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Student or Course not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -63,12 +87,43 @@ func UpdateGrade(c *gin.Context) {
 		return
 	}
 	
+	oldStudentNo := grade.StudentNo
+	oldCourseNo := grade.CourseNo
+	
 	if err := c.ShouldBindJSON(&grade); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	
+	if grade.StudentNo != oldStudentNo {
+		exists, err := StudentExists(grade.StudentNo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check student existence"})
+			return
+		}
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "StudentNo does not exist: " + grade.StudentNo})
+			return
+		}
+	}
+	
+	if grade.CourseNo != oldCourseNo {
+		exists, err := CourseExists(grade.CourseNo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check course existence"})
+			return
+		}
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "CourseNo does not exist: " + grade.CourseNo})
+			return
+		}
+	}
+	
 	if err := database.DB.Save(&grade).Error; err != nil {
+		if IsForeignKeyError(err) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Student or Course not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

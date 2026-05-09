@@ -15,7 +15,15 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => {
   const storedToken = localStorage.getItem('token')
   const storedUser = localStorage.getItem('user')
-  const user = storedUser ? JSON.parse(storedUser) : null
+  let user: User | null = null
+
+  if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+    try {
+      user = JSON.parse(storedUser)
+    } catch {
+      user = null
+    }
+  }
 
   return {
     token: storedToken,

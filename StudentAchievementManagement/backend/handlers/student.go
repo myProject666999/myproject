@@ -79,6 +79,10 @@ func UpdateStudent(c *gin.Context) {
 	}
 	
 	if err := database.DB.Save(&student).Error; err != nil {
+		if IsForeignKeyError(err) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot update student: there are grades associated with this student"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -89,14 +93,28 @@ func UpdateStudent(c *gin.Context) {
 func DeleteStudent(c *gin.Context) {
 	id := c.Param("id")
 	
-	result := database.DB.Delete(&models.Student{}, id)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	var student models.Student
+	if err := database.DB.First(&student, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
 		return
 	}
 	
-	if result.RowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+	hasGrades, err := StudentHasGrades(student.StudentNo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check grades"})
+		return
+	}
+	if hasGrades {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Cannot delete student: there are grades associated with this student",
+			"detail":  "StudentNo: " + student.StudentNo,
+		})
+		return
+	}
+	
+	result := database.DB.Delete(&models.Student{}, id)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 	
@@ -114,6 +132,27 @@ func BatchDeleteStudents(c *gin.Context) {
 	if len(req.IDs) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No IDs provided"})
 		return
+	}
+	
+	var students []models.Student
+	if err := database.DB.Find(&students, req.IDs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find students"})
+		return
+	}
+	
+	for _, student := range students {
+		hasGrades, err := StudentHasGrades(student.StudentNo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check grades"})
+			return
+		}
+		if hasGrades {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Cannot delete student: there are grades associated with this student",
+				"detail":  "StudentNo: " + student.StudentNo,
+			})
+			return
+		}
 	}
 	
 	result := database.DB.Delete(&models.Student{}, req.IDs)
