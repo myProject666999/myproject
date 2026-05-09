@@ -2,7 +2,8 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
+	"sort"
+	"time"
 
 	"student-recommendation-platform/config"
 	"student-recommendation-platform/models"
@@ -11,27 +12,44 @@ import (
 )
 
 func ListCarousels(c *gin.Context) {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var carousels []models.Carousel
-	config.DB.Where("status = 1").Order("sort ASC").Find(&carousels)
+	for _, carousel := range config.DB.Carousels {
+		if carousel.Status == 1 {
+			carousels = append(carousels, carousel)
+		}
+	}
+
+	sort.Slice(carousels, func(i, j int) bool {
+		return carousels[i].Sort < carousels[j].Sort
+	})
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": carousels})
 }
 
 func ListNews(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-	offset := (page - 1) * pageSize
+	page, pageSize := parsePageInfo(c)
 
-	var total int64
-	var news []models.News
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
-	config.DB.Model(&models.News{}).Count(&total)
-	config.DB.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&news)
+	var newsList []models.News
+	for _, news := range config.DB.News {
+		newsList = append(newsList, news)
+	}
+
+	sort.Slice(newsList, func(i, j int) bool {
+		return newsList[i].CreatedAt.After(newsList[j].CreatedAt)
+	})
+
+	paginated, total := paginate(newsList, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      news,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -40,34 +58,44 @@ func ListNews(c *gin.Context) {
 }
 
 func GetNews(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var news models.News
-	if err := config.DB.First(&news, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	news, exists := config.DB.News[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "新闻不存在"})
 		return
 	}
 
-	config.DB.Model(&news).UpdateColumn("views", news.Views+1)
+	news.Views++
+	config.DB.News[id] = news
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": news})
 }
 
 func ListNotices(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-	offset := (page - 1) * pageSize
+	page, pageSize := parsePageInfo(c)
 
-	var total int64
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var notices []models.Notice
+	for _, notice := range config.DB.Notices {
+		notices = append(notices, notice)
+	}
 
-	config.DB.Model(&models.Notice{}).Count(&total)
-	config.DB.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&notices)
+	sort.Slice(notices, func(i, j int) bool {
+		return notices[i].CreatedAt.After(notices[j].CreatedAt)
+	})
+
+	paginated, total := paginate(notices, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      notices,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -76,34 +104,44 @@ func ListNotices(c *gin.Context) {
 }
 
 func GetNotice(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var notice models.Notice
-	if err := config.DB.First(&notice, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	notice, exists := config.DB.Notices[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "公告不存在"})
 		return
 	}
 
-	config.DB.Model(&notice).UpdateColumn("views", notice.Views+1)
+	notice.Views++
+	config.DB.Notices[id] = notice
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": notice})
 }
 
 func ListCampusStories(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-	offset := (page - 1) * pageSize
+	page, pageSize := parsePageInfo(c)
 
-	var total int64
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var stories []models.CampusStory
+	for _, story := range config.DB.CampusStories {
+		stories = append(stories, story)
+	}
 
-	config.DB.Model(&models.CampusStory{}).Count(&total)
-	config.DB.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&stories)
+	sort.Slice(stories, func(i, j int) bool {
+		return stories[i].CreatedAt.After(stories[j].CreatedAt)
+	})
+
+	paginated, total := paginate(stories, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      stories,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -112,8 +150,17 @@ func ListCampusStories(c *gin.Context) {
 }
 
 func ListCategories(c *gin.Context) {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var categories []models.Category
-	config.DB.Find(&categories)
+	for _, cat := range config.DB.Categories {
+		categories = append(categories, cat)
+	}
+
+	sort.Slice(categories, func(i, j int) bool {
+		return categories[i].ID < categories[j].ID
+	})
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": categories})
 }
@@ -129,19 +176,26 @@ func CreateNews(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&news).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.NewsIDCounter++
+	news.ID = config.DB.NewsIDCounter
+	news.CreatedAt = time.Now()
+	news.UpdatedAt = time.Now()
+	config.DB.News[news.ID] = news
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": news})
 }
 
 func UpdateNews(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var news models.News
-	if err := config.DB.First(&news, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	news, exists := config.DB.News[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "新闻不存在"})
 		return
 	}
@@ -151,18 +205,20 @@ func UpdateNews(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&news)
+	news.ID = id
+	news.UpdatedAt = time.Now()
+	config.DB.News[id] = news
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": news})
 }
 
 func DeleteNews(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.News{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.News, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
@@ -178,19 +234,26 @@ func CreateNotice(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&notice).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.NoticeIDCounter++
+	notice.ID = config.DB.NoticeIDCounter
+	notice.CreatedAt = time.Now()
+	notice.UpdatedAt = time.Now()
+	config.DB.Notices[notice.ID] = notice
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": notice})
 }
 
 func UpdateNotice(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var notice models.Notice
-	if err := config.DB.First(&notice, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	notice, exists := config.DB.Notices[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "公告不存在"})
 		return
 	}
@@ -200,18 +263,20 @@ func UpdateNotice(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&notice)
+	notice.ID = id
+	notice.UpdatedAt = time.Now()
+	config.DB.Notices[id] = notice
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": notice})
 }
 
 func DeleteNotice(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.Notice{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Notices, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
@@ -227,19 +292,26 @@ func CreateCampusStory(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&story).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.CampusStoryIDCounter++
+	story.ID = config.DB.CampusStoryIDCounter
+	story.CreatedAt = time.Now()
+	story.UpdatedAt = time.Now()
+	config.DB.CampusStories[story.ID] = story
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": story})
 }
 
 func UpdateCampusStory(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var story models.CampusStory
-	if err := config.DB.First(&story, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	story, exists := config.DB.CampusStories[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "趣事不存在"})
 		return
 	}
@@ -249,25 +321,36 @@ func UpdateCampusStory(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&story)
+	story.ID = id
+	story.UpdatedAt = time.Now()
+	config.DB.CampusStories[id] = story
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": story})
 }
 
 func DeleteCampusStory(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.CampusStory{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.CampusStories, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
 
 func ListAdminCarousels(c *gin.Context) {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var carousels []models.Carousel
-	config.DB.Order("sort ASC").Find(&carousels)
+	for _, carousel := range config.DB.Carousels {
+		carousels = append(carousels, carousel)
+	}
+
+	sort.Slice(carousels, func(i, j int) bool {
+		return carousels[i].Sort < carousels[j].Sort
+	})
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": carousels})
 }
@@ -279,19 +362,26 @@ func CreateCarousel(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&carousel).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.CarouselIDCounter++
+	carousel.ID = config.DB.CarouselIDCounter
+	carousel.CreatedAt = time.Now()
+	carousel.UpdatedAt = time.Now()
+	config.DB.Carousels[carousel.ID] = carousel
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": carousel})
 }
 
 func UpdateCarousel(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var carousel models.Carousel
-	if err := config.DB.First(&carousel, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	carousel, exists := config.DB.Carousels[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "轮播图不存在"})
 		return
 	}
@@ -301,18 +391,20 @@ func UpdateCarousel(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&carousel)
+	carousel.ID = id
+	carousel.UpdatedAt = time.Now()
+	config.DB.Carousels[id] = carousel
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": carousel})
 }
 
 func DeleteCarousel(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.Carousel{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Carousels, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
@@ -328,19 +420,26 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&category).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.CategoryIDCounter++
+	category.ID = config.DB.CategoryIDCounter
+	category.CreatedAt = time.Now()
+	category.UpdatedAt = time.Now()
+	config.DB.Categories[category.ID] = category
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": category})
 }
 
 func UpdateCategory(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var category models.Category
-	if err := config.DB.First(&category, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	category, exists := config.DB.Categories[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "分类不存在"})
 		return
 	}
@@ -350,18 +449,20 @@ func UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&category)
+	category.ID = id
+	category.UpdatedAt = time.Now()
+	config.DB.Categories[id] = category
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": category})
 }
 
 func DeleteCategory(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.Category{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Categories, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }

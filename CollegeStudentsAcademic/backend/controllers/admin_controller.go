@@ -37,12 +37,17 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 
+	realName := admin.RealName
+	if realName == "" {
+		realName = "系统管理员"
+	}
+
 	utils.Success(c, gin.H{
 		"token": token,
 		"user": gin.H{
 			"id":        admin.ID,
 			"username":  admin.Username,
-			"real_name": admin.RealName,
+			"real_name": realName,
 			"role":      "admin",
 		},
 	})

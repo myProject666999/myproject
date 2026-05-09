@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
+	"time"
 
 	"student-recommendation-platform/config"
 	"student-recommendation-platform/middleware"
@@ -10,6 +12,36 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+func parseUint(s string) uint {
+	n, _ := strconv.Atoi(s)
+	return uint(n)
+}
+
+func parsePageInfo(c *gin.Context) (int, int) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	return page, pageSize
+}
+
+func paginate[T any](items []T, page, pageSize int) ([]T, int) {
+	total := len(items)
+	start := (page - 1) * pageSize
+	end := start + pageSize
+	if start > total {
+		return []T{}, total
+	}
+	if end > total {
+		end = total
+	}
+	return items[start:end], total
+}
 
 func AdminLogin(c *gin.Context) {
 	var loginData struct {
@@ -22,30 +54,28 @@ func AdminLogin(c *gin.Context) {
 		return
 	}
 
-	var admin models.Admin
-	if err := config.DB.Where("username = ?", loginData.Username).First(&admin).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户名或密码错误"})
-		return
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	for _, admin := range config.DB.Admins {
+		if admin.Username == loginData.Username && admin.Password == loginData.Password {
+			token, err := middleware.GenerateToken(admin.ID, admin.Username, "admin")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "生成Token失败"})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"code": 200,
+				"data": gin.H{
+					"token": token,
+					"user":  admin,
+				},
+			})
+			return
+		}
 	}
 
-	if admin.Password != loginData.Password {
-		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户名或密码错误"})
-		return
-	}
-
-	token, err := middleware.GenerateToken(admin.ID, admin.Username, "admin")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "生成Token失败"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"data": gin.H{
-			"token": token,
-			"user":  admin,
-		},
-	})
+	c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户名或密码错误"})
 }
 
 func AdminLogout(c *gin.Context) {
@@ -55,8 +85,11 @@ func AdminLogout(c *gin.Context) {
 func GetAdminProfile(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
-	var admin models.Admin
-	if err := config.DB.First(&admin, userID).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	admin, exists := config.DB.Admins[userID]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "用户不存在"})
 		return
 	}
@@ -77,8 +110,11 @@ func ChangeAdminPassword(c *gin.Context) {
 		return
 	}
 
-	var admin models.Admin
-	if err := config.DB.First(&admin, userID).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	admin, exists := config.DB.Admins[userID]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "用户不存在"})
 		return
 	}
@@ -89,7 +125,8 @@ func ChangeAdminPassword(c *gin.Context) {
 	}
 
 	admin.Password = data.NewPassword
-	config.DB.Save(&admin)
+	admin.UpdatedAt = time.Now()
+	config.DB.Admins[userID] = admin
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "密码修改成功"})
 }
@@ -101,17 +138,22 @@ func UserRegister(c *gin.Context) {
 		return
 	}
 
-	var existing models.User
-	if err := config.DB.Where("username = ?", user.Username).First(&existing).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "用户名已存在"})
-		return
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	for _, u := range config.DB.Users {
+		if u.Username == user.Username {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "用户名已存在"})
+			return
+		}
 	}
 
+	config.DB.UserIDCounter++
+	user.ID = config.DB.UserIDCounter
 	user.Status = 1
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "注册失败"})
-		return
-	}
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+	config.DB.Users[user.ID] = user
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "注册成功", "data": user})
 }
@@ -127,35 +169,32 @@ func UserLogin(c *gin.Context) {
 		return
 	}
 
-	var user models.User
-	if err := config.DB.Where("username = ?", loginData.Username).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户名或密码错误"})
-		return
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	for _, user := range config.DB.Users {
+		if user.Username == loginData.Username && user.Password == loginData.Password {
+			if user.Status != 1 {
+				c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "账号未审核或已禁用"})
+				return
+			}
+			token, err := middleware.GenerateToken(user.ID, user.Username, "user")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "生成Token失败"})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"code": 200,
+				"data": gin.H{
+					"token": token,
+					"user":  user,
+				},
+			})
+			return
+		}
 	}
 
-	if user.Password != loginData.Password {
-		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户名或密码错误"})
-		return
-	}
-
-	if user.Status != 1 {
-		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "账号未审核或已禁用"})
-		return
-	}
-
-	token, err := middleware.GenerateToken(user.ID, user.Username, "user")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "生成Token失败"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"data": gin.H{
-			"token": token,
-			"user":  user,
-		},
-	})
+	c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户名或密码错误"})
 }
 
 func UserLogout(c *gin.Context) {
@@ -165,8 +204,11 @@ func UserLogout(c *gin.Context) {
 func GetUserProfile(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
-	var user models.User
-	if err := config.DB.First(&user, userID).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	user, exists := config.DB.Users[userID]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "用户不存在"})
 		return
 	}
@@ -189,8 +231,11 @@ func UpdateUserProfile(c *gin.Context) {
 		return
 	}
 
-	var user models.User
-	if err := config.DB.First(&user, userID).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	user, exists := config.DB.Users[userID]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "用户不存在"})
 		return
 	}
@@ -207,27 +252,33 @@ func UpdateUserProfile(c *gin.Context) {
 	if data.Avatar != "" {
 		user.Avatar = data.Avatar
 	}
-
-	config.DB.Save(&user)
+	user.UpdatedAt = time.Now()
+	config.DB.Users[userID] = user
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": user})
 }
 
 func ListAdminUsers(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-	offset := (page - 1) * pageSize
+	page, pageSize := parsePageInfo(c)
 
-	var total int64
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var admins []models.Admin
+	for _, admin := range config.DB.Admins {
+		admins = append(admins, admin)
+	}
 
-	config.DB.Model(&models.Admin{}).Count(&total)
-	config.DB.Offset(offset).Limit(pageSize).Find(&admins)
+	sort.Slice(admins, func(i, j int) bool {
+		return admins[i].ID < admins[j].ID
+	})
+
+	paginated, total := paginate(admins, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      admins,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -242,22 +293,27 @@ func CreateAdminUser(c *gin.Context) {
 		return
 	}
 
-	var existing models.Admin
-	if err := config.DB.Where("username = ?", admin.Username).First(&existing).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "用户名已存在"})
-		return
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	for _, a := range config.DB.Admins {
+		if a.Username == admin.Username {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "用户名已存在"})
+			return
+		}
 	}
 
-	if err := config.DB.Create(&admin).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.AdminIDCounter++
+	admin.ID = config.DB.AdminIDCounter
+	admin.CreatedAt = time.Now()
+	admin.UpdatedAt = time.Now()
+	config.DB.Admins[admin.ID] = admin
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": admin})
 }
 
 func UpdateAdminUser(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
 	var data struct {
 		Name     string `json:"name"`
@@ -269,8 +325,11 @@ func UpdateAdminUser(c *gin.Context) {
 		return
 	}
 
-	var admin models.Admin
-	if err := config.DB.First(&admin, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	admin, exists := config.DB.Admins[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "用户不存在"})
 		return
 	}
@@ -281,24 +340,24 @@ func UpdateAdminUser(c *gin.Context) {
 	if data.Password != "" {
 		admin.Password = data.Password
 	}
-
-	config.DB.Save(&admin)
+	admin.UpdatedAt = time.Now()
+	config.DB.Admins[id] = admin
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": admin})
 }
 
 func DeleteAdminUser(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if id == "1" {
+	if id == 1 {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "不能删除超级管理员"})
 		return
 	}
 
-	if err := config.DB.Delete(&models.Admin{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Admins, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }

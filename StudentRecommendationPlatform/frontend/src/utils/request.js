@@ -7,9 +7,13 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const userToken = localStorage.getItem('token');
+    const adminToken = localStorage.getItem('admin_token');
+    
+    if (config.url.startsWith('/admin') && adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    } else if (userToken) {
+      config.headers.Authorization = `Bearer ${userToken}`;
     }
     return config;
   },
@@ -24,9 +28,20 @@ instance.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      const url = error.config?.url || '';
+      if (url.startsWith('/admin')) {
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+        if (!window.location.pathname.startsWith('/admin/login')) {
+          window.location.href = '/admin/login';
+        }
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+          window.location.href = '/login';
+        }
+      }
     }
     return Promise.reject(error);
   }

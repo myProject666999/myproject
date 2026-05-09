@@ -80,8 +80,33 @@ function KnowledgeManage() {
     }
   };
 
-  const handleExport = () => {
-    window.open('http://localhost:8080/api/admin/knowledge-points/export', '_blank');
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch('http://localhost:8080/api/admin/knowledge-points/export', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '知识点.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        message.success('导出成功');
+      } else {
+        message.error('导出失败');
+      }
+    } catch (error) {
+      console.error('导出失败', error);
+      message.error('导出失败');
+    }
   };
 
   const columns = [

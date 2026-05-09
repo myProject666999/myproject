@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, Button, Descriptions, Modal, Form, Input, DatePicker, TimePicker, Select, message, Space } from 'antd'
+import { Card, Button, Descriptions, Modal, Form, Input, DatePicker, Select, message } from 'antd'
 import { CalendarOutlined, ArrowLeftOutlined } from '@ant-design/icons'
 import { useParams, useNavigate } from 'react-router-dom'
 import { publicApi, studentApi } from '../../utils/api'
@@ -41,8 +41,8 @@ function ServiceDetail() {
 
       const appointmentData = {
         service_id: parseInt(id),
-        appointment_date: values.date.format('YYYY-MM-DD'),
-        appointment_time: values.time.format('HH:mm'),
+        appointment_date: values.date ? values.date.format('YYYY-MM-DD') : null,
+        appointment_time: values.time,
         contact_phone: values.contact_phone,
         remark: values.remark
       }
@@ -109,8 +109,9 @@ function ServiceDetail() {
         onCancel={() => setModalVisible(false)}
         footer={null}
         width={500}
+        destroyOnClose={true}
       >
-        <Form form={form} onFinish={handleAppointment} layout="vertical">
+        <Form form={form} onFinish={handleAppointment} layout="vertical" preserve={false}>
           <Form.Item label="服务">
             <div style={{ padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
               {service.title} - ¥{service.price}
@@ -125,7 +126,7 @@ function ServiceDetail() {
           <Form.Item name="time" label="预约时间" rules={[{ required: true, message: '请选择时间' }]}>
             <Select placeholder="请选择时间段">
               {timeSlots.map(t => (
-                <Select.Option key={t} value={dayjs(t, 'HH:mm')}>{t}</Select.Option>
+                <Select.Option key={t} value={t}>{t}</Select.Option>
               ))}
             </Select>
           </Form.Item>

@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
+	"time"
 
 	"student-recommendation-platform/config"
 	"student-recommendation-platform/models"
@@ -12,30 +14,38 @@ import (
 )
 
 func ListBooks(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	page, pageSize := parsePageInfo(c)
 	categoryID := c.Query("category_id")
 	keyword := c.Query("keyword")
-	offset := (page - 1) * pageSize
 
-	query := config.DB.Model(&models.Book{})
-	if categoryID != "" {
-		query = query.Where("category_id = ?", categoryID)
-	}
-	if keyword != "" {
-		query = query.Where("title LIKE ? OR author LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
-	var total int64
 	var books []models.Book
+	for _, book := range config.DB.Books {
+		if categoryID != "" && book.CategoryID != parseUint(categoryID) {
+			continue
+		}
+		if keyword != "" && !config.Contains(book.Title, keyword) && !config.Contains(book.Author, keyword) {
+			continue
+		}
+		books = append(books, book)
+	}
 
-	query.Count(&total)
-	query.Preload("Category").Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&books)
+	sort.Slice(books, func(i, j int) bool {
+		return books[i].CreatedAt.After(books[j].CreatedAt)
+	})
+
+	for i := range books {
+		books[i].Category = config.DB.GetCategory(books[i].CategoryID)
+	}
+
+	paginated, total := paginate(books, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      books,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -44,15 +54,20 @@ func ListBooks(c *gin.Context) {
 }
 
 func GetBook(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var book models.Book
-	if err := config.DB.Preload("Category").First(&book, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	book, exists := config.DB.Books[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "书籍不存在"})
 		return
 	}
 
-	config.DB.Model(&book).UpdateColumn("views", book.Views+1)
+	book.Views++
+	book.Category = config.DB.GetCategory(book.CategoryID)
+	config.DB.Books[id] = book
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": book})
 }
@@ -68,19 +83,26 @@ func CreateBook(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&book).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.BookIDCounter++
+	book.ID = config.DB.BookIDCounter
+	book.CreatedAt = time.Now()
+	book.UpdatedAt = time.Now()
+	config.DB.Books[book.ID] = book
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": book})
 }
 
 func UpdateBook(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var book models.Book
-	if err := config.DB.First(&book, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	book, exists := config.DB.Books[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "书籍不存在"})
 		return
 	}
@@ -90,47 +112,57 @@ func UpdateBook(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&book)
+	book.ID = id
+	book.UpdatedAt = time.Now()
+	config.DB.Books[id] = book
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": book})
 }
 
 func DeleteBook(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.Book{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Books, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
 
 func ListKnowledgePoints(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	page, pageSize := parsePageInfo(c)
 	categoryID := c.Query("category_id")
 	keyword := c.Query("keyword")
-	offset := (page - 1) * pageSize
 
-	query := config.DB.Model(&models.KnowledgePoint{})
-	if categoryID != "" {
-		query = query.Where("category_id = ?", categoryID)
-	}
-	if keyword != "" {
-		query = query.Where("title LIKE ?", "%"+keyword+"%")
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
-	var total int64
 	var points []models.KnowledgePoint
+	for _, point := range config.DB.KnowledgePoints {
+		if categoryID != "" && point.CategoryID != parseUint(categoryID) {
+			continue
+		}
+		if keyword != "" && !config.Contains(point.Title, keyword) {
+			continue
+		}
+		points = append(points, point)
+	}
 
-	query.Count(&total)
-	query.Preload("Category").Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&points)
+	sort.Slice(points, func(i, j int) bool {
+		return points[i].CreatedAt.After(points[j].CreatedAt)
+	})
+
+	for i := range points {
+		points[i].Category = config.DB.GetCategory(points[i].CategoryID)
+	}
+
+	paginated, total := paginate(points, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      points,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -139,15 +171,20 @@ func ListKnowledgePoints(c *gin.Context) {
 }
 
 func GetKnowledgePoint(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var point models.KnowledgePoint
-	if err := config.DB.Preload("Category").First(&point, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	point, exists := config.DB.KnowledgePoints[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "知识点不存在"})
 		return
 	}
 
-	config.DB.Model(&point).UpdateColumn("views", point.Views+1)
+	point.Views++
+	point.Category = config.DB.GetCategory(point.CategoryID)
+	config.DB.KnowledgePoints[id] = point
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": point})
 }
@@ -163,19 +200,26 @@ func CreateKnowledgePoint(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&point).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.KnowledgePointIDCounter++
+	point.ID = config.DB.KnowledgePointIDCounter
+	point.CreatedAt = time.Now()
+	point.UpdatedAt = time.Now()
+	config.DB.KnowledgePoints[point.ID] = point
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": point})
 }
 
 func UpdateKnowledgePoint(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var point models.KnowledgePoint
-	if err := config.DB.First(&point, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	point, exists := config.DB.KnowledgePoints[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "知识点不存在"})
 		return
 	}
@@ -185,18 +229,20 @@ func UpdateKnowledgePoint(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&point)
+	point.ID = id
+	point.UpdatedAt = time.Now()
+	config.DB.KnowledgePoints[id] = point
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": point})
 }
 
 func DeleteKnowledgePoint(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.KnowledgePoint{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.KnowledgePoints, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
@@ -205,16 +251,19 @@ func ExportKnowledgePoints(c *gin.Context) {
 	categoryID := c.Query("category_id")
 	keyword := c.Query("keyword")
 
-	query := config.DB.Model(&models.KnowledgePoint{})
-	if categoryID != "" {
-		query = query.Where("category_id = ?", categoryID)
-	}
-	if keyword != "" {
-		query = query.Where("title LIKE ?", "%"+keyword+"%")
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
 	var points []models.KnowledgePoint
-	query.Preload("Category").Find(&points)
+	for _, point := range config.DB.KnowledgePoints {
+		if categoryID != "" && point.CategoryID != parseUint(categoryID) {
+			continue
+		}
+		if keyword != "" && !config.Contains(point.Title, keyword) {
+			continue
+		}
+		points = append(points, point)
+	}
 
 	f := excelize.NewFile()
 	sheet := "Sheet1"
@@ -227,11 +276,15 @@ func ExportKnowledgePoints(c *gin.Context) {
 
 	for i, point := range points {
 		row := i + 2
-		f.SetCellValue(sheet, "A"+strconv.Itoa(row), point.ID)
-		f.SetCellValue(sheet, "B"+strconv.Itoa(row), point.Title)
-		f.SetCellValue(sheet, "C"+strconv.Itoa(row), point.Category.Name)
-		f.SetCellValue(sheet, "D"+strconv.Itoa(row), point.Views)
-		f.SetCellValue(sheet, "E"+strconv.Itoa(row), point.CreatedAt.Format("2006-01-02 15:04:05"))
+		categoryName := "-"
+		if category := config.DB.GetCategory(point.CategoryID); category.ID > 0 {
+			categoryName = category.Name
+		}
+		f.SetCellValue(sheet, "A"+itoa(row), point.ID)
+		f.SetCellValue(sheet, "B"+itoa(row), point.Title)
+		f.SetCellValue(sheet, "C"+itoa(row), categoryName)
+		f.SetCellValue(sheet, "D"+itoa(row), point.Views)
+		f.SetCellValue(sheet, "E"+itoa(row), point.CreatedAt.Format("2006-01-02 15:04:05"))
 	}
 
 	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -240,30 +293,38 @@ func ExportKnowledgePoints(c *gin.Context) {
 }
 
 func ListCourses(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	page, pageSize := parsePageInfo(c)
 	categoryID := c.Query("category_id")
 	keyword := c.Query("keyword")
-	offset := (page - 1) * pageSize
 
-	query := config.DB.Model(&models.Course{})
-	if categoryID != "" {
-		query = query.Where("category_id = ?", categoryID)
-	}
-	if keyword != "" {
-		query = query.Where("title LIKE ? OR teacher LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
-	var total int64
 	var courses []models.Course
+	for _, course := range config.DB.Courses {
+		if categoryID != "" && course.CategoryID != parseUint(categoryID) {
+			continue
+		}
+		if keyword != "" && !config.Contains(course.Title, keyword) && !config.Contains(course.Teacher, keyword) {
+			continue
+		}
+		courses = append(courses, course)
+	}
 
-	query.Count(&total)
-	query.Preload("Category").Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&courses)
+	sort.Slice(courses, func(i, j int) bool {
+		return courses[i].CreatedAt.After(courses[j].CreatedAt)
+	})
+
+	for i := range courses {
+		courses[i].Category = config.DB.GetCategory(courses[i].CategoryID)
+	}
+
+	paginated, total := paginate(courses, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      courses,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -272,15 +333,20 @@ func ListCourses(c *gin.Context) {
 }
 
 func GetCourse(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var course models.Course
-	if err := config.DB.Preload("Category").First(&course, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	course, exists := config.DB.Courses[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "课程不存在"})
 		return
 	}
 
-	config.DB.Model(&course).UpdateColumn("views", course.Views+1)
+	course.Views++
+	course.Category = config.DB.GetCategory(course.CategoryID)
+	config.DB.Courses[id] = course
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": course})
 }
@@ -296,19 +362,26 @@ func CreateCourse(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Create(&course).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.CourseIDCounter++
+	course.ID = config.DB.CourseIDCounter
+	course.CreatedAt = time.Now()
+	course.UpdatedAt = time.Now()
+	config.DB.Courses[course.ID] = course
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "创建成功", "data": course})
 }
 
 func UpdateCourse(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var course models.Course
-	if err := config.DB.First(&course, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	course, exists := config.DB.Courses[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "课程不存在"})
 		return
 	}
@@ -318,18 +391,20 @@ func UpdateCourse(c *gin.Context) {
 		return
 	}
 
-	config.DB.Save(&course)
+	course.ID = id
+	course.UpdatedAt = time.Now()
+	config.DB.Courses[id] = course
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": course})
 }
 
 func DeleteCourse(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.Course{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Courses, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
@@ -338,16 +413,19 @@ func ExportCourses(c *gin.Context) {
 	categoryID := c.Query("category_id")
 	keyword := c.Query("keyword")
 
-	query := config.DB.Model(&models.Course{})
-	if categoryID != "" {
-		query = query.Where("category_id = ?", categoryID)
-	}
-	if keyword != "" {
-		query = query.Where("title LIKE ? OR teacher LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
 	var courses []models.Course
-	query.Preload("Category").Find(&courses)
+	for _, course := range config.DB.Courses {
+		if categoryID != "" && course.CategoryID != parseUint(categoryID) {
+			continue
+		}
+		if keyword != "" && !config.Contains(course.Title, keyword) && !config.Contains(course.Teacher, keyword) {
+			continue
+		}
+		courses = append(courses, course)
+	}
 
 	f := excelize.NewFile()
 	sheet := "Sheet1"
@@ -360,12 +438,16 @@ func ExportCourses(c *gin.Context) {
 
 	for i, course := range courses {
 		row := i + 2
-		f.SetCellValue(sheet, "A"+strconv.Itoa(row), course.ID)
-		f.SetCellValue(sheet, "B"+strconv.Itoa(row), course.Title)
-		f.SetCellValue(sheet, "C"+strconv.Itoa(row), course.Teacher)
-		f.SetCellValue(sheet, "D"+strconv.Itoa(row), course.Category.Name)
-		f.SetCellValue(sheet, "E"+strconv.Itoa(row), course.Views)
-		f.SetCellValue(sheet, "F"+strconv.Itoa(row), course.CreatedAt.Format("2006-01-02 15:04:05"))
+		categoryName := "-"
+		if category := config.DB.GetCategory(course.CategoryID); category.ID > 0 {
+			categoryName = category.Name
+		}
+		f.SetCellValue(sheet, "A"+itoa(row), course.ID)
+		f.SetCellValue(sheet, "B"+itoa(row), course.Title)
+		f.SetCellValue(sheet, "C"+itoa(row), course.Teacher)
+		f.SetCellValue(sheet, "D"+itoa(row), categoryName)
+		f.SetCellValue(sheet, "E"+itoa(row), course.Views)
+		f.SetCellValue(sheet, "F"+itoa(row), course.CreatedAt.Format("2006-01-02 15:04:05"))
 	}
 
 	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -374,10 +456,26 @@ func ExportCourses(c *gin.Context) {
 }
 
 func ListCourseComments(c *gin.Context) {
-	courseID := c.Param("id")
+	courseID := parseUint(c.Param("id"))
+
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
 	var comments []models.Comment
-	config.DB.Where("type = ? AND target_id = ?", "course", courseID).Preload("User").Find(&comments)
+	for _, comment := range config.DB.Comments {
+		if comment.Type == "course" && comment.TargetID == courseID {
+			comment.User = config.DB.GetUser(comment.UserID)
+			comments = append(comments, comment)
+		}
+	}
+
+	sort.Slice(comments, func(i, j int) bool {
+		return comments[i].CreatedAt.After(comments[j].CreatedAt)
+	})
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": comments})
+}
+
+func itoa(i int) string {
+	return strconv.Itoa(i)
 }

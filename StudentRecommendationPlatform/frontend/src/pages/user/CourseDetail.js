@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Image, Button, Tag, Input, List, message, Divider, Space, Typography } from 'antd';
-import { ArrowLeftOutlined, EyeOutlined, StarOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, EyeOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import request from '../../utils/request';
 
@@ -13,10 +13,13 @@ function CourseDetail() {
   const [course, setCourse] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteId, setFavoriteId] = useState(null);
 
   useEffect(() => {
     loadCourse();
     loadComments();
+    checkFavorite();
   }, [id]);
 
   const loadCourse = async () => {
@@ -37,17 +40,43 @@ function CourseDetail() {
     }
   };
 
+  const checkFavorite = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    try {
+      const res = await request.get('/user/favorites?type=course');
+      const favorites = res.data || [];
+      const courseId = parseInt(id);
+      const found = favorites.find(f => f.target_id === courseId);
+      setIsFavorite(!!found);
+      setFavoriteId(found ? found.id : null);
+    } catch (error) {
+      console.error('检查收藏状态失败', error);
+    }
+  };
+
   const handleFavorite = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
       return;
     }
+    
     try {
-      await request.post('/user/favorites', { type: 'course', target_id: parseInt(id) });
-      message.success('收藏成功');
+      if (isFavorite && favoriteId) {
+        await request.delete(`/user/favorites/${favoriteId}`);
+        setIsFavorite(false);
+        setFavoriteId(null);
+        message.success('取消收藏成功');
+      } else {
+        const res = await request.post('/user/favorites', { type: 'course', target_id: parseInt(id) });
+        setIsFavorite(true);
+        setFavoriteId(res.data.id);
+        message.success('收藏成功');
+      }
     } catch (error) {
-      message.error('收藏失败或已收藏');
+      message.error('操作失败');
     }
   };
 
@@ -101,8 +130,12 @@ function CourseDetail() {
             <Paragraph strong>课程简介：</Paragraph>
             <Paragraph>{course.description}</Paragraph>
             <Space>
-              <Button type="primary" icon={<StarOutlined />} onClick={handleFavorite}>
-                收藏
+              <Button 
+                type={isFavorite ? 'primary' : 'default'} 
+                icon={isFavorite ? <StarFilled /> : <StarOutlined />} 
+                onClick={handleFavorite}
+              >
+                {isFavorite ? '已收藏' : '收藏'}
               </Button>
             </Space>
           </Col>

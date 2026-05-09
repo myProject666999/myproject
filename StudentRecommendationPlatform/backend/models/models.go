@@ -5,7 +5,7 @@ import "time"
 type Admin struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Username  string    `json:"username" gorm:"uniqueIndex;size:50"`
-	Password  string    `json:"-" gorm:"size:255"`
+	Password  string    `json:"password" gorm:"size:255"`
 	Name      string    `json:"name" gorm:"size:50"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -14,7 +14,7 @@ type Admin struct {
 type User struct {
 	ID         uint      `json:"id" gorm:"primaryKey"`
 	Username   string    `json:"username" gorm:"uniqueIndex;size:50"`
-	Password   string    `json:"-" gorm:"size:255"`
+	Password   string    `json:"password" gorm:"size:255"`
 	Nickname   string    `json:"nickname" gorm:"size:50"`
 	Email      string    `json:"email" gorm:"size:100"`
 	Phone      string    `json:"phone" gorm:"size:20"`

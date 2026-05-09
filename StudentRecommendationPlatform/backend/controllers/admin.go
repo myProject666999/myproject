@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
+	"time"
 
 	"student-recommendation-platform/config"
 	"student-recommendation-platform/models"
@@ -11,30 +13,37 @@ import (
 )
 
 func ListFrontUsers(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	page, pageSize := parsePageInfo(c)
 	keyword := c.Query("keyword")
 	status := c.Query("status")
-	offset := (page - 1) * pageSize
 
-	query := config.DB.Model(&models.User{})
-	if keyword != "" {
-		query = query.Where("username LIKE ? OR nickname LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
-	}
-	if status != "" {
-		query = query.Where("status = ?", status)
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
-	var total int64
 	var users []models.User
+	for _, user := range config.DB.Users {
+		if keyword != "" && !config.Contains(user.Username, keyword) && !config.Contains(user.Nickname, keyword) {
+			continue
+		}
+		if status != "" {
+			statusInt, _ := strconv.Atoi(status)
+			if user.Status != statusInt {
+				continue
+			}
+		}
+		users = append(users, user)
+	}
 
-	query.Count(&total)
-	query.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&users)
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].CreatedAt.After(users[j].CreatedAt)
+	})
+
+	paginated, total := paginate(users, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      users,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -43,7 +52,7 @@ func ListFrontUsers(c *gin.Context) {
 }
 
 func UpdateFrontUser(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
 	var data struct {
 		Nickname string `json:"nickname"`
@@ -57,8 +66,11 @@ func UpdateFrontUser(c *gin.Context) {
 		return
 	}
 
-	var user models.User
-	if err := config.DB.First(&user, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	user, exists := config.DB.Users[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "用户不存在"})
 		return
 	}
@@ -75,34 +87,38 @@ func UpdateFrontUser(c *gin.Context) {
 	if data.Password != "" {
 		user.Password = data.Password
 	}
-
-	config.DB.Save(&user)
+	user.UpdatedAt = time.Now()
+	config.DB.Users[id] = user
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": user})
 }
 
 func DeleteFrontUser(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.User{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Users, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
 
 func ApproveFrontUser(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var user models.User
-	if err := config.DB.First(&user, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	user, exists := config.DB.Users[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "用户不存在"})
 		return
 	}
 
 	user.Status = 1
-	config.DB.Save(&user)
+	user.UpdatedAt = time.Now()
+	config.DB.Users[id] = user
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "审核通过", "data": user})
 }
@@ -111,16 +127,27 @@ func ListComments(c *gin.Context) {
 	targetType := c.Query("type")
 	targetID := c.Query("target_id")
 
-	query := config.DB.Model(&models.Comment{}).Where("status = 1")
-	if targetType != "" {
-		query = query.Where("type = ?", targetType)
-	}
-	if targetID != "" {
-		query = query.Where("target_id = ?", targetID)
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
 	var comments []models.Comment
-	query.Preload("User").Order("created_at DESC").Find(&comments)
+	for _, comment := range config.DB.Comments {
+		if comment.Status != 1 {
+			continue
+		}
+		if targetType != "" && comment.Type != targetType {
+			continue
+		}
+		if targetID != "" && comment.TargetID != parseUint(targetID) {
+			continue
+		}
+		comment.User = config.DB.GetUser(comment.UserID)
+		comments = append(comments, comment)
+	}
+
+	sort.Slice(comments, func(i, j int) bool {
+		return comments[i].CreatedAt.After(comments[j].CreatedAt)
+	})
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": comments})
 }
@@ -134,26 +161,28 @@ func AddComment(c *gin.Context) {
 		return
 	}
 
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	config.DB.CommentIDCounter++
+	comment.ID = config.DB.CommentIDCounter
 	comment.UserID = userID
 	comment.Status = 1
-
-	if err := config.DB.Create(&comment).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "评论失败"})
-		return
-	}
-
-	config.DB.Preload("User").First(&comment, comment.ID)
+	comment.CreatedAt = time.Now()
+	comment.UpdatedAt = time.Now()
+	config.DB.Comments[comment.ID] = comment
+	comment.User = config.DB.GetUser(userID)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "评论成功", "data": comment})
 }
 
 func DeleteComment(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.Comment{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Comments, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
@@ -167,29 +196,34 @@ func AddFavorite(c *gin.Context) {
 		return
 	}
 
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	for _, f := range config.DB.Favorites {
+		if f.UserID == userID && f.Type == favorite.Type && f.TargetID == favorite.TargetID {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "已收藏"})
+			return
+		}
+	}
+
+	config.DB.FavoriteIDCounter++
+	favorite.ID = config.DB.FavoriteIDCounter
 	favorite.UserID = userID
-
-	var existing models.Favorite
-	if err := config.DB.Where("user_id = ? AND type = ? AND target_id = ?", userID, favorite.Type, favorite.TargetID).First(&existing).Error; err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "已收藏"})
-		return
-	}
-
-	if err := config.DB.Create(&favorite).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "收藏失败"})
-		return
-	}
+	favorite.CreatedAt = time.Now()
+	config.DB.Favorites[favorite.ID] = favorite
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "收藏成功", "data": favorite})
 }
 
 func RemoveFavorite(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Where("user_id = ? AND id = ?", userID, id).Delete(&models.Favorite{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "取消收藏失败"})
-		return
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	if favorite, exists := config.DB.Favorites[id]; exists && favorite.UserID == userID {
+		delete(config.DB.Favorites, id)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "取消收藏成功"})
@@ -199,13 +233,23 @@ func ListFavorites(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	favoriteType := c.Query("type")
 
-	query := config.DB.Where("user_id = ?", userID)
-	if favoriteType != "" {
-		query = query.Where("type = ?", favoriteType)
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
 	var favorites []models.Favorite
-	query.Order("created_at DESC").Find(&favorites)
+	for _, f := range config.DB.Favorites {
+		if f.UserID != userID {
+			continue
+		}
+		if favoriteType != "" && f.Type != favoriteType {
+			continue
+		}
+		favorites = append(favorites, f)
+	}
+
+	sort.Slice(favorites, func(i, j int) bool {
+		return favorites[i].CreatedAt.After(favorites[j].CreatedAt)
+	})
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": favorites})
 }
@@ -219,12 +263,16 @@ func AddMessage(c *gin.Context) {
 		return
 	}
 
-	message.UserID = userID
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
-	if err := config.DB.Create(&message).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "留言失败"})
-		return
-	}
+	config.DB.MessageIDCounter++
+	message.ID = config.DB.MessageIDCounter
+	message.UserID = userID
+	message.Status = 0
+	message.CreatedAt = time.Now()
+	message.UpdatedAt = time.Now()
+	config.DB.Messages[message.ID] = message
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "留言成功", "data": message})
 }
@@ -232,27 +280,45 @@ func AddMessage(c *gin.Context) {
 func ListUserMessages(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var messages []models.Message
-	config.DB.Where("user_id = ?", userID).Order("created_at DESC").Find(&messages)
+	for _, msg := range config.DB.Messages {
+		if msg.UserID == userID {
+			messages = append(messages, msg)
+		}
+	}
+
+	sort.Slice(messages, func(i, j int) bool {
+		return messages[i].CreatedAt.After(messages[j].CreatedAt)
+	})
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": messages})
 }
 
 func ListAdminMessages(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
-	offset := (page - 1) * pageSize
+	page, pageSize := parsePageInfo(c)
 
-	var total int64
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var messages []models.Message
+	for _, msg := range config.DB.Messages {
+		msg.User = config.DB.GetUser(msg.UserID)
+		messages = append(messages, msg)
+	}
 
-	config.DB.Model(&models.Message{}).Count(&total)
-	config.DB.Preload("User").Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&messages)
+	sort.Slice(messages, func(i, j int) bool {
+		return messages[i].CreatedAt.After(messages[j].CreatedAt)
+	})
+
+	paginated, total := paginate(messages, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      messages,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -261,7 +327,7 @@ func ListAdminMessages(c *gin.Context) {
 }
 
 func ReplyMessage(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
 	var data struct {
 		Reply string `json:"reply"`
@@ -272,26 +338,30 @@ func ReplyMessage(c *gin.Context) {
 		return
 	}
 
-	var message models.Message
-	if err := config.DB.First(&message, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	message, exists := config.DB.Messages[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "留言不存在"})
 		return
 	}
 
 	message.Reply = data.Reply
 	message.Status = 1
-	config.DB.Save(&message)
+	message.UpdatedAt = time.Now()
+	config.DB.Messages[id] = message
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "回复成功", "data": message})
 }
 
 func DeleteMessage(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.Message{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Messages, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
@@ -305,12 +375,16 @@ func AddDemand(c *gin.Context) {
 		return
 	}
 
-	demand.UserID = userID
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
-	if err := config.DB.Create(&demand).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "提交失败"})
-		return
-	}
+	config.DB.DemandIDCounter++
+	demand.ID = config.DB.DemandIDCounter
+	demand.UserID = userID
+	demand.Status = 0
+	demand.CreatedAt = time.Now()
+	demand.UpdatedAt = time.Now()
+	config.DB.Demands[demand.ID] = demand
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "提交成功", "data": demand})
 }
@@ -318,33 +392,52 @@ func AddDemand(c *gin.Context) {
 func ListUserDemands(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	var demands []models.Demand
-	config.DB.Where("user_id = ?", userID).Order("created_at DESC").Find(&demands)
+	for _, d := range config.DB.Demands {
+		if d.UserID == userID {
+			demands = append(demands, d)
+		}
+	}
+
+	sort.Slice(demands, func(i, j int) bool {
+		return demands[i].CreatedAt.After(demands[j].CreatedAt)
+	})
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": demands})
 }
 
 func ListAdminDemands(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	page, pageSize := parsePageInfo(c)
 	status := c.Query("status")
-	offset := (page - 1) * pageSize
 
-	query := config.DB.Model(&models.Demand{})
-	if status != "" {
-		query = query.Where("status = ?", status)
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	var demands []models.Demand
+	for _, d := range config.DB.Demands {
+		if status != "" {
+			statusInt, _ := strconv.Atoi(status)
+			if d.Status != statusInt {
+				continue
+			}
+		}
+		d.User = config.DB.GetUser(d.UserID)
+		demands = append(demands, d)
 	}
 
-	var total int64
-	var demands []models.Demand
+	sort.Slice(demands, func(i, j int) bool {
+		return demands[i].CreatedAt.After(demands[j].CreatedAt)
+	})
 
-	query.Count(&total)
-	query.Preload("User").Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&demands)
+	paginated, total := paginate(demands, page, pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"list":      demands,
+			"list":      paginated,
 			"total":     total,
 			"page":      page,
 			"page_size": pageSize,
@@ -353,38 +446,42 @@ func ListAdminDemands(c *gin.Context) {
 }
 
 func ApproveDemand(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	var demand models.Demand
-	if err := config.DB.First(&demand, id).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	demand, exists := config.DB.Demands[id]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "需求不存在"})
 		return
 	}
 
 	demand.Status = 1
-	config.DB.Save(&demand)
+	demand.UpdatedAt = time.Now()
+	config.DB.Demands[id] = demand
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "审核通过", "data": demand})
 }
 
 func DeleteDemand(c *gin.Context) {
-	id := c.Param("id")
+	id := parseUint(c.Param("id"))
 
-	if err := config.DB.Delete(&models.Demand{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除失败"})
-		return
-	}
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	delete(config.DB.Demands, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
 
 func ListSystemSettings(c *gin.Context) {
-	var settings []models.SystemSetting
-	config.DB.Find(&settings)
+	config.DB.Lock()
+	defer config.DB.Unlock()
 
 	settingMap := make(map[string]string)
-	for _, s := range settings {
-		settingMap[s.Key] = s.Value
+	for key, s := range config.DB.SystemSettings {
+		settingMap[key] = s.Value
 	}
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": settingMap})
@@ -393,8 +490,11 @@ func ListSystemSettings(c *gin.Context) {
 func GetSystemSetting(c *gin.Context) {
 	key := c.Param("key")
 
-	var setting models.SystemSetting
-	if err := config.DB.Where("key = ?", key).First(&setting).Error; err != nil {
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
+	setting, exists := config.DB.SystemSettings[key]
+	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"code": 404, "message": "设置不存在"})
 		return
 	}
@@ -409,14 +509,21 @@ func UpdateSystemSettings(c *gin.Context) {
 		return
 	}
 
+	config.DB.Lock()
+	defer config.DB.Unlock()
+
 	for key, value := range data {
-		var setting models.SystemSetting
-		if err := config.DB.Where("key = ?", key).First(&setting).Error; err != nil {
-			setting = models.SystemSetting{Key: key, Value: value}
-			config.DB.Create(&setting)
+		setting, exists := config.DB.SystemSettings[key]
+		if !exists {
+			config.DB.SystemSettings[key] = models.SystemSetting{
+				Key:       key,
+				Value:     value,
+				UpdatedAt: time.Now(),
+			}
 		} else {
 			setting.Value = value
-			config.DB.Save(&setting)
+			setting.UpdatedAt = time.Now()
+			config.DB.SystemSettings[key] = setting
 		}
 	}
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Table, Button, Tag, message, Popconfirm, Modal, Form, Input, DatePicker, Select, Space, InputNumber } from 'antd'
+import { Table, Button, Tag, message, Popconfirm, Modal, Form, Input, DatePicker, Select, Space } from 'antd'
 import { SearchOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { studentApi } from '../../utils/api'
 import dayjs from 'dayjs'
@@ -36,7 +36,7 @@ function MyAppointments() {
     setCurrentRecord(record)
     form.setFieldsValue({
       date: record.appointment_date ? dayjs(record.appointment_date) : null,
-      time: record.appointment_time ? dayjs(record.appointment_time, 'HH:mm') : null,
+      time: record.appointment_time,
       contact_phone: record.contact_phone,
       remark: record.remark
     })
@@ -47,7 +47,7 @@ function MyAppointments() {
     try {
       const updateData = {
         appointment_date: values.date?.format('YYYY-MM-DD'),
-        appointment_time: values.time?.format('HH:mm'),
+        appointment_time: values.time,
         contact_phone: values.contact_phone,
         remark: values.remark
       }
@@ -145,7 +145,7 @@ function MyAppointments() {
           <Form.Item name="time" label="预约时间" rules={[{ required: true }]}>
             <Select placeholder="请选择时间段">
               {timeSlots.map(t => (
-                <Select.Option key={t} value={dayjs(t, 'HH:mm')}>{t}</Select.Option>
+                <Select.Option key={t} value={t}>{t}</Select.Option>
               ))}
             </Select>
           </Form.Item>

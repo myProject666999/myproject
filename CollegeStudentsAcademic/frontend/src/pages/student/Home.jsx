@@ -100,13 +100,17 @@ function Home() {
         ) : (
           <Row gutter={24}>
             {[
-              { title: '职业规划咨询', desc: '一对一职业规划指导，帮助你明确职业方向', price: 200 },
-              { title: '学业选课指导', desc: '专业课程选择建议，优化你的学习计划', price: 150 },
-              { title: '考研规划咨询', desc: '考研备考全流程指导，助你成功上岸', price: 300 },
-              { title: '留学申请指导', desc: '出国留学申请规划，专业文书修改', price: 500 }
+              { id: 1, title: '职业规划咨询', desc: '一对一职业规划指导，帮助你明确职业方向', price: 200 },
+              { id: 2, title: '学业选课指导', desc: '专业课程选择建议，优化你的学习计划', price: 150 },
+              { id: 3, title: '考研规划咨询', desc: '考研备考全流程指导，助你成功上岸', price: 300 },
+              { id: 4, title: '留学申请指导', desc: '出国留学申请规划，专业文书修改', price: 500 }
             ].map((item, i) => (
               <Col span={6} key={i}>
-                <Card className="card-hover" hoverable>
+                <Card 
+                  className="card-hover" 
+                  hoverable
+                  onClick={() => navigate(`/services/${item.id}`)}
+                >
                   <Card.Meta 
                     title={item.title} 
                     description={
