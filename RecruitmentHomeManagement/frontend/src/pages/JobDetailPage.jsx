@@ -12,22 +12,16 @@ function JobDetailPage() {
   const [message, setMessage] = useState('');
   const [applyLoading, setApplyLoading] = useState(false);
   const [applyResult, setApplyResult] = useState(null);
-  const fetchedRef = useRef(false);
+  const lastViewedId = useRef(null);
 
   useEffect(() => {
-    fetchedRef.current = false;
-    setJob(null);
-    setLoading(true);
-  }, [id]);
-
-  useEffect(() => {
-    if (fetchedRef.current) {
+    if (lastViewedId.current === id) {
       return;
     }
+    lastViewedId.current = id;
 
     const fetchJob = async () => {
       try {
-        fetchedRef.current = true;
         const response = await api.get(`/jobs/${id}`);
         setJob(response.data.job);
       } catch (err) {

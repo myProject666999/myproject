@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"database/sql"
+	"fmt"
 	"garbage-classification/config"
 	"garbage-classification/models"
 	"log"
@@ -13,12 +15,30 @@ var DB *gorm.DB
 
 func InitDB() {
 	cfg := config.GetConfig()
+	createDatabaseIfNotExists(cfg)
 	var err error
 	DB, err = gorm.Open(mysql.Open(cfg.GetDSN()), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	log.Println("Database connected successfully")
+}
+
+func createDatabaseIfNotExists(cfg *config.Config) {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local",
+		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort)
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Printf("Warning: Could not connect to MySQL to check database: %v", err)
+		return
+	}
+	defer db.Close()
+
+	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", cfg.DBName)
+	_, err = db.Exec(query)
+	if err != nil {
+		log.Printf("Warning: Could not create database: %v", err)
+	}
 }
 
 func AutoMigrate() {
