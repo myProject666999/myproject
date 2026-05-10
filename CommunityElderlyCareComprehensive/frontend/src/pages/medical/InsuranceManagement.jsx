@@ -34,8 +34,8 @@ const InsuranceManagement = () => {
 
   const fetchUsers = async () => {
     if (canEdit) {
-      const result = await userApi.list({ page: 1, page_size: 1000 });
-      setUsers(result.list || []);
+      const result = await userApi.getPatients();
+      setUsers(result || []);
     }
   };
 

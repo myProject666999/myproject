@@ -11,9 +11,9 @@ import {
   CalendarOutlined,
   FileTextOutlined,
   HeartOutlined,
-  PillOutlined,
   SafetyCertificateOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  TagsOutlined
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,7 +27,7 @@ const iconMap = {
   menu: <AppstoreOutlined />,
   'medicine-box': <MedicineBoxOutlined />,
   insurance: <SafetyCertificateOutlined />,
-  pill: <PillOutlined />,
+  pill: <TagsOutlined />,
   heart: <HeartOutlined />,
   calendar: <CalendarOutlined />,
   'file-text': <FileTextOutlined />
@@ -38,7 +38,7 @@ const MainLayout = () => {
   const [menuItems, setMenuItems] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isAdmin, isDoctor, loading } = useAuth();
+  const { user, logout, isAdmin, isDoctor, isPatient, loading } = useAuth();
   const {
     token: { colorBgContainer, borderRadiusLG }
   } = theme.useToken();

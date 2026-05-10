@@ -12,7 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 const { Title, Paragraph } = Typography;
 
 const Dashboard = () => {
-  const { user, isAdmin, isDoctor, isPatient } = useAuth();
+  const { user } = useAuth();
 
   return (
     <div>

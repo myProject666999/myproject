@@ -198,3 +198,26 @@ func GetDoctors(c *gin.Context) {
 
 	c.JSON(http.StatusOK, doctors)
 }
+
+func GetPatients(c *gin.Context) {
+	var patients []model.User
+
+	var patientRole model.Role
+	config.DB.Where("name = ?", "patient").First(&patientRole)
+
+	if patientRole.ID > 0 {
+		var userRoles []model.UserRole
+		config.DB.Where("role_id = ?", patientRole.ID).Find(&userRoles)
+
+		userIDs := make([]uint, len(userRoles))
+		for i, ur := range userRoles {
+			userIDs[i] = ur.UserID
+		}
+
+		if len(userIDs) > 0 {
+			config.DB.Where("id IN ?", userIDs).Find(&patients)
+		}
+	}
+
+	c.JSON(http.StatusOK, patients)
+}

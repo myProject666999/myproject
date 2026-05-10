@@ -12,7 +12,8 @@ export const userApi = {
   create: (data) => request.post('/users', data),
   update: (id, data) => request.put(`/users/${id}`, data),
   delete: (id) => request.delete(`/users/${id}`),
-  getDoctors: () => request.get('/doctors')
+  getDoctors: () => request.get('/doctors'),
+  getPatients: () => request.get('/patients')
 };
 
 export const roleApi = {

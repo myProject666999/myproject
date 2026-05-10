@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, Space, Popconfirm, message, Select, DatePicker, InputNumber, Card, Statistic, Row, Col } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, HeartOutlined, ThunderboltOutlined, SmileOutlined, FireOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, HeartOutlined, ThunderboltFilled, SmileOutlined, FireFilled } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { healthApi, userApi } from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -45,8 +45,8 @@ const HealthRecordPage = () => {
 
   const fetchUsers = async () => {
     if (canEdit) {
-      const result = await userApi.list({ page: 1, page_size: 1000 });
-      setUsers(result.list || []);
+      const result = await userApi.getPatients();
+      setUsers(result || []);
     }
   };
 
@@ -157,7 +157,7 @@ const HealthRecordPage = () => {
             <Statistic
               title="血压"
               value={stats.bloodPressure || '-'}
-              prefix={<ThunderboltOutlined style={{ color: '#1890ff' }} />}
+              prefix={<ThunderboltFilled style={{ color: '#1890ff' }} />}
             />
           </Card>
         </Col>
@@ -177,7 +177,7 @@ const HealthRecordPage = () => {
               title="体温"
               value={stats.temperature || '-'}
               suffix="°C"
-              prefix={<FireOutlined style={{ color: '#fa8c16' }} />}
+              prefix={<FireFilled style={{ color: '#fa8c16' }} />}
             />
           </Card>
         </Col>

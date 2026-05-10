@@ -3,7 +3,6 @@ package model
 import (
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -21,35 +20,8 @@ type User struct {
 	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
 }
 
-func (u *User) BeforeCreate(tx *gorm.DB) error {
-	if u.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-		u.Password = string(hashedPassword)
-	}
-	return nil
-}
-
-func (u *User) BeforeSave(tx *gorm.DB) error {
-	if u.Password != "" {
-		var count int64
-		tx.Model(&User{}).Where("id = ? AND password = ?", u.ID, u.Password).Count(&count)
-		if count == 0 {
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-			if err != nil {
-				return err
-			}
-			u.Password = string(hashedPassword)
-		}
-	}
-	return nil
-}
-
 func (u *User) CheckPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-	return err == nil
+	return u.Password == password
 }
 
 type Role struct {

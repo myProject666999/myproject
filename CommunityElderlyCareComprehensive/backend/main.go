@@ -49,8 +49,8 @@ func main() {
 
 			user := auth.Group("/users")
 			{
-				user.GET("", middleware.RequireRole("admin"), controller.GetUsers)
-				user.GET("/:id", middleware.RequireRole("admin"), controller.GetUser)
+				user.GET("", middleware.RequireRole("admin", "doctor"), controller.GetUsers)
+				user.GET("/:id", middleware.RequireRole("admin", "doctor"), controller.GetUser)
 				user.POST("", middleware.RequireRole("admin"), controller.CreateUser)
 				user.PUT("/:id", middleware.RequireRole("admin"), controller.UpdateUser)
 				user.DELETE("/:id", middleware.RequireRole("admin"), controller.DeleteUser)
@@ -121,6 +121,7 @@ func main() {
 			}
 
 			auth.GET("/doctors", controller.GetDoctors)
+			auth.GET("/patients", controller.GetPatients)
 		}
 	}
 
