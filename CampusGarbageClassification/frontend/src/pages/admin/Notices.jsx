@@ -40,17 +40,21 @@ function Notices() {
 
   const handleSubmit = async (values) => {
     try {
+      const data = {
+        ...values,
+        status: values.status ? 1 : 0
+      };
       if (editingItem) {
-        await noticeAPI.update(editingItem.id, values);
+        await noticeAPI.update(editingItem.id, data);
         message.success('更新成功');
       } else {
-        await noticeAPI.create(values);
+        await noticeAPI.create(data);
         message.success('创建成功');
       }
       setModalOpen(false);
       loadList();
     } catch (error) {
-      message.error('操作失败');
+      message.error(error.response?.data?.message || '操作失败');
     }
   };
 

@@ -17,17 +17,16 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/" element={
+      <Route path="/*" element={
         <ProtectedRoute requiredRole="student">
           <StudentLayout />
         </ProtectedRoute>
       } />
-      <Route path="/admin" element={
+      <Route path="/admin/*" element={
         <ProtectedRoute requiredRole="admin">
           <AdminLayout />
         </ProtectedRoute>
       } />
-      <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
 }

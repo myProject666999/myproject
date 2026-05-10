@@ -1,0 +1,17 @@
+server:
+  port: 8080
+  mode: debug
+
+database:
+  host: localhost
+  port: 3306
+  username: root
+  password: password
+  dbname: community_care
+  charset: utf8mb4
+  parse_time: true
+  loc: Local
+
+jwt:
+  secret: community-care-jwt-secret-key
+  expire_time: 24

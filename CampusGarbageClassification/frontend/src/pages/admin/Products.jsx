@@ -55,11 +55,15 @@ function Products() {
 
   const handleSubmit = async (values) => {
     try {
+      const data = {
+        ...values,
+        status: values.status ? 1 : 0
+      };
       if (editingItem) {
-        await productAPI.update(editingItem.id, values);
+        await productAPI.update(editingItem.id, data);
         message.success('更新成功');
       } else {
-        await productAPI.create(values);
+        await productAPI.create(data);
         message.success('创建成功');
       }
       setModalOpen(false);

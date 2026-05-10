@@ -37,17 +37,21 @@ function Bins() {
 
   const handleSubmit = async (values) => {
     try {
+      const data = {
+        ...values,
+        status: values.status ? 1 : 0
+      };
       if (editingItem) {
-        await binAPI.update(editingItem.id, values);
+        await binAPI.update(editingItem.id, data);
         message.success('更新成功');
       } else {
-        await binAPI.create(values);
+        await binAPI.create(data);
         message.success('创建成功');
       }
       setModalOpen(false);
       loadList();
     } catch (error) {
-      message.error('操作失败');
+      message.error(error.response?.data?.message || '操作失败');
     }
   };
 
