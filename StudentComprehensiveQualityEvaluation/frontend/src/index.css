@@ -1,0 +1,101 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-card {
+  width: 400px;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.layout-container {
+  min-height: 100vh;
+}
+
+.layout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #001529;
+}
+
+.logo {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: white;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layout-content {
+  margin: 24px;
+  padding: 24px;
+  background: white;
+  border-radius: 8px;
+  min-height: calc(100vh - 168px);
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #1890ff;
+}
+
+.search-form {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.table-toolbar {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 12px;
+}

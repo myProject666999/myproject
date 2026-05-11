@@ -23,7 +23,7 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const [doctorsRes, nursesRes, patientsRes, medicinesRes] = await Promise.all([
+      const results = await Promise.allSettled([
         request.get('/doctors?page_size=1'),
         request.get('/nurses?page_size=1'),
         request.get('/patients?page_size=1'),
@@ -31,13 +31,13 @@ const Dashboard = () => {
       ])
 
       setStats({
-        doctors: doctorsRes.data.total || 0,
-        nurses: nursesRes.data.total || 0,
-        patients: patientsRes.data.total || 0,
-        medicines: medicinesRes.data.total || 0,
+        doctors: results[0].status === 'fulfilled' ? results[0].value.data.total || 0 : 0,
+        nurses: results[1].status === 'fulfilled' ? results[1].value.data.total || 0 : 0,
+        patients: results[2].status === 'fulfilled' ? results[2].value.data.total || 0 : 0,
+        medicines: results[3].status === 'fulfilled' ? results[3].value.data.total || 0 : 0,
       })
     } catch (error) {
-      message.error('获取统计数据失败')
+      console.error('Failed to fetch stats:', error)
     } finally {
       setLoading(false)
     }

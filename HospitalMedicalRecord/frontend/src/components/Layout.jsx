@@ -29,8 +29,11 @@ const AppLayout = () => {
 
   const fetchUserInfo = async () => {
     try {
-      const res = await request.get('/me')
-      setUserInfo(res.data)
+      const token = localStorage.getItem('token')
+      if (token) {
+        const res = await request.get('/me')
+        setUserInfo(res.data)
+      }
     } catch (error) {
       console.error('Failed to fetch user info:', error)
     }

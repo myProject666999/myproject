@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { isAuthenticated, getUserRole } from './utils/auth'
 import Login from './pages/Login'
@@ -12,7 +12,7 @@ import MedicalRecords from './pages/MedicalRecords'
 import Medicines from './pages/Medicines'
 import ChangePassword from './pages/ChangePassword'
 
-const PrivateRoute = ({ children, requiredRoles }) => {
+const RequireAuth = ({ children, requiredRoles }) => {
   const location = useLocation()
   const authenticated = isAuthenticated()
   const userRole = getUserRole()
@@ -22,45 +22,30 @@ const PrivateRoute = ({ children, requiredRoles }) => {
   }
 
   if (requiredRoles && !requiredRoles.includes(userRole)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   return children
 }
 
 const App = () => {
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 100)
-    return () => clearTimeout(timer)
-  }, [])
-
-  if (loading) return null
-
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       
-      <Route
-        path="/"
-        element={
-          <PrivateRoute requiredRoles={['admin', 'doctor', 'nurse']}>
-            <Layout />
-          </PrivateRoute>
-        }
-      >
+      <Route path="/" element={
+        <RequireAuth requiredRoles={['admin', 'doctor', 'nurse']}>
+          <Layout />
+        </RequireAuth>
+      }>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         
-        <Route
-          path="users"
-          element={
-            <PrivateRoute requiredRoles={['admin']}>
-              <Users />
-            </PrivateRoute>
-          }
-        />
+        <Route path="users" element={
+          <RequireAuth requiredRoles={['admin']}>
+            <Users />
+          </RequireAuth>
+        } />
         
         <Route path="doctors" element={<Doctors />} />
         <Route path="nurses" element={<Nurses />} />
