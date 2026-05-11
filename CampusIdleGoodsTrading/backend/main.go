@@ -2,6 +2,7 @@ package main
 
 import (
 	"campus-trading/config"
+	"campus-trading/data"
 	"campus-trading/middleware"
 	"campus-trading/routes"
 	"log"
@@ -17,11 +18,17 @@ func main() {
 
 	err = config.InitDB(cfg)
 	if err != nil {
-		log.Printf("Warning: Failed to connect to database: %v", err)
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	if err := config.MigrateDB(); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+
+	if err := data.InitSeedData(); err != nil {
+		log.Printf("Warning: Failed to seed data: %v", err)
 	} else {
-		if err := config.MigrateDB(); err != nil {
-			log.Printf("Warning: Failed to migrate database: %v", err)
-		}
+		log.Println("Database seed data initialized successfully")
 	}
 
 	r := gin.Default()

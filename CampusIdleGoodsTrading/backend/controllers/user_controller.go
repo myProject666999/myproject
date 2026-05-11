@@ -4,9 +4,11 @@ import (
 	"campus-trading/config"
 	"campus-trading/models"
 	"campus-trading/utils"
+	"log"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type RegisterRequest struct {
@@ -32,18 +34,31 @@ type UpdateUserRequest struct {
 func Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("Register: bind error: %v", err)
 		utils.BadRequest(c, "参数错误")
 		return
 	}
 
+	log.Printf("Register attempt with username: %s", req.Username)
+
 	var existingUser models.User
-	if result := config.DB.Where("username = ?", req.Username).First(&existingUser); result.Error == nil {
+	result := config.DB.Where("username = ?", req.Username).First(&existingUser)
+	
+	if result.Error == nil {
+		log.Printf("Register: username %s already exists", req.Username)
 		utils.BadRequest(c, "用户名已存在")
+		return
+	} else if result.Error != gorm.ErrRecordNotFound {
+		log.Printf("Register: database error when checking username: %v", result.Error)
+		utils.ServerError(c, "服务器错误")
 		return
 	}
 
+	log.Printf("Register: username %s is available, creating user...", req.Username)
+
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
+		log.Printf("Register: hash password error: %v", err)
 		utils.ServerError(c, "密码加密失败")
 		return
 	}
@@ -59,9 +74,12 @@ func Register(c *gin.Context) {
 	}
 
 	if result := config.DB.Create(&user); result.Error != nil {
+		log.Printf("Register: create user error: %v", result.Error)
 		utils.ServerError(c, "注册失败")
 		return
 	}
+
+	log.Printf("Register: user %s created successfully with id: %d", user.Username, user.ID)
 
 	utils.Success(c, gin.H{
 		"id":       user.ID,
@@ -72,22 +90,31 @@ func Register(c *gin.Context) {
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("Login: bind error: %v", err)
 		utils.BadRequest(c, "参数错误")
 		return
 	}
 
+	log.Printf("Login attempt with username: %s", req.Username)
+
 	var user models.User
-	if result := config.DB.Where("username = ?", req.Username).First(&user); result.Error != nil {
+	result := config.DB.Where("username = ?", req.Username).First(&user)
+	if result.Error != nil {
+		log.Printf("Login: user %s not found: %v", req.Username, result.Error)
 		utils.BadRequest(c, "用户名或密码错误")
 		return
 	}
 
+	log.Printf("Login: found user %s, status=%d, role=%s", user.Username, user.Status, user.Role)
+
 	if user.Status != 1 {
+		log.Printf("Login: user %s is disabled (status=%d)", user.Username, user.Status)
 		utils.Forbidden(c, "账号已被禁用")
 		return
 	}
 
 	if !utils.CheckPassword(req.Password, user.Password) {
+		log.Printf("Login: password incorrect for user %s", user.Username)
 		utils.BadRequest(c, "用户名或密码错误")
 		return
 	}
@@ -97,9 +124,12 @@ func Login(c *gin.Context) {
 
 	token, err := utils.GenerateToken(user.ID, user.Username, user.Role, cfg.JWTSecret, expireHours)
 	if err != nil {
+		log.Printf("Login: token generation error: %v", err)
 		utils.ServerError(c, "生成token失败")
 		return
 	}
+
+	log.Printf("Login: user %s logged in successfully", user.Username)
 
 	utils.Success(c, gin.H{
 		"token": token,
@@ -208,22 +238,31 @@ func ChangePassword(c *gin.Context) {
 func AdminLogin(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("AdminLogin: bind error: %v", err)
 		utils.BadRequest(c, "参数错误")
 		return
 	}
 
+	log.Printf("AdminLogin attempt with username: %s", req.Username)
+
 	var user models.User
-	if result := config.DB.Where("username = ? AND role = ?", req.Username, "admin").First(&user); result.Error != nil {
+	result := config.DB.Where("username = ? AND role = ?", req.Username, "admin").First(&user)
+	if result.Error != nil {
+		log.Printf("AdminLogin: admin user %s not found: %v", req.Username, result.Error)
 		utils.BadRequest(c, "用户名或密码错误")
 		return
 	}
 
+	log.Printf("AdminLogin: found admin user %s, status=%d", user.Username, user.Status)
+
 	if user.Status != 1 {
+		log.Printf("AdminLogin: admin user %s is disabled (status=%d)", user.Username, user.Status)
 		utils.Forbidden(c, "账号已被禁用")
 		return
 	}
 
 	if !utils.CheckPassword(req.Password, user.Password) {
+		log.Printf("AdminLogin: password incorrect for admin user %s", user.Username)
 		utils.BadRequest(c, "用户名或密码错误")
 		return
 	}
@@ -233,9 +272,12 @@ func AdminLogin(c *gin.Context) {
 
 	token, err := utils.GenerateToken(user.ID, user.Username, user.Role, cfg.JWTSecret, expireHours)
 	if err != nil {
+		log.Printf("AdminLogin: token generation error: %v", err)
 		utils.ServerError(c, "生成token失败")
 		return
 	}
+
+	log.Printf("AdminLogin: admin user %s logged in successfully", user.Username)
 
 	utils.Success(c, gin.H{
 		"token": token,

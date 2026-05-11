@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Route, Routes, useNavigate, useLocation } from 'react-router-dom'
-import { Layout, Menu, Card, Avatar, Descriptions, Form, Input, Button, message, Modal, Table, Space, Tag, Empty, Typography, Popconfirm, Tabs, Divider, Row, Col, List } from 'antd'
+import { Layout, Menu, Card, Avatar, Descriptions, Form, Input, Button, message, Modal, Table, Space, Tag, Empty, Typography, Popconfirm, Tabs, Row, Col, Switch } from 'antd'
 import { 
   UserOutlined, ShoppingCartOutlined, HeartOutlined, FileTextOutlined, 
   EnvironmentOutlined, SettingOutlined, EditOutlined, DeleteOutlined,
-  CheckCircleOutlined, CloseCircleOutlined, SendOutlined
+  CheckCircleOutlined, CloseCircleOutlined, SendOutlined, PlusOutlined
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import AppLayout from '../components/Layout'
@@ -30,13 +30,6 @@ function Profile() {
   
   const [profile, setProfile] = useState(null)
   const [form] = Form.useForm()
-  const [addressModalVisible, setAddressModalVisible] = useState(false)
-  const [editingAddress, setEditingAddress] = useState(null)
-  const [addresses, setAddresses] = useState([])
-  const [orders, setOrders] = useState([])
-  const [favorites, setFavorites] = useState([])
-  const [orderPagination, setOrderPagination] = useState({ current: 1, pageSize: 10, total: 0 })
-  const [addressForm] = Form.useForm()
 
   const menuItems = [
     { key: '/profile', icon: <UserOutlined />, label: '个人信息' },
@@ -148,22 +141,30 @@ function Profile() {
   const OrderList = () => {
     const [status, setStatus] = useState('')
     const [loading, setLoading] = useState(false)
+    const [orders, setOrders] = useState([])
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 })
 
     useEffect(() => {
       loadOrders()
-    }, [orderPagination.current, orderPagination.pageSize, status])
+    }, [pagination.current, pagination.pageSize, status])
 
     const loadOrders = async () => {
       setLoading(true)
       try {
         const params = {
-          page: orderPagination.current,
-          page_size: orderPagination.pageSize,
+          page: pagination.current,
+          page_size: pagination.pageSize,
           ...(status && { status })
         }
         const res = await userApi.getOrders(params)
         setOrders(res.data.list || [])
-        setOrderPagination(p => ({ ...p, total: res.data.total }))
+        const newTotal = res.data.total || 0
+        setPagination(prev => {
+          if (prev.total === newTotal) {
+            return prev
+          }
+          return { ...prev, total: newTotal }
+        })
       } catch (error) {
         console.error(error)
       } finally {
@@ -242,9 +243,9 @@ function Profile() {
         title: '状态',
         dataIndex: 'status',
         key: 'status',
-        render: (status) => (
-          <span className={`order-status-badge ${ORDER_STATUS[status]?.className}`}>
-            {ORDER_STATUS[status]?.label}
+        render: (s) => (
+          <span className={`order-status-badge ${ORDER_STATUS[s]?.className}`}>
+            {ORDER_STATUS[s]?.label}
           </span>
         )
       },
@@ -301,10 +302,10 @@ function Profile() {
             rowKey="id"
             loading={loading}
             pagination={{
-              current: orderPagination.current,
-              pageSize: orderPagination.pageSize,
-              total: orderPagination.total,
-              onChange: (page, pageSize) => setOrderPagination(p => ({ ...p, current: page, pageSize }))
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              onChange: (page, pageSize) => setPagination(prev => ({ ...prev, current: page, pageSize }))
             }}
           />
         ) : (
@@ -315,6 +316,11 @@ function Profile() {
   }
 
   const AddressList = () => {
+    const [addressModalVisible, setAddressModalVisible] = useState(false)
+    const [editingAddress, setEditingAddress] = useState(null)
+    const [addresses, setAddresses] = useState([])
+    const [addressForm] = Form.useForm()
+
     useEffect(() => {
       loadAddresses()
     }, [])
@@ -336,7 +342,15 @@ function Profile() {
 
     const handleEditAddress = (address) => {
       setEditingAddress(address)
-      addressForm.setFieldsValue(address)
+      addressForm.setFieldsValue({
+        name: address.name,
+        phone: address.phone,
+        province: address.province,
+        city: address.city,
+        district: address.district,
+        detail: address.detail,
+        is_default: address.is_default === 1
+      })
       setAddressModalVisible(true)
     }
 
@@ -362,10 +376,14 @@ function Profile() {
 
     const handleSubmitAddress = async (values) => {
       try {
+        const data = {
+          ...values,
+          is_default: values.is_default ? 1 : 0
+        }
         if (editingAddress) {
-          await userApi.updateAddress(editingAddress.id, values)
+          await userApi.updateAddress(editingAddress.id, data)
         } else {
-          await userApi.createAddress(values)
+          await userApi.createAddress(data)
         }
         message.success(editingAddress ? '更新成功' : '添加成功')
         setAddressModalVisible(false)
@@ -378,7 +396,7 @@ function Profile() {
     return (
       <div>
         <div style={{ marginBottom: 16, textAlign: 'right' }}>
-          <Button type="primary" icon={<EditOutlined />} onClick={handleAddAddress}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAddAddress}>
             添加地址
           </Button>
         </div>
@@ -387,7 +405,7 @@ function Profile() {
           <Row gutter={[16, 16]}>
             {addresses.map(addr => (
               <Col span={24} key={addr.id}>
-                <div className={`address-card ${addr.is_default ? 'default' : ''}`}>
+                <div className={`address-card ${addr.is_default === 1 ? 'default' : ''}`}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <Space>
@@ -442,8 +460,8 @@ function Profile() {
             <Form.Item name="detail" label="详细地址" rules={[{ required: true, message: '请输入详细地址' }]}>
               <Input.TextArea rows={2} placeholder="请输入详细地址" />
             </Form.Item>
-            <Form.Item name="is_default" label="默认地址" valuePropName="checked">
-              <input type="checkbox" /> 设为默认地址
+            <Form.Item name="is_default" label="默认地址" valuePropName="checked" initialValue={false}>
+              <Switch checkedChildren="是" unCheckedChildren="否" />
             </Form.Item>
             <Form.Item style={{ textAlign: 'right' }}>
               <Space>
@@ -459,6 +477,7 @@ function Profile() {
 
   const FavoriteList = () => {
     const [loading, setLoading] = useState(false)
+    const [favorites, setFavorites] = useState([])
     const [pagination, setPagination] = useState({ current: 1, pageSize: 12, total: 0 })
 
     useEffect(() => {
@@ -473,7 +492,13 @@ function Profile() {
           page_size: pagination.pageSize
         })
         setFavorites(res.data.list || [])
-        setPagination(p => ({ ...p, total: res.data.total }))
+        const newTotal = res.data.total || 0
+        setPagination(prev => {
+          if (prev.total === newTotal) {
+            return prev
+          }
+          return { ...prev, total: newTotal }
+        })
       } catch (error) {
         console.error(error)
       } finally {
