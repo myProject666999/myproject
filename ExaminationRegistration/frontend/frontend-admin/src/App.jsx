@@ -13,22 +13,19 @@ import ExamManagement from './pages/ExamManagement'
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('adminToken')
-  return token ? children : <Navigate to="/login" />
+  return token ? children : <Navigate to="/login" replace />
 }
 
 const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<Navigate to="/users" />} />
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <AdminLayout />
-          </PrivateRoute>
-        }
-      >
+      <Route path="/" element={
+        <PrivateRoute>
+          <AdminLayout />
+        </PrivateRoute>
+      }>
+        <Route index element={<Navigate to="/users" replace />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="school-intros" element={<SchoolIntroManagement />} />
         <Route path="enrollment-projects" element={<EnrollmentProjectManagement />} />

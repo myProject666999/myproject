@@ -72,12 +72,14 @@ func migrate() {
 }
 
 func seedData() {
-	var adminCount int64
-	DB.Model(&models.User{}).Where("role = ?", "admin").Count(&adminCount)
-	if adminCount == 0 {
-		admin := models.User{
+	correctHash := "$2a$10$/OH/JODHn20nQ2jAftc8qeffy5cCz7yuXewhFQUGaKFw9aQfkw66e"
+	
+	var admin models.User
+	result := DB.Where("username = ?", "admin").First(&admin)
+	if result.Error != nil {
+		admin = models.User{
 			Username: "admin",
-			Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+			Password: correctHash,
 			Email:    "admin@example.com",
 			Nickname: "系统管理员",
 			Role:     "admin",
@@ -85,20 +87,37 @@ func seedData() {
 		}
 		DB.Create(&admin)
 		log.Println("Admin user created: admin / password123")
+	} else {
+		result := DB.Model(&models.User{}).Where("id = ?", admin.ID).Update("password", correctHash)
+		if result.Error != nil {
+			log.Printf("Failed to update admin password: %v", result.Error)
+		} else {
+			log.Printf("Admin user password reset to: password123 (rows affected: %d)", result.RowsAffected)
+		}
+		DB.Model(&models.User{}).Where("id = ?", admin.ID).Update("role", "admin")
+		DB.Model(&models.User{}).Where("id = ?", admin.ID).Update("status", 1)
 	}
 
-	var userCount int64
-	DB.Model(&models.User{}).Where("role = ?", "user").Count(&userCount)
-	if userCount == 0 {
-		testUser := models.User{
+	var testUser models.User
+	result = DB.Where("username = ?", "testuser").First(&testUser)
+	if result.Error != nil {
+		testUser = models.User{
 			Username: "testuser",
-			Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
-			Email:    "testuser@example.com",
+			Password: correctHash,
+			Email:    "test@example.com",
 			Nickname: "测试用户",
 			Role:     "user",
 			Status:   1,
 		}
 		DB.Create(&testUser)
 		log.Println("Test user created: testuser / password123")
+	} else {
+		result := DB.Model(&models.User{}).Where("id = ?", testUser.ID).Update("password", correctHash)
+		if result.Error != nil {
+			log.Printf("Failed to update testuser password: %v", result.Error)
+		} else {
+			log.Printf("Test user password reset to: password123 (rows affected: %d)", result.RowsAffected)
+		}
+		DB.Model(&models.User{}).Where("id = ?", testUser.ID).Update("status", 1)
 	}
 }

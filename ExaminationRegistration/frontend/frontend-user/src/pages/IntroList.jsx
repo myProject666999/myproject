@@ -50,7 +50,7 @@ const IntroList = () => {
                       color: 'white',
                       fontSize: 48
                     }}>
-                      🏫
+                      #
                     </div>
                   }
                   onClick={() => navigate(`/intros/${item.id}`)}
@@ -59,9 +59,9 @@ const IntroList = () => {
                     title={item.title}
                     description={
                       <div>
-                        <Paragraph ellipsis={{ rows: 2}>{item.content}</Paragraph>
-                        <div style={{ marginTop: 8, color: '#999 }}>
-                          👁 {item.view_count} 浏览 · 👍 {item.like_count} 赞
+                        <Paragraph ellipsis={{ rows: 2 }}>{item.content}</Paragraph>
+                        <div style={{ marginTop: 8, color: '#999' }}>
+                          浏览 {item.view_count} · 点赞 {item.like_count}
                         </div>
                       </div>
                     }

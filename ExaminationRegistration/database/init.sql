@@ -338,6 +338,10 @@ INSERT INTO `question_options` (`question_id`, `option_key`, `option_text`, `sor
 (10, 'C', '{x*2 for x in range(10)}', 3),
 (10, 'D', 'x*2 for x in range(10)', 4);
 
+INSERT INTO `users` (`username`, `password`, `email`, `nickname`, `role`, `status`) VALUES
+('admin', '$2a$10$/OH/JODHn20nQ2jAftc8qeffy5cCz7yuXewhFQUGaKFw9aQfkw66e', 'admin@example.com', '系统管理员', 'admin', 1),
+('testuser', '$2a$10$/OH/JODHn20nQ2jAftc8qeffy5cCz7yuXewhFQUGaKFw9aQfkw66e', 'test@example.com', '测试用户', 'user', 1);
+
 INSERT INTO `forum_posts` (`user_id`, `title`, `content`, `category`, `view_count`, `like_count`, `status`) VALUES
 (2, 'Java学习心得分享', '经过两个月的学习，我对Java有了深入的理解，想和大家分享一下我的学习心得...', '学习交流', 100, 20, 1),
 (2, '前端面试经验', '最近面试了几家公司，整理了一些前端面试常见的问题和答案...', '求职面试', 150, 35, 1);

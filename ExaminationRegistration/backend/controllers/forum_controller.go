@@ -116,6 +116,32 @@ func AdminGetPostList(c *gin.Context) {
 	})
 }
 
+func AdminGetPostDetail(c *gin.Context) {
+	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	var post models.ForumPost
+	if result := database.DB.First(&post, id); result.Error != nil {
+		utils.NotFound(c, "帖子不存在")
+		return
+	}
+
+	var user models.User
+	database.DB.First(&user, post.UserID)
+
+	utils.Success(c, gin.H{
+		"id":          post.ID,
+		"title":         post.Title,
+		"content":       post.Content,
+		"user_id":       post.UserID,
+		"author_name":   user.Username,
+		"category":    post.Category,
+		"image":      post.Image,
+		"views":     post.ViewCount,
+		"status":       post.Status,
+		"created_at":    post.CreatedAt,
+	})
+}
+
 func AdminUpdatePost(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
 

@@ -354,3 +354,47 @@ func BatchDeleteUser(c *gin.Context) {
 
 	utils.SuccessWithMessage(c, "批量删除成功", nil)
 }
+
+func AdminLogin(c *gin.Context) {
+	var req struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "参数错误: "+err.Error())
+		return
+	}
+
+	var user models.User
+	if result := database.DB.Where("username = ?", req.Username).First(&user); result.Error != nil {
+		utils.Unauthorized(c, "用户名或密码错误")
+		return
+	}
+
+	if user.Role != "admin" {
+		utils.Unauthorized(c, "无管理员权限")
+		return
+	}
+
+	if user.Status != 1 {
+		utils.Unauthorized(c, "账号已被禁用")
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		utils.Unauthorized(c, "用户名或密码错误")
+		return
+	}
+
+	token, err := utils.GenerateToken(user.ID, user.Username, user.Role)
+	if err != nil {
+		utils.InternalError(c, "生成token失败")
+		return
+	}
+
+	utils.Success(c, gin.H{
+		"token": token,
+		"user":  user,
+	})
+}

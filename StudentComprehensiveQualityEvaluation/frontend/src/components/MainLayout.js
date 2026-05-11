@@ -14,23 +14,22 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/request';
 
 const { Header, Sider, Content } = Layout;
 
 function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
-  const [user, setUser] = useState({});
   const [permissions, setPermissions] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
-    setUser(userData);
     loadPermissions();
   }, []);
 
@@ -44,8 +43,7 @@ function MainLayout() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    logout();
     navigate('/login');
   };
 
@@ -150,7 +148,7 @@ function MainLayout() {
         if (item.key === '/dashboard' || item.key === '/profile' || item.key === '/change-password') {
           return item;
         }
-        if (item.key === '/permissions' && user.role !== 'admin') {
+        if (item.key === '/permissions' && user?.role !== 'admin') {
           return null;
         }
         if (permissions[moduleKey]?.can_view) {
@@ -190,8 +188,8 @@ function MainLayout() {
             <Dropdown menu={{ items: userMenuItems }}>
               <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Avatar icon={<UserOutlined />} />
-                <span>{user.real_name || user.username}</span>
-                <span style={{ fontSize: 12, color: '#ccc' }}>({user.role === 'admin' ? '管理员' : user.role === 'teacher' ? '教师' : '学生'})</span>
+                <span>{user?.real_name || user?.username}</span>
+                <span style={{ fontSize: 12, color: '#ccc' }}>({user?.role === 'admin' ? '管理员' : user?.role === 'teacher' ? '教师' : '学生'})</span>
               </div>
             </Dropdown>
             <Button type="text" danger onClick={handleLogout} icon={<LogoutOutlined />}>

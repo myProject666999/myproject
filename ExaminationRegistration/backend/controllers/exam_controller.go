@@ -324,16 +324,76 @@ func AdminDeletePaper(c *gin.Context) {
 }
 
 func AdminGetQuestionList(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
 	paperID := c.Query("paper_id")
+	keyword := c.Query("keyword")
+
+	offset := (page - 1) * pageSize
 
 	var questions []models.Question
+	var total int64
+
 	query := database.DB.Model(&models.Question{})
 	if paperID != "" {
 		query = query.Where("paper_id = ?", paperID)
 	}
-	query.Order("sort ASC, id ASC").Find(&questions)
+	if keyword != "" {
+		query = query.Where("content LIKE ?", "%"+keyword+"%")
+	}
 
-	utils.Success(c, questions)
+	query.Count(&total)
+	query.Order("sort ASC, id ASC").Offset(offset).Limit(pageSize).Find(&questions)
+
+	for i := range questions {
+		var options []models.QuestionOption
+		database.DB.Where("question_id = ?", questions[i].ID).Order("sort ASC, id ASC").Find(&options)
+		var optTexts []string
+		for _, opt := range options {
+			optTexts = append(optTexts, opt.OptionText)
+		}
+	}
+
+	utils.Success(c, gin.H{
+		"list":      questions,
+		"total":     total,
+		"page":      page,
+		"page_size": pageSize,
+	})
+}
+
+func AdminGetQuestionDetail(c *gin.Context) {
+	id, _ := strconv.ParseUint(c.Param("id"), 10, 32)
+
+	var question models.Question
+	if result := database.DB.First(&question, id); result.Error != nil {
+		utils.NotFound(c, "试题不存在")
+		return
+	}
+
+	var options []models.QuestionOption
+	database.DB.Where("question_id = ?", id).Order("sort ASC, id ASC").Find(&options)
+
+	var paper models.ExamPaper
+	database.DB.First(&paper, question.PaperID)
+
+	var optTexts []string
+	for _, opt := range options {
+		optTexts = append(optTexts, opt.OptionText)
+	}
+
+	utils.Success(c, gin.H{
+		"id":          question.ID,
+		"paper_id":    question.PaperID,
+		"paper_name":  paper.Title,
+		"type":        question.QuestionType,
+		"content":     question.Content,
+		"answer":      question.Answer,
+		"analysis":    question.Analysis,
+		"score":       question.Score,
+		"options":     optTexts,
+		"created_at":  question.CreatedAt,
+	})
 }
 
 func AdminCreateQuestion(c *gin.Context) {

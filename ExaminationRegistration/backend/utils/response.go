@@ -36,21 +36,36 @@ func Error(c *gin.Context, code int, message string) {
 }
 
 func BadRequest(c *gin.Context, message string) {
-	Error(c, 400, message)
+	c.JSON(http.StatusBadRequest, Response{
+		Code:    400,
+		Message: message,
+	})
 }
 
 func Unauthorized(c *gin.Context, message string) {
-	Error(c, 401, message)
+	c.JSON(http.StatusUnauthorized, Response{
+		Code:    401,
+		Message: message,
+	})
 }
 
 func Forbidden(c *gin.Context, message string) {
-	Error(c, 403, message)
+	c.JSON(http.StatusForbidden, Response{
+		Code:    403,
+		Message: message,
+	})
 }
 
 func NotFound(c *gin.Context, message string) {
-	Error(c, 404, message)
+	c.JSON(http.StatusNotFound, Response{
+		Code:    404,
+		Message: message,
+	})
 }
 
 func InternalError(c *gin.Context, message string) {
-	Error(c, 500, message)
+	c.JSON(http.StatusInternalServerError, Response{
+		Code:    500,
+		Message: message,
+	})
 }

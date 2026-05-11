@@ -19,7 +19,7 @@ func SetupRouter() *gin.Engine {
 		AllowCredentials: true,
 	}))
 
-	r.Static("/uploads", gin.Dir("./uploads", true))
+	r.StaticFS("/uploads", gin.Dir("./uploads", true))
 
 	api := r.Group("/api")
 
@@ -87,44 +87,51 @@ func SetupRouter() *gin.Engine {
 	}
 
 	admin := api.Group("/admin")
-	admin.Use(middleware.Auth(), middleware.AdminAuth())
 	{
-		admin.GET("/users", controllers.GetUserList)
-		admin.GET("/users/:id", controllers.GetUserDetail)
-		admin.POST("/users", controllers.CreateUser)
-		admin.PUT("/users/:id", controllers.UpdateUser)
-		admin.DELETE("/users/:id", controllers.DeleteUser)
-		admin.POST("/users/batch-delete", controllers.BatchDeleteUser)
+		admin.POST("/login", controllers.AdminLogin)
 
-		admin.GET("/intros", controllers.AdminGetIntroList)
-		admin.POST("/intros", controllers.AdminCreateIntro)
-		admin.PUT("/intros/:id", controllers.AdminUpdateIntro)
-		admin.DELETE("/intros/:id", controllers.AdminDeleteIntro)
+		adminAuth := admin.Group("")
+		adminAuth.Use(middleware.Auth(), middleware.AdminAuth())
+		{
+			adminAuth.GET("/users", controllers.GetUserList)
+			adminAuth.GET("/users/:id", controllers.GetUserDetail)
+			adminAuth.POST("/users", controllers.CreateUser)
+			adminAuth.PUT("/users/:id", controllers.UpdateUser)
+			adminAuth.DELETE("/users/:id", controllers.DeleteUser)
+			adminAuth.POST("/users/batch-delete", controllers.BatchDeleteUser)
 
-		admin.GET("/projects", controllers.AdminGetProjectList)
-		admin.POST("/projects", controllers.AdminCreateProject)
-		admin.PUT("/projects/:id", controllers.AdminUpdateProject)
-		admin.DELETE("/projects/:id", controllers.AdminDeleteProject)
+			adminAuth.GET("/school-intros", controllers.AdminGetIntroList)
+			adminAuth.POST("/school-intros", controllers.AdminCreateIntro)
+			adminAuth.PUT("/school-intros/:id", controllers.AdminUpdateIntro)
+			adminAuth.DELETE("/school-intros/:id", controllers.AdminDeleteIntro)
 
-		admin.GET("/papers", controllers.AdminGetPaperList)
-		admin.POST("/papers", controllers.AdminCreatePaper)
-		admin.PUT("/papers/:id", controllers.AdminUpdatePaper)
-		admin.DELETE("/papers/:id", controllers.AdminDeletePaper)
+			adminAuth.GET("/enrollment-projects", controllers.AdminGetProjectList)
+			adminAuth.POST("/enrollment-projects", controllers.AdminCreateProject)
+			adminAuth.PUT("/enrollment-projects/:id", controllers.AdminUpdateProject)
+			adminAuth.DELETE("/enrollment-projects/:id", controllers.AdminDeleteProject)
 
-		admin.GET("/questions", controllers.AdminGetQuestionList)
-		admin.POST("/questions", controllers.AdminCreateQuestion)
-		admin.PUT("/questions/:id", controllers.AdminUpdateQuestion)
-		admin.DELETE("/questions/:id", controllers.AdminDeleteQuestion)
+			adminAuth.GET("/exam-papers", controllers.AdminGetPaperList)
+			adminAuth.POST("/exam-papers", controllers.AdminCreatePaper)
+			adminAuth.PUT("/exam-papers/:id", controllers.AdminUpdatePaper)
+			adminAuth.DELETE("/exam-papers/:id", controllers.AdminDeletePaper)
 
-		admin.GET("/posts", controllers.AdminGetPostList)
-		admin.PUT("/posts/:id", controllers.AdminUpdatePost)
-		admin.DELETE("/posts/:id", controllers.AdminDeletePost)
+			adminAuth.GET("/questions", controllers.AdminGetQuestionList)
+			adminAuth.GET("/questions/:id", controllers.AdminGetQuestionDetail)
+			adminAuth.POST("/questions", controllers.AdminCreateQuestion)
+			adminAuth.PUT("/questions/:id", controllers.AdminUpdateQuestion)
+			adminAuth.DELETE("/questions/:id", controllers.AdminDeleteQuestion)
 
-		admin.GET("/orders", controllers.AdminGetOrderList)
-		admin.GET("/orders/:id", controllers.AdminGetOrderDetail)
+			adminAuth.GET("/forum-posts", controllers.AdminGetPostList)
+			adminAuth.GET("/forum-posts/:id", controllers.AdminGetPostDetail)
+			adminAuth.PUT("/forum-posts/:id", controllers.AdminUpdatePost)
+			adminAuth.DELETE("/forum-posts/:id", controllers.AdminDeletePost)
 
-		admin.GET("/exam-records", controllers.AdminGetExamRecordList)
-		admin.GET("/wrong-questions", controllers.AdminGetWrongQuestionList)
+			adminAuth.GET("/orders", controllers.AdminGetOrderList)
+			adminAuth.GET("/orders/:id", controllers.AdminGetOrderDetail)
+
+			adminAuth.GET("/exam-records", controllers.AdminGetExamRecordList)
+			adminAuth.GET("/wrong-questions", controllers.AdminGetWrongQuestionList)
+		}
 	}
 
 	return r
