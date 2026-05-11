@@ -88,7 +88,7 @@ export default function Checkout() {
       form.resetFields();
       loadData();
     } catch (error) {
-      message.error('添加失败');
+      message.error(error.message || '添加失败');
     }
   };
 
@@ -197,7 +197,7 @@ export default function Checkout() {
           <Form.Item name="detail" label="详细地址" rules={[{ required: true }]}>
             <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item name="is_default" valuePropName="checked" initialValue={0}>
+          <Form.Item name="is_default" initialValue={0}>
             <Radio.Group>
               <Radio value={1}>设为默认地址</Radio>
               <Radio value={0}>不设为默认</Radio>

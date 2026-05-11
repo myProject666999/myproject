@@ -25,7 +25,7 @@ import {
   DashboardOutlined,
   UserOutlined,
   BellOutlined,
-  BoxOutlined,
+  InboxOutlined,
   HeartOutlined,
   TeamOutlined,
   SafetyCertificateOutlined,
@@ -39,7 +39,6 @@ import { adminAPI, noticeAPI, materialAPI, knowledgeAPI, rumorAPI, recruitmentAP
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 const { Option } = Select;
-const { TextArea } = Input;
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -74,7 +73,7 @@ const Admin = () => {
     { key: '/admin', icon: <DashboardOutlined />, label: <Link to="/admin">仪表盘</Link> },
     { key: '/admin/users', icon: <UserOutlined />, label: <Link to="/admin/users">用户管理</Link> },
     { key: '/admin/notices', icon: <BellOutlined />, label: <Link to="/admin/notices">紧急通知</Link> },
-    { key: '/admin/materials', icon: <BoxOutlined />, label: <Link to="/admin/materials">物资管理</Link> },
+    { key: '/admin/materials', icon: <InboxOutlined />, label: <Link to="/admin/materials">物资管理</Link> },
     { key: '/admin/applications', icon: <FileTextOutlined />, label: <Link to="/admin/applications">物资申请</Link> },
     { key: '/admin/knowledge', icon: <HeartOutlined />, label: <Link to="/admin/knowledge">心理知识</Link> },
     { key: '/admin/rumors', icon: <SafetyCertificateOutlined />, label: <Link to="/admin/rumors">辟谣管理</Link> },
@@ -82,7 +81,7 @@ const Admin = () => {
     { key: '/admin/recruitment-applications', icon: <MailOutlined />, label: <Link to="/admin/recruitment-applications">招募报名</Link> },
     { key: '/admin/volunteers', icon: <TeamOutlined />, label: <Link to="/admin/volunteers">志愿者管理</Link> },
     { key: '/admin/help-requests', icon: <FileTextOutlined />, label: <Link to="/admin/help-requests">求助信管理</Link> },
-    { key: '/admin/medical-aids', icon: <MedicineBoxOutlined />, label: <Link to="/admin/medical-aids">医疗救助</Link> },
+    { key: '/admin/medical-aids', icon: <HealthOutlined />, label: <Link to="/admin/medical-aids">医疗救助</Link> },
   ];
 
   return (
@@ -177,7 +176,7 @@ const Dashboard = () => {
         </Col>
         <Col xs={24} sm={12} md={8}>
           <Card>
-            <Statistic title="物资数量" value={stats.material_count || 0} prefix={<BoxOutlined />} />
+            <Statistic title="物资数量" value={stats.material_count || 0} prefix={<InboxOutlined />} />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={8}>
@@ -499,7 +498,7 @@ const createCRUDPage = (apiConfig, formFields) => {
                 rules={field.required ? [{ required: true, message: `请输入${field.label}` }] : []}
               >
                 {field.type === 'textarea' ? (
-                  <TextArea rows={4} />
+                  <Input.TextArea rows={4} />
                 ) : field.type === 'number' ? (
                   <InputNumber style={{ width: '100%' }} min={field.min || 0} />
                 ) : field.type === 'select' ? (

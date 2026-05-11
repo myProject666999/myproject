@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"log"
+
 	"clothingsales/database"
 	"clothingsales/models"
 	"clothingsales/utils"
@@ -25,7 +27,12 @@ type AddressRequest struct {
 }
 
 func (ac *AddressController) GetAddresses(c *gin.Context) {
-	userID, _ := c.Get("userID")
+	userIDVal, _ := c.Get("userID")
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		utils.Unauthorized(c, "用户ID类型错误")
+		return
+	}
 
 	var addresses []models.Address
 	database.DB.Where("user_id = ?", userID).Order("is_default DESC, created_at DESC").Find(&addresses)
@@ -35,17 +42,25 @@ func (ac *AddressController) GetAddresses(c *gin.Context) {
 
 func (ac *AddressController) CreateAddress(c *gin.Context) {
 	userIDVal, _ := c.Get("userID")
+	log.Printf("[DEBUG] userIDVal type: %T, value: %v", userIDVal, userIDVal)
+
 	userID, ok := userIDVal.(uint)
 	if !ok {
+		log.Printf("[ERROR] UserID type assertion failed")
 		utils.Unauthorized(c, "用户ID类型错误")
 		return
 	}
 
+	log.Printf("[DEBUG] Creating address for userID: %d", userID)
+
 	var req AddressRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[ERROR] Bind JSON error: %v", err)
 		utils.BadRequest(c, "参数错误: "+err.Error())
 		return
 	}
+
+	log.Printf("[DEBUG] Request data: Name=%s, Phone=%s, Detail=%s, IsDefault=%d", req.Name, req.Phone, req.Detail, req.IsDefault)
 
 	if req.IsDefault == 1 {
 		database.DB.Model(&models.Address{}).Where("user_id = ?", userID).Update("is_default", 0)
@@ -63,10 +78,12 @@ func (ac *AddressController) CreateAddress(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&address).Error; err != nil {
+		log.Printf("[ERROR] Create address error: %v", err)
 		utils.InternalError(c, "创建失败: "+err.Error())
 		return
 	}
 
+	log.Printf("[DEBUG] Address created successfully: ID=%d", address.ID)
 	utils.Success(c, address)
 }
 

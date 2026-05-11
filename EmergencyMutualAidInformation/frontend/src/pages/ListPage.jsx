@@ -13,13 +13,12 @@ import {
   Modal,
   Form,
   InputNumber,
-  TextArea,
   message,
   Space
 } from 'antd';
 import { 
   BellOutlined, 
-  BoxOutlined, 
+  InboxOutlined, 
   HeartOutlined, 
   SafetyCertificateOutlined,
   TeamOutlined,
@@ -49,7 +48,7 @@ const pageConfig = {
   },
   materials: {
     title: '物资信息',
-    icon: <BoxOutlined style={{ color: '#1890ff' }} />,
+    icon: <InboxOutlined style={{ color: '#1890ff' }} />,
     api: materialAPI,
     color: 'blue'
   },
@@ -321,7 +320,7 @@ const ListPage = ({ type }) => {
                   name="reason"
                   label="申请理由"
                 >
-                  <TextArea rows={4} placeholder="请描述申请理由" />
+                  <Input.TextArea rows={4} placeholder="请描述申请理由" />
                 </Form.Item>
               </>
             )}
@@ -338,7 +337,7 @@ const ListPage = ({ type }) => {
                   name="experience"
                   label="相关经历"
                 >
-                  <TextArea rows={4} placeholder="请描述您的相关经历" />
+                  <Input.TextArea rows={4} placeholder="请描述您的相关经历" />
                 </Form.Item>
               </>
             )}

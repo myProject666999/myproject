@@ -8,6 +8,7 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var DB *gorm.DB
@@ -46,9 +47,14 @@ func seedAdmin() {
 	var count int64
 	DB.Model(&models.User{}).Where("role = ?", "admin").Count(&count)
 	if count == 0 {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
+		if err != nil {
+			log.Fatal("Failed to hash admin password:", err)
+		}
+		
 		admin := models.User{
 			Username: "admin",
-			Password: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+			Password: string(hashedPassword),
 			Email:    "admin@example.com",
 			RealName: "系统管理员",
 			Role:     "admin",

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Row, Col, Card, Carousel, Button, Tag, Typography, Spin } from 'antd';
 import { 
   BellOutlined, 
-  BoxOutlined, 
+  InboxOutlined, 
   HeartOutlined, 
   SafetyCertificateOutlined,
   TeamOutlined,
@@ -153,7 +153,7 @@ const Home = () => {
           <Card 
             title={
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                <BoxOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+                <InboxOutlined style={{ marginRight: 8, color: '#1890ff' }} />
                 <span>物资信息</span>
               </div>
             }

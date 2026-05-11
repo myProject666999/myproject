@@ -4,7 +4,7 @@ import { Layout, Menu, Dropdown, Avatar, Button, message } from 'antd';
 import { 
   HomeOutlined, 
   BellOutlined, 
-  BoxOutlined, 
+  InboxOutlined, 
   TeamOutlined, 
   UserOutlined, 
   LogoutOutlined,
@@ -87,7 +87,7 @@ const AppLayout = ({ children }) => {
           items={[
             { key: 'home', icon: <HomeOutlined />, label: <Link to="/">首页</Link> },
             { key: 'notices', icon: <BellOutlined />, label: <Link to="/notices">紧急通知</Link> },
-            { key: 'materials', icon: <BoxOutlined />, label: <Link to="/materials">物资信息</Link> },
+            { key: 'materials', icon: <InboxOutlined />, label: <Link to="/materials">物资信息</Link> },
             { key: 'recruitments', icon: <TeamOutlined />, label: <Link to="/recruitments">招募信息</Link> },
             { key: 'knowledge', icon: <HeartOutlined />, label: <Link to="/knowledge">心理知识</Link> },
             { key: 'rumors', icon: <SafetyCertificateOutlined />, label: <Link to="/rumors">辟谣专区</Link> },
