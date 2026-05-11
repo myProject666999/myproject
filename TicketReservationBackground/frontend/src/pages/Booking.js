@@ -58,7 +58,12 @@ const Booking = () => {
     try {
       const response = await api.post('/orders', {
         flight_id: parseInt(flightId),
-        ...values,
+        seat_class: values.seatClass,
+        passenger_name: values.passengerName,
+        passenger_phone: values.passengerPhone,
+        passenger_id: values.passengerID,
+        contact_name: values.contactName,
+        contact_phone: values.contactPhone,
       });
       message.success('订单提交成功！');
       setCurrentStep(2);

@@ -99,8 +99,19 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(getProfile.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(getProfile.fulfilled, (state, action) => {
+        state.loading = false;
         state.user = action.payload;
+      })
+      .addCase(getProfile.rejected, (state, action) => {
+        state.loading = false;
+        if (action.payload === 'Invalid token' || action.payload === 'User not found') {
+          state.token = null;
+          localStorage.removeItem('token');
+        }
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.user = action.payload;

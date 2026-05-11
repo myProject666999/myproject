@@ -37,7 +37,7 @@ function App() {
     if (token && !user) {
       dispatch(getProfile());
     }
-  }, [token, user, dispatch]);
+  }, [token]);
 
   return (
     <Routes>
