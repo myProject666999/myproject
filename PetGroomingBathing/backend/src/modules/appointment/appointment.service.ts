@@ -15,6 +15,7 @@ export class AppointmentService {
   async create(createAppointmentDto: CreateAppointmentDto): Promise<Appointment> {
     const appointment = this.appointmentRepository.create({
       ...createAppointmentDto,
+      vehicleId: createAppointmentDto.vehicleId || null,
       status: 'pending',
     });
     return this.appointmentRepository.save(appointment);
@@ -55,7 +56,11 @@ export class AppointmentService {
 
   async update(id: string, updateAppointmentDto: UpdateAppointmentDto): Promise<Appointment> {
     const appointment = await this.findOne(id);
-    Object.assign(appointment, updateAppointmentDto);
+    const updateData: any = { ...updateAppointmentDto };
+    if (updateData.vehicleId !== undefined) {
+      updateData.vehicleId = updateData.vehicleId || null;
+    }
+    Object.assign(appointment, updateData);
     return this.appointmentRepository.save(appointment);
   }
 

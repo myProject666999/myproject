@@ -5,13 +5,6 @@
       <el-form-item label="项目名称">
         <el-input v-model="queryForm.itemName" placeholder="请输入项目名称" clearable style="width: 150px;" />
       </el-form-item>
-      <el-form-item label="项目分类">
-        <el-select v-model="queryForm.categoryId" placeholder="请选择" clearable style="width: 150px;">
-          <el-option label="美发" :value="1" />
-          <el-option label="美容" :value="2" />
-          <el-option label="养发" :value="3" />
-        </el-select>
-      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleSearch">查询</el-button>
         <el-button icon="Refresh" @click="handleReset">重置</el-button>
@@ -19,10 +12,9 @@
       </el-form-item>
     </el-form>
 
-    <el-table :data="tableData" stripe class="table-container">
+    <el-table :data="tableData" stripe class="table-container" v-loading="loading">
       <el-table-column prop="itemCode" label="项目编码" width="120" />
       <el-table-column prop="itemName" label="项目名称" width="150" />
-      <el-table-column prop="categoryName" label="分类" width="100" />
       <el-table-column prop="price" label="售价" width="100">
         <template #default="{ row }">¥{{ row.price }}</template>
       </el-table-column>
@@ -34,17 +26,18 @@
       <el-table-column prop="sort" label="排序" width="80" />
       <el-table-column prop="status" label="状态" width="80">
         <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
             {{ row.status === 1 ? '上架' : '下架' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
           <el-button :type="row.status === 1 ? 'warning' : 'success'" link @click="handleToggle(row)">
             {{ row.status === 1 ? '下架' : '上架' }}
           </el-button>
+          <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -56,54 +49,210 @@
       :page-sizes="[10, 20, 50, 100]"
       layout="total, sizes, prev, pager, next, jumper"
       class="pagination-container"
+      @current-change="handlePageChange"
+      @size-change="handleSizeChange"
     />
+
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑项目' : '新增项目'" width="500px">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+        <el-form-item label="项目编码" prop="itemCode">
+          <el-input v-model="form.itemCode" placeholder="自动生成可修改" />
+        </el-form-item>
+        <el-form-item label="项目名称" prop="itemName">
+          <el-input v-model="form.itemName" placeholder="请输入项目名称" />
+        </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="售价" prop="price">
+              <el-input-number v-model="form.price" :min="0" :precision="2" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="成本价">
+              <el-input-number v-model="form.costPrice" :min="0" :precision="2" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="时长(分钟)">
+              <el-input-number v-model="form.duration" :min="0" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="排序">
+              <el-input-number v-model="form.sort" :min="0" style="width: 100%;" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="项目描述">
+          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="请输入描述" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="form.status">
+            <el-radio :value="1">上架</el-radio>
+            <el-radio :value="0">下架</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmit">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import request from '@/utils/request'
+import { ElMessage, ElMessageBox } from 'element-plus'
+
+const loading = ref(false)
+const dialogVisible = ref(false)
+const isEdit = ref(false)
+const formRef = ref(null)
 
 const queryForm = reactive({
-  itemName: '',
-  categoryId: ''
+  itemName: ''
 })
 
 const pagination = reactive({
   current: 1,
   size: 10,
-  total: 15
+  total: 0
 })
 
-const tableData = ref([
-  { id: 1, itemCode: 'S001', itemName: '精剪', categoryName: '剪发', price: 68, costPrice: 10, duration: 30, description: '专业精剪，根据脸型设计发型', sort: 1, status: 1 },
-  { id: 2, itemCode: 'S002', itemName: '洗剪吹', categoryName: '剪发', price: 38, costPrice: 8, duration: 25, description: '基础洗剪吹套餐', sort: 2, status: 1 },
-  { id: 3, itemCode: 'S003', itemName: '冷烫', categoryName: '烫发', price: 298, costPrice: 50, duration: 90, description: '温和冷烫，不伤发质', sort: 1, status: 1 },
-  { id: 4, itemCode: 'S004', itemName: '热烫', categoryName: '烫发', price: 498, costPrice: 80, duration: 120, description: '持久热烫，卷度自然', sort: 2, status: 1 },
-  { id: 5, itemCode: 'S005', itemName: '染发（黑色）', categoryName: '染发', price: 198, costPrice: 30, duration: 60, description: '植物染发剂，安全健康', sort: 1, status: 1 },
-  { id: 6, itemCode: 'S006', itemName: '染发（彩色）', categoryName: '染发', price: 398, costPrice: 60, duration: 90, description: '多种颜色可选', sort: 2, status: 1 },
-  { id: 7, itemCode: 'S007', itemName: '面部护理', categoryName: '美容', price: 298, costPrice: 50, duration: 60, description: '深层清洁补水', sort: 1, status: 1 },
-  { id: 8, itemCode: 'S008', itemName: '精油SPA', categoryName: '养发', price: 198, costPrice: 40, duration: 45, description: '头皮精油SPA护理', sort: 1, status: 1 }
-])
+const tableData = ref([])
+
+const form = reactive({
+  id: null,
+  itemCode: '',
+  itemName: '',
+  price: 0,
+  costPrice: 0,
+  duration: 30,
+  description: '',
+  sort: 0,
+  status: 1
+})
+
+const rules = {
+  itemName: [{ required: true, message: '请输入项目名称', trigger: 'blur' }]
+}
+
+const getList = async () => {
+  loading.value = true
+  try {
+    const params = {
+      page: pagination.current,
+      size: pagination.size
+    }
+    if (queryForm.itemName) params.keyword = queryForm.itemName
+    
+    const res = await request.get('/service/page', { params })
+    tableData.value = res.data.records || []
+    pagination.total = res.data.total || 0
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
 
 const handleSearch = () => {
   pagination.current = 1
+  getList()
 }
 
 const handleReset = () => {
   queryForm.itemName = ''
-  queryForm.categoryId = ''
   pagination.current = 1
+  getList()
+}
+
+const handlePageChange = (page) => {
+  pagination.current = page
+  getList()
+}
+
+const handleSizeChange = (size) => {
+  pagination.size = size
+  pagination.current = 1
+  getList()
 }
 
 const handleAdd = () => {
-  console.log('新增项目')
+  isEdit.value = false
+  Object.assign(form, {
+    id: null,
+    itemCode: '',
+    itemName: '',
+    price: 0,
+    costPrice: 0,
+    duration: 30,
+    description: '',
+    sort: 0,
+    status: 1
+  })
+  dialogVisible.value = true
 }
 
 const handleEdit = (row) => {
-  console.log('编辑项目:', row)
+  isEdit.value = true
+  Object.assign(form, { ...row })
+  dialogVisible.value = true
 }
 
-const handleToggle = (row) => {
-  console.log('切换状态:', row)
+const handleToggle = async (row) => {
+  try {
+    row.status = row.status === 1 ? 0 : 1
+    await request.put('/service', row)
+    ElMessage.success('操作成功')
+    getList()
+  } catch (e) {
+    row.status = row.status === 1 ? 0 : 1
+    console.error(e)
+  }
 }
+
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该项目吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await request.delete(`/service/${row.id}`)
+    ElMessage.success('删除成功')
+    getList()
+  } catch (e) {
+    if (e !== 'cancel') {
+      console.error(e)
+    }
+  }
+}
+
+const handleSubmit = async () => {
+  try {
+    await formRef.value.validate()
+    if (isEdit.value) {
+      await request.put('/service', form)
+      ElMessage.success('更新成功')
+    } else {
+      await request.post('/service', form)
+      ElMessage.success('新增成功')
+    }
+    dialogVisible.value = false
+    getList()
+  } catch (e) {
+    if (e !== false) {
+      console.error(e)
+    }
+  }
+}
+
+onMounted(() => {
+  getList()
+})
 </script>

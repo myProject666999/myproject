@@ -81,7 +81,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { Fold, Expand, ArrowDown } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
-import { logout } from '@/api/auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -117,7 +116,6 @@ const handleCommand = async (command) => {
         cancelButtonText: '取消',
         type: 'warning'
       })
-      await logout()
       userStore.logout()
       router.push('/login')
     } catch {

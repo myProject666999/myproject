@@ -21,7 +21,7 @@
       </el-form-item>
     </el-form>
 
-    <el-table :data="tableData" stripe class="table-container">
+    <el-table :data="tableData" stripe class="table-container" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column prop="nickname" label="昵称" width="120" />
@@ -29,7 +29,7 @@
       <el-table-column prop="email" label="邮箱" width="180" />
       <el-table-column prop="status" label="状态" width="80">
         <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+          <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
             {{ row.status === 1 ? '启用' : '禁用' }}
           </el-tag>
         </template>
@@ -51,12 +51,71 @@
       :page-sizes="[10, 20, 50, 100]"
       layout="total, sizes, prev, pager, next, jumper"
       class="pagination-container"
+      @current-change="handlePageChange"
+      @size-change="handleSizeChange"
     />
+
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '新增用户'" width="500px">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username" placeholder="请输入用户名" :disabled="isEdit" />
+        </el-form-item>
+        <el-form-item label="密码" v-if="!isEdit" prop="password">
+          <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" />
+        </el-form-item>
+        <el-form-item label="昵称" prop="nickname">
+          <el-input v-model="form.nickname" placeholder="请输入昵称" />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="form.phone" placeholder="请输入手机号" />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="form.email" placeholder="请输入邮箱" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-radio-group v-model="form.status">
+            <el-radio :value="1">启用</el-radio>
+            <el-radio :value="0">禁用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmit">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="roleDialogVisible" title="分配角色" width="400px">
+      <el-form>
+        <el-form-item label="用户名">
+          <el-tag>{{ roleForm.username }}</el-tag>
+        </el-form-item>
+        <el-form-item label="选择角色">
+          <el-checkbox-group v-model="roleForm.checkedRoles">
+            <el-checkbox v-for="role in roleList" :key="role.id" :value="role.id">
+              {{ role.roleName }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="roleDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleRoleSubmit">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import request from '@/utils/request'
+import { ElMessage, ElMessageBox } from 'element-plus'
+
+const loading = ref(false)
+const dialogVisible = ref(false)
+const roleDialogVisible = ref(false)
+const isEdit = ref(false)
+const formRef = ref(null)
 
 const queryForm = reactive({
   username: '',
@@ -67,19 +126,66 @@ const queryForm = reactive({
 const pagination = reactive({
   current: 1,
   size: 10,
-  total: 5
+  total: 0
 })
 
-const tableData = ref([
-  { id: 1, username: 'admin', nickname: '超级管理员', phone: '13800138000', email: 'admin@example.com', status: 1, createTime: '2024-01-01 00:00:00' },
-  { id: 2, username: 'manager', nickname: '店长', phone: '13800138001', email: 'manager@example.com', status: 1, createTime: '2024-01-02 10:00:00' },
-  { id: 3, username: 'cashier01', nickname: '收银员01', phone: '13800138002', email: 'cashier01@example.com', status: 1, createTime: '2024-01-03 10:00:00' },
-  { id: 4, username: 'tech01', nickname: '技师01', phone: '13800138003', email: 'tech01@example.com', status: 1, createTime: '2024-01-04 10:00:00' },
-  { id: 5, username: 'test', nickname: '测试用户', phone: '13800138004', email: 'test@example.com', status: 0, createTime: '2024-01-05 10:00:00' }
-])
+const tableData = ref([])
+const roleList = ref([])
+
+const form = reactive({
+  id: null,
+  username: '',
+  password: '',
+  nickname: '',
+  phone: '',
+  email: '',
+  status: 1
+})
+
+const roleForm = reactive({
+  id: null,
+  username: '',
+  checkedRoles: []
+})
+
+const rules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+}
+
+const getList = async () => {
+  loading.value = true
+  try {
+    const params = {
+      page: pagination.current,
+      size: pagination.size
+    }
+    if (queryForm.username) params.username = queryForm.username
+    if (queryForm.nickname) params.nickname = queryForm.nickname
+    if (queryForm.status !== '') params.status = queryForm.status
+    
+    const res = await request.get('/user/page', { params })
+    tableData.value = res.data.records || []
+    pagination.total = res.data.total || 0
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+const getRoleList = async () => {
+  try {
+    const res = await request.get('/role/all')
+    roleList.value = res.data || []
+  } catch (e) {
+    console.error(e)
+  }
+}
 
 const handleSearch = () => {
   pagination.current = 1
+  getList()
 }
 
 const handleReset = () => {
@@ -87,21 +193,95 @@ const handleReset = () => {
   queryForm.nickname = ''
   queryForm.status = ''
   pagination.current = 1
+  getList()
+}
+
+const handlePageChange = (page) => {
+  pagination.current = page
+  getList()
+}
+
+const handleSizeChange = (size) => {
+  pagination.size = size
+  pagination.current = 1
+  getList()
 }
 
 const handleAdd = () => {
-  console.log('新增用户')
+  isEdit.value = false
+  Object.assign(form, {
+    id: null,
+    username: '',
+    password: '',
+    nickname: '',
+    phone: '',
+    email: '',
+    status: 1
+  })
+  dialogVisible.value = true
 }
 
 const handleEdit = (row) => {
-  console.log('编辑用户:', row)
+  isEdit.value = true
+  Object.assign(form, { ...row, password: '' })
+  dialogVisible.value = true
 }
 
 const handleRole = (row) => {
-  console.log('分配角色:', row)
+  roleForm.id = row.id
+  roleForm.username = row.username
+  roleForm.checkedRoles = []
+  getRoleList()
+  roleDialogVisible.value = true
 }
 
-const handleDelete = (row) => {
-  console.log('删除用户:', row)
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该用户吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await request.delete(`/user/${row.id}`)
+    ElMessage.success('删除成功')
+    getList()
+  } catch (e) {
+    if (e !== 'cancel') {
+      console.error(e)
+    }
+  }
 }
+
+const handleSubmit = async () => {
+  try {
+    await formRef.value.validate()
+    if (isEdit.value) {
+      await request.put('/user', form)
+      ElMessage.success('更新成功')
+    } else {
+      await request.post('/user', form)
+      ElMessage.success('新增成功')
+    }
+    dialogVisible.value = false
+    getList()
+  } catch (e) {
+    if (e !== false) {
+      console.error(e)
+    }
+  }
+}
+
+const handleRoleSubmit = async () => {
+  try {
+    await request.post('/user/roles', { userId: roleForm.id, roleIds: roleForm.checkedRoles })
+    ElMessage.success('分配成功')
+    roleDialogVisible.value = false
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+onMounted(() => {
+  getList()
+})
 </script>

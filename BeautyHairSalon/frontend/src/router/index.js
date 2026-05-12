@@ -137,6 +137,12 @@ const routes = [
     meta: { title: '基础信息', icon: 'Document' },
     children: [
       {
+        path: 'store',
+        name: 'StoreManage',
+        component: () => import('@/views/base/StoreManage.vue'),
+        meta: { title: '门店管理', icon: 'OfficeBuilding' }
+      },
+      {
         path: 'employee',
         name: 'EmployeeManage',
         component: () => import('@/views/base/EmployeeManage.vue'),

@@ -15,6 +15,8 @@ export class ConsumptionService {
   async create(createConsumptionDto: CreateConsumptionDto): Promise<Consumption> {
     const consumption = this.consumptionRepository.create({
       ...createConsumptionDto,
+      serviceId: createConsumptionDto.serviceId || null,
+      appointmentId: createConsumptionDto.appointmentId || null,
       consumptionTime: createConsumptionDto.consumptionTime
         ? new Date(createConsumptionDto.consumptionTime)
         : new Date(),
@@ -61,7 +63,14 @@ export class ConsumptionService {
 
   async update(id: string, updateConsumptionDto: UpdateConsumptionDto): Promise<Consumption> {
     const consumption = await this.findOne(id);
-    Object.assign(consumption, updateConsumptionDto);
+    const updateData: any = { ...updateConsumptionDto };
+    if (updateData.serviceId !== undefined) {
+      updateData.serviceId = updateData.serviceId || null;
+    }
+    if (updateData.appointmentId !== undefined) {
+      updateData.appointmentId = updateData.appointmentId || null;
+    }
+    Object.assign(consumption, updateData);
     return this.consumptionRepository.save(consumption);
   }
 

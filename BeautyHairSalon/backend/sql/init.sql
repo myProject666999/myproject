@@ -428,9 +428,9 @@ INSERT INTO sys_role (role_name, role_code, description, status) VALUES
 ('收银员', 'cashier', '收银权限', 1),
 ('技师', 'technician', '技师权限', 1);
 
--- 初始化管理员账户 (密码: 123456)
+-- 初始化管理员账户 (密码: 123456, BCrypt 哈希)
 INSERT INTO sys_user (username, password, nickname, phone, status) VALUES 
-('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '超级管理员', '13800138000', 1);
+('admin', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '超级管理员', '13800138000', 1);
 
 -- 初始化用户角色关联
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);

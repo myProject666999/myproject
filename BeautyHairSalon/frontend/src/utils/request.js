@@ -30,6 +30,9 @@ request.interceptors.response.use(
 
       if (res.code === 401) {
         const userStore = useUserStore()
+        if (userStore.token) {
+          ElMessage.error('登录已过期，请重新登录')
+        }
         userStore.logout()
         router.push('/login')
       }
@@ -40,15 +43,23 @@ request.interceptors.response.use(
   },
   error => {
     const status = error.response?.status
+    const url = error.config?.url || ''
+    
     if (status === 401) {
-      ElMessage.error('登录已过期，请重新登录')
       const userStore = useUserStore()
-      userStore.logout()
-      router.push('/login')
+      if (userStore.token && !url.includes('/auth/login')) {
+        ElMessage.error('登录已过期，请重新登录')
+        userStore.logout()
+        router.push('/login')
+      } else if (!url.includes('/auth/login')) {
+        router.push('/login')
+      }
     } else if (status === 403) {
       ElMessage.error('没有权限访问')
     } else if (status === 500) {
-      ElMessage.error('服务器错误')
+      ElMessage.error('服务器错误，请联系管理员')
+    } else if (status === 404) {
+      ElMessage.error('请求的资源不存在')
     } else {
       ElMessage.error(error.message || '网络错误')
     }
