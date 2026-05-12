@@ -15,7 +15,7 @@ public class ToothStatus {
     private Long patientId;
     private Integer toothNumber;
     private String status;
-    private String condition;
+    private String toothCondition;
     private String remark;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

@@ -34,12 +34,22 @@ request.interceptors.response.use(
     return res
   },
   error => {
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token')
-      router.push('/login')
+    console.error('Request Error:', error)
+    let errorMessage = '网络错误'
+    if (error.response) {
+      if (error.response.status === 401) {
+        localStorage.removeItem('token')
+        router.push('/login')
+        errorMessage = '登录已过期，请重新登录'
+      } else if (error.response.data) {
+        const data = error.response.data
+        errorMessage = data.message || data.error || JSON.stringify(data)
+      }
+    } else if (error.message) {
+      errorMessage = error.message
     }
-    ElMessage.error(error.message || '网络错误')
-    return Promise.reject(error)
+    ElMessage.error(errorMessage)
+    return Promise.reject(new Error(errorMessage))
   }
 )
 
