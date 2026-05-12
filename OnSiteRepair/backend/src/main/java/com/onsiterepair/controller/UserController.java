@@ -28,8 +28,8 @@ public class UserController {
     }
 
     @GetMapping("/info")
-    public Result<User> getInfo(@RequestHeader("Authorization") String token) {
-        return Result.success();
+    public Result<User> getInfo(@RequestAttribute("userId") Long userId) {
+        return Result.success(userService.getById(userId));
     }
 
     @PutMapping("/profile")

@@ -157,6 +157,8 @@ const loadOrders = async () => {
     finished.value = true
   } catch (e) {
     console.error(e)
+    finished.value = true
+    orders.value = []
   } finally {
     loading.value = false
   }

@@ -1,0 +1,36 @@
+server:
+  port: 8080
+  mode: "debug"
+
+database:
+  mysql:
+    host: 127.0.0.1
+    port: 3306
+    username: root
+    password: 123456
+    database: samecity_express
+    charset: utf8mb4
+    max_idle_conns: 10
+    max_open_conns: 100
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: "samecity-express-jwt-secret-key-2024"
+  expires: 86400
+  issuer: "samecity-express"
+
+map:
+  provider: "amap"
+  amap_key: "your_amap_api_key_here"
+  baidu_key: "your_baidu_api_key_here"
+
+pricing:
+  base_price: 8.0
+  distance_price: 2.0
+  weight_price: 1.0
+  time_surcharge: 3.0

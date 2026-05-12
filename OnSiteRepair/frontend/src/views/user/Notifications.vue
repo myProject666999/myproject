@@ -60,6 +60,8 @@ const loadNotifications = async () => {
     finished.value = true
   } catch (e) {
     console.error(e)
+    finished.value = true
+    notifications.value = []
   } finally {
     loading.value = false
   }

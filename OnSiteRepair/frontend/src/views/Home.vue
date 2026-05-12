@@ -42,6 +42,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { showToast } from 'vant'
 import { useUserStore } from '@/store/user'
 
 const router = useRouter()
@@ -53,6 +54,7 @@ const goCreateOrder = (category) => {
     return
   }
   if (userStore.userType !== 1) {
+    showToast('只有用户可以下单')
     return
   }
   router.push({ path: '/order/create', query: { category } })
