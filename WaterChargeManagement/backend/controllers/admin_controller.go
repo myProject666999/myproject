@@ -27,14 +27,24 @@ func GetAdmin(c *gin.Context) {
 }
 
 func CreateAdmin(c *gin.Context) {
-	var admin models.Admin
-	if err := c.ShouldBindJSON(&admin); err != nil {
+	var req models.CreateAdminRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": err.Error()})
 		return
 	}
 
-	hashedPassword, _ := utils.HashPassword(admin.Password)
-	admin.Password = hashedPassword
+	hashedPassword, _ := utils.HashPassword(req.Password)
+
+	admin := models.Admin{
+		Username: req.Username,
+		Password: hashedPassword,
+		Name:     req.Name,
+		Phone:    req.Phone,
+		Role:     req.Role,
+	}
+	if admin.Role == "" {
+		admin.Role = "admin"
+	}
 
 	if err := database.DB.Create(&admin).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "用户名已存在"})
@@ -51,19 +61,27 @@ func UpdateAdmin(c *gin.Context) {
 		return
 	}
 
-	var input models.Admin
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var req models.UpdateAdminRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": err.Error()})
 		return
 	}
 
-	if input.Password != "" {
-		hashedPassword, _ := utils.HashPassword(input.Password)
-		input.Password = hashedPassword
-		database.DB.Model(&admin).Updates(input)
-	} else {
-		database.DB.Model(&admin).Omit("Password").Updates(input)
+	updates := map[string]interface{}{
+		"Name":  req.Name,
+		"Phone": req.Phone,
 	}
+
+	if req.Role != "" {
+		updates["Role"] = req.Role
+	}
+	if req.Password != "" {
+		hashedPassword, _ := utils.HashPassword(req.Password)
+		updates["Password"] = hashedPassword
+	}
+
+	database.DB.Model(&admin).Updates(updates)
+	database.DB.First(&admin, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": admin})
 }

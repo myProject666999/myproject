@@ -1,0 +1,165 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  width: 100%;
+  height: 100%;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.el-header {
+  padding: 0;
+}
+
+.el-aside {
+  overflow: hidden;
+}
+
+.menu-container {
+  height: 100%;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+}
+
+.main-container {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  padding: 20px;
+  background: #f0f2f5;
+  overflow: auto;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+}
+
+.page-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.search-form {
+  margin-bottom: 20px;
+}
+
+.table-container {
+  margin-bottom: 20px;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.stat-card {
+  .el-card__body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .stat-info {
+    .stat-title {
+      font-size: 14px;
+      color: #909399;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #303133;
+    }
+  }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #fff;
+
+    &.primary {
+      background: linear-gradient(135deg, #409eff, #66b1ff);
+    }
+
+    &.success {
+      background: linear-gradient(135deg, #67c23a, #85ce61);
+    }
+
+    &.warning {
+      background: linear-gradient(135deg, #e6a23c, #ebb563);
+    }
+
+    &.danger {
+      background: linear-gradient(135deg, #f56c6c, #f78989);
+    }
+  }
+}
+
+.login-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  .login-box {
+    width: 400px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+    .login-title {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 30px;
+      color: #303133;
+    }
+  }
+}

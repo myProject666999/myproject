@@ -46,6 +46,10 @@ func Login(c *gin.Context) {
 			c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户名或密码错误"})
 			return
 		}
+		if user.Status != "active" {
+			c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户已被禁用，请联系管理员"})
+			return
+		}
 		if !utils.CheckPasswordHash(req.Password, user.Password) {
 			c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "用户名或密码错误"})
 			return

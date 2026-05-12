@@ -1,0 +1,17 @@
+{
+  "name": "pet-grooming-saas",
+  "version": "1.0.0",
+  "description": "宠物美容洗护服务SaaS系统",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install --workspaces",
+    "dev:backend": "npm run start:dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend"
+  }
+}

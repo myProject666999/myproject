@@ -52,7 +52,8 @@ const UserManagement = () => {
     setEditingItem(record)
     form.setFieldsValue({
       ...record,
-      password: ''
+      password: '',
+      status: record.status || 'active'
     })
     setModalVisible(true)
   }

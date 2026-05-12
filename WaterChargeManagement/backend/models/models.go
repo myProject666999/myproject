@@ -95,6 +95,42 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required"`
 }
 
+type CreateUserRequest struct {
+	UserNo      string `json:"user_no" binding:"required"`
+	Username    string `json:"username" binding:"required"`
+	Password    string `json:"password" binding:"required,min=6"`
+	RealName    string `json:"real_name"`
+	Phone       string `json:"phone"`
+	Address     string `json:"address"`
+	CommunityID uint   `json:"community_id"`
+	Status      string `json:"status"`
+}
+
+type UpdateUserRequest struct {
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	RealName    string `json:"real_name"`
+	Phone       string `json:"phone"`
+	Address     string `json:"address"`
+	CommunityID uint   `json:"community_id"`
+	Status      string `json:"status"`
+}
+
+type CreateAdminRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required,min=6"`
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	Role     string `json:"role"`
+}
+
+type UpdateAdminRequest struct {
+	Password string `json:"password"`
+	Name     string `json:"name"`
+	Phone    string `json:"phone"`
+	Role     string `json:"role"`
+}
+
 type Response struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`

@@ -34,14 +34,28 @@ func GetUser(c *gin.Context) {
 }
 
 func CreateUser(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req models.CreateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": err.Error()})
 		return
 	}
 
-	hashedPassword, _ := utils.HashPassword(user.Password)
-	user.Password = hashedPassword
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "密码加密失败"})
+		return
+	}
+
+	user := models.User{
+		UserNo:      req.UserNo,
+		Username:    req.Username,
+		Password:    hashedPassword,
+		RealName:    req.RealName,
+		Phone:       req.Phone,
+		Address:     req.Address,
+		CommunityID: req.CommunityID,
+		Status:      req.Status,
+	}
 	if user.Status == "" {
 		user.Status = "active"
 	}
@@ -61,19 +75,32 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var input models.User
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var req models.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": err.Error()})
 		return
 	}
 
-	if input.Password != "" {
-		hashedPassword, _ := utils.HashPassword(input.Password)
-		input.Password = hashedPassword
-		database.DB.Model(&user).Updates(input)
-	} else {
-		database.DB.Model(&user).Omit("Password").Updates(input)
+	updates := map[string]interface{}{
+		"RealName":    req.RealName,
+		"Phone":       req.Phone,
+		"Address":     req.Address,
+		"CommunityID": req.CommunityID,
 	}
+
+	if req.Status != "" {
+		updates["Status"] = req.Status
+	}
+	if req.Username != "" {
+		updates["Username"] = req.Username
+	}
+	if req.Password != "" {
+		hashedPassword, _ := utils.HashPassword(req.Password)
+		updates["Password"] = hashedPassword
+	}
+
+	database.DB.Model(&user).Updates(updates)
+	database.DB.First(&user, id)
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新成功", "data": user})
 }
