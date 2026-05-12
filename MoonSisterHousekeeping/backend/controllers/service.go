@@ -195,8 +195,16 @@ func CreateReview(c *gin.Context) {
 
 	var customer models.Customer
 	if err := config.DB.Where("user_id = ?", userID).First(&customer).Error; err != nil {
-		utils.Error(c, http.StatusBadRequest, "客户信息不存在")
-		return
+		var user models.User
+		if err := config.DB.First(&user, userID).Error; err != nil {
+			utils.Error(c, http.StatusBadRequest, "用户不存在")
+			return
+		}
+		customer = models.Customer{
+			UserID: userID,
+			Phone:  user.Phone,
+		}
+		config.DB.Create(&customer)
 	}
 
 	review := models.Review{
@@ -262,8 +270,16 @@ func CreateDispute(c *gin.Context) {
 
 	var customer models.Customer
 	if err := config.DB.Where("user_id = ?", userID).First(&customer).Error; err != nil {
-		utils.Error(c, http.StatusBadRequest, "客户信息不存在")
-		return
+		var user models.User
+		if err := config.DB.First(&user, userID).Error; err != nil {
+			utils.Error(c, http.StatusBadRequest, "用户不存在")
+			return
+		}
+		customer = models.Customer{
+			UserID: userID,
+			Phone:  user.Phone,
+		}
+		config.DB.Create(&customer)
 	}
 
 	dispute := models.Dispute{

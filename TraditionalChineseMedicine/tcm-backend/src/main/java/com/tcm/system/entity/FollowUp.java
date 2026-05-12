@@ -1,6 +1,7 @@
 package com.tcm.system.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class FollowUp {
     private Long patientId;
     private Long lastPrescriptionId;
     private LocalDate visitDate;
+    @TableField("`condition`")
     private String condition;
     private String curativeEffect;
     private String adjustment;

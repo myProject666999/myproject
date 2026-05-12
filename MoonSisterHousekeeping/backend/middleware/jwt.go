@@ -36,9 +36,30 @@ func JWT() gin.HandlerFunc {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			c.Set("user_id", claims["user_id"])
-			c.Set("role", claims["role"])
-			c.Set("username", claims["username"])
+			var userID uint
+			switch v := claims["user_id"].(type) {
+			case float64:
+				userID = uint(v)
+			case int:
+				userID = uint(v)
+			case int64:
+				userID = uint(v)
+			case uint:
+				userID = v
+			}
+			c.Set("user_id", userID)
+
+			var role string
+			if r, ok := claims["role"].(string); ok {
+				role = r
+			}
+			c.Set("role", role)
+
+			var username string
+			if u, ok := claims["username"].(string); ok {
+				username = u
+			}
+			c.Set("username", username)
 		}
 
 		c.Next()

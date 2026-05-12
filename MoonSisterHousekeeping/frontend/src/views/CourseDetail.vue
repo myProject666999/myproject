@@ -28,9 +28,10 @@
             <span>学习人数: {{ course.view_count }}</span>
           </div>
           <p class="course-desc">{{ course.description }}</p>
-          <el-button type="primary" size="large" @click="handleStartLearning">
+          <el-button type="primary" size="large" @click="handleStartLearning" v-if="isNanny">
             开始学习
           </el-button>
+          <el-tag type="info" v-else>仅限月嫂用户学习</el-tag>
         </div>
       </div>
 
@@ -61,10 +62,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getCourseDetail, startLearning as apiStartLearning, getMyCourses } from '@/api'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+const isNanny = computed(() => userStore.role === 'nanny')
 
 const route = useRoute()
 const course = ref(null)
@@ -72,12 +77,13 @@ const myRecord = ref(null)
 
 const loadData = async () => {
   try {
-    const [courseRes, myCourseRes] = await Promise.all([
-      getCourseDetail(route.params.id),
-      getMyCourses().catch(() => ({ data: [] }))
-    ])
+    const courseRes = await getCourseDetail(route.params.id)
     course.value = courseRes.data
-    myRecord.value = myCourseRes.data?.find(r => r.course_id === parseInt(route.params.id))
+
+    if (isNanny.value) {
+      const myCourseRes = await getMyCourses().catch(() => ({ data: [] }))
+      myRecord.value = myCourseRes.data?.find(r => r.course_id === parseInt(route.params.id))
+    }
   } catch (error) {
     console.error(error)
   }

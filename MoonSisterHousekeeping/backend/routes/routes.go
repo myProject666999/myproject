@@ -39,6 +39,9 @@ func RegisterRoutes(r *gin.Engine) {
 		auth.GET("/demands/:id/recommend", controllers.RecommendNannies)
 		auth.PUT("/contracts/:id/sign", controllers.SignContract)
 
+		auth.GET("/daily-records", controllers.GetDailyRecords)
+		auth.PUT("/daily-records/:id/review", controllers.ReviewDailyRecord)
+
 		admin := auth.Group("/")
 		admin.Use(middleware.RoleAuth("admin"))
 		{
@@ -72,8 +75,6 @@ func RegisterRoutes(r *gin.Engine) {
 			customer.POST("/reviews", controllers.CreateReview)
 
 			customer.POST("/disputes", controllers.CreateDispute)
-
-			customer.PUT("/daily-records/:id/review", controllers.ReviewDailyRecord)
 		}
 
 		nanny := auth.Group("/")
@@ -84,7 +85,6 @@ func RegisterRoutes(r *gin.Engine) {
 			nanny.GET("/attendance", controllers.GetAttendanceList)
 
 			nanny.POST("/daily-records", controllers.CreateDailyRecord)
-			nanny.GET("/daily-records", controllers.GetDailyRecords)
 
 			nanny.POST("/courses/:id/learn", controllers.StartLearning)
 			nanny.PUT("/courses/:id/progress", controllers.UpdateProgress)

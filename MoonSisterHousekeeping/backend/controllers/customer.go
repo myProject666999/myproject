@@ -14,12 +14,20 @@ import (
 )
 
 func CreateDemand(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userID := uint(c.GetUint("user_id"))
 
 	var customer models.Customer
 	if err := config.DB.Where("user_id = ?", userID).First(&customer).Error; err != nil {
-		utils.Error(c, http.StatusBadRequest, "请先完善客户信息")
-		return
+		var user models.User
+		if err := config.DB.First(&user, userID).Error; err != nil {
+			utils.Error(c, http.StatusBadRequest, "用户不存在")
+			return
+		}
+		customer = models.Customer{
+			UserID: userID,
+			Phone:  user.Phone,
+		}
+		config.DB.Create(&customer)
 	}
 
 	var req struct {

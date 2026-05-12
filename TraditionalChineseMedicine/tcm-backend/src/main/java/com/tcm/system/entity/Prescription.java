@@ -1,6 +1,7 @@
 package com.tcm.system.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class Prescription {
     private String diagnosisText;
     private String treatment;
     private Integer totalDosage;
+    @TableField("`usage`")
     private String usage;
     private String note;
     private Integer status;
