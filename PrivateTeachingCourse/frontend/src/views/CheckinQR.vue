@@ -15,7 +15,7 @@
           <div class="info-value">{{ checkin.Course?.date }} {{ checkin.Course?.startTime }}-{{ checkin.Course?.endTime }}</div>
           <div class="info-label">状态</div>
           <div class="info-value" :class="statusClass">
-            {{ checkin.status === 'checked_in' ? '已签到' : checkin.status === 'expired' ? '已过期' : '待签到' }}
+            {{ checkin.status === 'used' ? '已签到' : checkin.status === 'expired' ? '已过期' : '待签到' }}
           </div>
         </div>
         <div class="valid-tip">
@@ -42,8 +42,9 @@ export default {
     const statusClass = computed(() => {
       if (!checkin.value) return ''
       return {
-        checked_in: 'text-success',
-        pending: 'text-primary',
+        used: 'text-success',
+        scanned: 'text-success',
+        generated: 'text-primary',
         expired: 'text-muted'
       }[checkin.value.status] || ''
     })

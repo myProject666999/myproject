@@ -10,7 +10,7 @@ const getAllPosts = async (req, res) => {
     const offset = (page - 1) * limit;
     
     const { count, rows: posts } = await CommunityPost.findAndCountAll({
-      where: { status: 'active' },
+      attributes: ['id', 'userId', 'content', 'images', 'likesCount', 'commentsCount', 'createdAt', 'updatedAt'],
       include: [
         {
           model: User,
@@ -22,11 +22,13 @@ const getAllPosts = async (req, res) => {
       offset: parseInt(offset)
     });
     
+    const userId = req.user ? req.user.id : -1;
+    
     const postsWithLikes = await Promise.all(
       posts.map(async (post) => {
         const postJson = post.toJSON();
         const hasLiked = await Like.findOne({
-          where: { postId: post.id, userId: req.user ? req.user.id : -1 }
+          where: { postId: post.id, userId }
         });
         return {
           ...postJson,
@@ -54,7 +56,8 @@ const getPostById = async (req, res) => {
     const { id } = req.params;
     
     const post = await CommunityPost.findOne({
-      where: { id, status: 'active' },
+      where: { id },
+      attributes: ['id', 'userId', 'content', 'images', 'likesCount', 'commentsCount', 'createdAt', 'updatedAt'],
       include: [
         {
           model: User,
@@ -65,8 +68,7 @@ const getPostById = async (req, res) => {
           include: [{
             model: User,
             attributes: ['id', 'name', 'avatar']
-          }],
-          order: [['createdAt', 'DESC']]
+          }]
         }
       ]
     });
@@ -76,8 +78,9 @@ const getPostById = async (req, res) => {
     }
     
     const postJson = post.toJSON();
+    const userId = req.user ? req.user.id : -1;
     const hasLiked = await Like.findOne({
-      where: { postId: id, userId: req.user ? req.user.id : -1 }
+      where: { postId: id, userId }
     });
     
     res.json({
@@ -97,6 +100,7 @@ const getMyPosts = async (req, res) => {
   try {
     const posts = await CommunityPost.findAll({
       where: { userId: req.user.id },
+      attributes: ['id', 'userId', 'content', 'images', 'likesCount', 'commentsCount', 'createdAt', 'updatedAt'],
       include: [
         {
           model: User,

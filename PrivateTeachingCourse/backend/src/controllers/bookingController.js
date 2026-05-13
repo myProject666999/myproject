@@ -12,6 +12,7 @@ const getMyBookings = async (req, res) => {
     
     const bookings = await Booking.findAll({
       where,
+      attributes: ['id', 'courseId', 'userId', 'status', 'createdAt', 'updatedAt'],
       include: [{
         model: Course,
         include: [{
@@ -21,8 +22,7 @@ const getMyBookings = async (req, res) => {
             attributes: ['id', 'name', 'avatar']
           }]
         }]
-      }],
-      order: [[Course, 'date', 'DESC'], [Course, 'startTime', 'DESC']]
+      }]
     });
     
     res.json({ bookings });
@@ -38,6 +38,7 @@ const getBookingById = async (req, res) => {
     
     const booking = await Booking.findOne({
       where: { id, userId: req.user.id },
+      attributes: ['id', 'courseId', 'userId', 'status', 'createdAt', 'updatedAt'],
       include: [{
         model: Course,
         include: [{

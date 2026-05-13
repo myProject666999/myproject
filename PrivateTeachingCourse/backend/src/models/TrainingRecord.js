@@ -25,13 +25,19 @@ const TrainingRecord = sequelize.define('TrainingRecord', {
   },
   trainingDate: {
     type: DataTypes.DATEONLY,
-    allowNull: false
+    allowNull: false,
+    field: 'date'
   },
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
   },
   totalDuration: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    field: 'duration'
+  },
+  calories: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   }

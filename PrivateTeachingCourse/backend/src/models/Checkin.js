@@ -33,15 +33,19 @@ const Checkin = sequelize.define('Checkin', {
   },
   qrCode: {
     type: DataTypes.STRING(255),
-    allowNull: false
+    defaultValue: ''
+  },
+  qrExpireAt: {
+    type: DataTypes.DATE,
+    allowNull: true
   },
   checkinTime: {
     type: DataTypes.DATE,
     allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('pending', 'checked_in', 'expired'),
-    defaultValue: 'pending'
+    type: DataTypes.ENUM('generated', 'scanned', 'used', 'expired'),
+    defaultValue: 'generated'
   }
 }, {
   timestamps: true,

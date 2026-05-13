@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS gate_record (
     INDEX idx_qr_code (qr_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO court (court_no, name, type, price, status, description) VALUES
+INSERT IGNORE INTO court (court_no, name, type, price, status, description) VALUES
 ('B1', '羽毛球1号场', 'BADMINTON', 60.00, 1, '标准羽毛球场地'),
 ('B2', '羽毛球2号场', 'BADMINTON', 60.00, 1, '标准羽毛球场地'),
 ('B3', '羽毛球3号场', 'BADMINTON', 60.00, 1, '标准羽毛球场地'),
@@ -145,11 +145,11 @@ INSERT INTO court (court_no, name, type, price, status, description) VALUES
 ('T1', '网球1号场', 'TENNIS', 120.00, 1, '标准网球场地'),
 ('T2', '网球2号场', 'TENNIS', 120.00, 1, '标准网球场地');
 
-INSERT INTO coach (name, sport_type, level, price_per_hour, phone, description, status) VALUES
+INSERT IGNORE INTO coach (name, sport_type, level, price_per_hour, phone, description, status) VALUES
 ('张教练', 'BADMINTON', '高级', 200.00, '13800138001', '省队退役，10年教学经验', 1),
 ('李教练', 'BADMINTON', '中级', 150.00, '13800138002', '5年教学经验，擅长少儿培训', 1),
 ('王教练', 'TENNIS', '高级', 300.00, '13800138003', 'ITF认证教练，15年教学经验', 1);
 
-INSERT INTO sys_user (username, password, nickname, phone, role, balance, status) VALUES
-('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '管理员', '13900139001', 'ADMIN', 0.00, 1),
-('user1', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '测试用户', '13900139002', 'USER', 500.00, 1);
+INSERT IGNORE INTO sys_user (username, password, nickname, phone, role, balance, status) VALUES
+('admin', '123456', '管理员', '13900139001', 'ADMIN', 0.00, 1),
+('user1', '123456', '测试用户', '13900139002', 'USER', 500.00, 1);

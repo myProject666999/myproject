@@ -27,7 +27,7 @@ const generateCheckinQR = async (req, res) => {
     }
     
     const existingCheckin = await Checkin.findOne({
-      where: { bookingId, status: ['pending', 'checked_in'] }
+      where: { bookingId, status: ['generated', 'scanned', 'used'] }
     });
     
     if (existingCheckin) {
@@ -41,7 +41,7 @@ const generateCheckinQR = async (req, res) => {
       userId: req.user.id,
       bookingId,
       qrCode,
-      status: 'pending'
+      status: 'generated'
     });
     
     res.json({ checkin });
@@ -56,7 +56,7 @@ const scanCheckin = async (req, res) => {
     const { qrCode } = req.body;
     
     const checkin = await Checkin.findOne({
-      where: { qrCode, status: 'pending' },
+      where: { qrCode, status: 'generated' },
       include: [
         { model: User, attributes: ['id', 'name', 'avatar', 'phone'] },
         { model: Course, include: [{ model: Coach, include: [{ model: User }] }] }
@@ -68,7 +68,7 @@ const scanCheckin = async (req, res) => {
     }
     
     await checkin.update({
-      status: 'checked_in',
+      status: 'used',
       checkinTime: new Date()
     });
     

@@ -32,16 +32,12 @@ const getCoachById = async (req, res) => {
           attributes: ['id', 'name', 'avatar', 'phone', 'gender']
         },
         {
-          model: SuccessStory,
-          as: 'SuccessStories',
-          order: [['createdAt', 'DESC']]
+          model: SuccessStory
         },
         {
           model: Course,
-          as: 'Courses',
           where: { status: 'upcoming' },
-          required: false,
-          order: [['date', 'ASC'], ['startTime', 'ASC']]
+          required: false
         }
       ]
     });

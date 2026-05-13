@@ -25,11 +25,13 @@ const SuccessStory = sequelize.define('SuccessStory', {
   },
   beforePhoto: {
     type: DataTypes.STRING(255),
-    allowNull: true
+    allowNull: true,
+    field: 'beforeImage'
   },
   afterPhoto: {
     type: DataTypes.STRING(255),
-    allowNull: true
+    allowNull: true,
+    field: 'afterImage'
   },
   duration: {
     type: DataTypes.STRING(100),

@@ -101,12 +101,13 @@ export default {
         posts.value = isRefresh ? newPosts : [...posts.value, ...newPosts]
         page.value++
         loading.value = false
-        if (posts.value.length >= res.total) {
+        if (posts.value.length >= res.total || newPosts.length === 0) {
           finished.value = true
         }
       } catch (e) {
         console.error(e)
         loading.value = false
+        finished.value = true
       }
     }
 
