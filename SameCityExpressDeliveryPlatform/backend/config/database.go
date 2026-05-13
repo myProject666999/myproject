@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm/schema"
 
 	"samecity-express/internal/model"
+	"samecity-express/pkg/utils"
 )
 
 var DB *gorm.DB
@@ -99,9 +100,14 @@ func initDefaultData() {
 	var count int64
 	DB.Model(&model.Admin{}).Count(&count)
 	if count == 0 {
+		hashedPassword, err := utils.HashPassword("admin123")
+		if err != nil {
+			log.Printf("Failed to hash admin password: %v", err)
+			hashedPassword = "$2a$14$uM3w2y3h3a6h4n6y2j5k5u2i3o4p5a6s7s8w9o0r1d2e3f4g5h6i"
+		}
 		admin := &model.Admin{
 			Username: "admin",
-			Password: "$2a$14$y0Xy1Xy2Xy3Xy4Xy5Xy6Xy7Xy8Xy9Xy0Xy1Xy2Xy3Xy4Xy5Xy6X",
+			Password: hashedPassword,
 			RealName: "超级管理员",
 			Role:     2,
 			Status:   1,

@@ -309,6 +309,7 @@ function selectPickupAddress(address: any) {
   form.pickupName = address.name || form.pickupName
   form.pickupPhone = address.phone || form.pickupPhone
   showPickupMap.value = false
+  calculateCurrentPrice()
 }
 
 function selectDeliveryAddress(address: any) {
@@ -318,6 +319,7 @@ function selectDeliveryAddress(address: any) {
   form.deliveryName = address.name || form.deliveryName
   form.deliveryPhone = address.phone || form.deliveryPhone
   showDeliveryMap.value = false
+  calculateCurrentPrice()
 }
 
 async function searchPickupAddress() {
@@ -336,6 +338,27 @@ async function loadDeliveryAddresses() {
   addressFinished.value = true
 }
 
+async function calculateCurrentPrice() {
+  if (
+    form.pickupLongitude &&
+    form.pickupLatitude &&
+    form.deliveryLongitude &&
+    form.deliveryLatitude
+  ) {
+    try {
+      priceResult.value = await calculatePrice({
+        pickup_longitude: form.pickupLongitude,
+        pickup_latitude: form.pickupLatitude,
+        delivery_longitude: form.deliveryLongitude,
+        delivery_latitude: form.deliveryLatitude,
+        weight: form.weight
+      })
+    } catch (error) {
+      console.error('计算价格失败', error)
+    }
+  }
+}
+
 async function handleSubmit() {
   if (!form.pickupAddress || !form.deliveryAddress) {
     showToast('请选择取件和收件地址')
@@ -343,7 +366,16 @@ async function handleSubmit() {
   }
 
   if (!priceResult.value) {
-    showToast('请先计算配送费用')
+    try {
+      await calculateCurrentPrice()
+    } catch (error) {
+      showToast('计算配送费用失败，请重试')
+      return
+    }
+  }
+
+  if (!priceResult.value) {
+    showToast('无法计算配送费用')
     return
   }
 

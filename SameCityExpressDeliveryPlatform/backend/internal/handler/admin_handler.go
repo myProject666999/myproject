@@ -36,6 +36,7 @@ func (h *AdminHandler) Login(c *gin.Context) {
 
 	if admin.Status != 1 {
 		utils.BadRequest(c, "账号已被禁用")
+		return
 	}
 
 	if !utils.CheckPasswordHash(req.Password, admin.Password) {

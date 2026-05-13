@@ -1,0 +1,25 @@
+package com.gym.membership.entity;
+
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@TableName("course_type")
+public class CourseType {
+    @TableId(type = IdType.AUTO)
+    private Long id;
+    private String typeName;
+    private String description;
+    private Integer status;
+    
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+    
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
+    
+    @TableLogic
+    private Integer deleted;
+}

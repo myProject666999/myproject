@@ -8,8 +8,8 @@ export const useUserStore = defineStore('user', () => {
 
   const isLoggedIn = computed(() => !!token.value)
 
-  async function handleLogin(login: string, password: string) {
-    const res = await login(login, password)
+  async function handleLogin(loginName: string, password: string) {
+    const res = await login(loginName, password)
     token.value = res.token
     userInfo.value = res.user
     localStorage.setItem('token', res.token)
