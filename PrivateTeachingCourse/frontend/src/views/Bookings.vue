@@ -20,7 +20,7 @@
 <script>
 import { ref, defineComponent, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { showConfirmDialog, showDialog, Toast } from 'vant'
+import { showConfirmDialog, showDialog, showSuccessToast } from 'vant'
 import { bookingAPI, checkinAPI } from '@/api'
 
 const BookingList = defineComponent({
@@ -58,7 +58,7 @@ const BookingList = defineComponent({
           message: '确定要取消此预约吗？'
         })
         await bookingAPI.cancel(booking.id)
-        Toast.success('已取消')
+        showSuccessToast('已取消')
         loadBookings()
       } catch (e) {
         if (e !== 'cancel') console.error(e)

@@ -142,7 +142,9 @@ const activeMenu = computed(() => route.path)
 const currentTitle = computed(() => route.meta?.title || '摄影工作室管理系统')
 
 const handleCommand = async (command) => {
-  if (command === 'logout') {
+  if (command === 'profile') {
+    router.push('/profile')
+  } else if (command === 'logout') {
     try {
       await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
         confirmButtonText: '确定',

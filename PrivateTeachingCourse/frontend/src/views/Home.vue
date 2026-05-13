@@ -100,7 +100,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { showConfirmDialog, Toast } from 'vant'
+import { showConfirmDialog, showSuccessToast } from 'vant'
 import { coachAPI, courseAPI, bookingAPI } from '@/api'
 
 export default {
@@ -160,7 +160,7 @@ export default {
           message: `确定要预约「${course.name}」吗？`
         })
         const res = await bookingAPI.create({ courseId: course.id })
-        Toast.success(res.message)
+        showSuccessToast(res.message)
       } catch (e) {
         if (e !== 'cancel') console.error(e)
       }

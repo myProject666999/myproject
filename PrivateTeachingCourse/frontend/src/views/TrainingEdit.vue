@@ -59,7 +59,7 @@
 <script>
 import { reactive, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Toast } from 'vant'
+import { showSuccessToast, showFailToast } from 'vant'
 import { trainingAPI } from '@/api'
 
 export default {
@@ -107,7 +107,7 @@ export default {
 
     const onSubmit = async () => {
       if (!form.exercises.some(e => e.name)) {
-        Toast.fail('请至少添加一个训练动作')
+        showFailToast('请至少添加一个训练动作')
         return
       }
       loading.value = true
@@ -120,7 +120,7 @@ export default {
             notes: form.notes,
             exercises: validExercises
           })
-          Toast.success('更新成功')
+          showSuccessToast('更新成功')
         } else {
           await trainingAPI.create({
             trainingDate: form.trainingDate,
@@ -128,7 +128,7 @@ export default {
             notes: form.notes,
             exercises: validExercises
           })
-          Toast.success('创建成功')
+          showSuccessToast('创建成功')
         }
         router.back()
       } catch (e) {

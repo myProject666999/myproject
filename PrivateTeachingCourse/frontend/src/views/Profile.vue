@@ -60,7 +60,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { showConfirmDialog, Toast } from 'vant'
+import { showConfirmDialog, showSuccessToast, showFailToast } from 'vant'
 import { authAPI } from '@/api'
 
 export default {
@@ -83,11 +83,11 @@ export default {
 
     const handleChangePassword = async () => {
       if (!passwordForm.value.old || !passwordForm.value.new) {
-        Toast.fail('请填写完整信息')
+        showFailToast('请填写完整信息')
         return false
       }
       if (passwordForm.value.new !== passwordForm.value.confirm) {
-        Toast.fail('两次密码不一致')
+        showFailToast('两次密码不一致')
         return false
       }
       try {
@@ -95,7 +95,7 @@ export default {
           oldPassword: passwordForm.value.old,
           newPassword: passwordForm.value.new
         })
-        Toast.success('密码修改成功')
+        showSuccessToast('密码修改成功')
         showPasswordDialog.value = false
         passwordForm.value = { old: '', new: '', confirm: '' }
       } catch (e) {

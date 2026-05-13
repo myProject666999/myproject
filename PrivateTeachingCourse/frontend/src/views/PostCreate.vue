@@ -22,7 +22,7 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Toast } from 'vant'
+import { showSuccessToast, showFailToast } from 'vant'
 import { communityAPI } from '@/api'
 
 export default {
@@ -34,7 +34,7 @@ export default {
 
     const handleSubmit = async () => {
       if (!content.value.trim()) {
-        Toast.fail('请输入动态内容')
+        showFailToast('请输入动态内容')
         return
       }
       loading.value = true
@@ -43,7 +43,7 @@ export default {
           content: content.value,
           images: []
         })
-        Toast.success('发布成功')
+        showSuccessToast('发布成功')
         router.back()
       } catch (e) {
         console.error(e)

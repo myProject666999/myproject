@@ -37,7 +37,7 @@
 <script>
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { showConfirmDialog, Toast } from 'vant'
+import { showConfirmDialog, showSuccessToast } from 'vant'
 import { trainingAPI } from '@/api'
 
 export default {
@@ -70,7 +70,7 @@ export default {
         try {
           await showConfirmDialog({ title: '确认删除', message: '确定要删除这条训练记录吗？' })
           await trainingAPI.delete(record.id)
-          Toast.success('已删除')
+          showSuccessToast('已删除')
           loadRecords()
         } catch (e) {
           if (e !== 'cancel') console.error(e)

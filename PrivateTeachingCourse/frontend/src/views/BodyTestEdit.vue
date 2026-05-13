@@ -85,7 +85,7 @@
 <script>
 import { reactive, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Toast } from 'vant'
+import { showSuccessToast } from 'vant'
 import { bodyTestAPI } from '@/api'
 
 export default {
@@ -132,10 +132,10 @@ export default {
       try {
         if (isEdit.value) {
           await bodyTestAPI.update(route.params.id, form)
-          Toast.success('更新成功')
+          showSuccessToast('更新成功')
         } else {
           await bodyTestAPI.create(form)
-          Toast.success('创建成功')
+          showSuccessToast('创建成功')
         }
         router.back()
       } catch (e) {

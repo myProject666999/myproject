@@ -39,7 +39,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { Toast } from 'vant'
+import { showSuccessToast, showFailToast } from 'vant'
 import { authAPI } from '@/api'
 
 export default {
@@ -53,10 +53,16 @@ export default {
       loading.value = true
       try {
         const res = await authAPI.login(form)
-        store.dispatch('login', { token: res.token, user: res.user })
-        Toast.success('登录成功')
-        setTimeout(() => router.push('/'), 500)
+        console.log('Login response:', res)
+        if (res.token) {
+          store.dispatch('login', { token: res.token, user: res.user })
+          showSuccessToast('登录成功')
+          setTimeout(() => router.push('/'), 300)
+        } else {
+          showFailToast('登录失败：未获取到token')
+        }
       } catch (e) {
+        console.error('Login error:', e)
       } finally {
         loading.value = false
       }

@@ -68,7 +68,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Toast } from 'vant'
+import { showSuccessToast, showFailToast } from 'vant'
 import { communityAPI } from '@/api'
 
 export default {
@@ -96,7 +96,7 @@ export default {
 
     const addComment = async () => {
       if (!commentText.value.trim()) {
-        Toast.fail('请输入评论内容')
+        showFailToast('请输入评论内容')
         return
       }
       const token = localStorage.getItem('token')
@@ -106,7 +106,7 @@ export default {
       }
       try {
         await communityAPI.addComment(route.params.id, commentText.value)
-        Toast.success('评论成功')
+        showSuccessToast('评论成功')
         commentText.value = ''
         loadPost()
       } catch (e) {

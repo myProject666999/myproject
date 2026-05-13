@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { Toast } from 'vant'
+import { showToast } from 'vant'
 
 const request = axios.create({
   baseURL: '/api',
@@ -27,9 +27,9 @@ request.interceptors.response.use(
         localStorage.removeItem('user')
         window.location.hash = '#/login'
       }
-      Toast(data?.error || '请求失败')
+      showToast(data?.error || '请求失败')
     } else {
-      Toast('网络错误')
+      showToast('网络错误')
     }
     return Promise.reject(error)
   }

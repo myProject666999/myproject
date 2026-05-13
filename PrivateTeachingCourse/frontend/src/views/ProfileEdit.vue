@@ -59,7 +59,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { Toast } from 'vant'
+import { showSuccessToast } from 'vant'
 import { authAPI } from '@/api'
 
 export default {
@@ -105,7 +105,7 @@ export default {
       try {
         const res = await authAPI.updateProfile(form)
         store.dispatch('updateUser', res.user)
-        Toast.success('保存成功')
+        showSuccessToast('保存成功')
         router.back()
       } catch (e) {
         console.error(e)

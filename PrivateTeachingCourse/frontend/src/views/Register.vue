@@ -61,7 +61,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { Toast } from 'vant'
+import { showSuccessToast } from 'vant'
 import { authAPI } from '@/api'
 
 export default {
@@ -86,7 +86,7 @@ export default {
       try {
         const res = await authAPI.register(form)
         store.dispatch('login', { token: res.token, user: res.user })
-        Toast.success('注册成功')
+        showSuccessToast('注册成功')
         setTimeout(() => router.push('/'), 500)
       } catch (e) {
       } finally {
