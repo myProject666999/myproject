@@ -253,8 +253,8 @@ INSERT INTO `commission_rule` (`rule_name`, `rule_type`, `commission_rate`, `fix
 ('销售提成', 'SALES', 5.00, 0.00, 1);
 
 -- 初始管理员账号: admin / 123456
--- BCrypt 密码 (经过验证):
+-- BCrypt 密码 (使用 PasswordHashGenerator 生成):
 INSERT INTO `user` (`username`, `password`, `real_name`, `phone`, `status`) VALUES
-('admin', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '系统管理员', '13800000000', 1);
+('admin', '$2a$10$WVD74MfGtTmqcIqc4.nPTunaPFKYMkPKlNWJCo70GaqEP1Wq/GUbW', '系统管理员', '13800000000', 1);
 
 INSERT INTO `user_role` (`user_id`, `role_id`) VALUES (1, 1);

@@ -51,7 +51,15 @@ const Schedule = sequelize.define('Schedule', {
     {
       fields: ['userId', 'date']
     }
-  ]
+  ],
+  hooks: {
+    beforeCreate: async (schedule) => {
+      if (!schedule.id) {
+        const [result] = await sequelize.query('SELECT COALESCE(MAX(id), 0) as maxId FROM schedules', { type: sequelize.QueryTypes.SELECT });
+        schedule.id = (result.maxId || 0) + 1;
+      }
+    }
+  }
 });
 
 module.exports = Schedule;

@@ -47,9 +47,13 @@ const User = sequelize.define('User', {
   tableName: 'users',
   timestamps: true,
   hooks: {
-    beforeCreate: async (user) => {
+    beforeCreate: async (user, options) => {
       if (user.password) {
         user.password = await bcrypt.hash(user.password, 10);
+      }
+      if (!user.id) {
+        const [result] = await sequelize.query('SELECT COALESCE(MAX(id), 0) as maxId FROM users', { type: sequelize.QueryTypes.SELECT });
+        user.id = (result.maxId || 0) + 1;
       }
     },
     beforeUpdate: async (user) => {

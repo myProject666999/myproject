@@ -67,7 +67,15 @@ const WorkOrder = sequelize.define('WorkOrder', {
   }
 }, {
   tableName: 'work_orders',
-  timestamps: true
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (workOrder) => {
+      if (!workOrder.id) {
+        const [result] = await sequelize.query('SELECT COALESCE(MAX(id), 0) as maxId FROM work_orders', { type: sequelize.QueryTypes.SELECT });
+        workOrder.id = (result.maxId || 0) + 1;
+      }
+    }
+  }
 });
 
 module.exports = WorkOrder;

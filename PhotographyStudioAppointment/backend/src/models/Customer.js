@@ -52,7 +52,15 @@ const Customer = sequelize.define('Customer', {
       unique: true,
       fields: ['phone']
     }
-  ]
+  ],
+  hooks: {
+    beforeCreate: async (customer) => {
+      if (!customer.id) {
+        const [result] = await sequelize.query('SELECT COALESCE(MAX(id), 0) as maxId FROM customers', { type: sequelize.QueryTypes.SELECT });
+        customer.id = (result.maxId || 0) + 1;
+      }
+    }
+  }
 });
 
 module.exports = Customer;

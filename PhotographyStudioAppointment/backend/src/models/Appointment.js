@@ -85,7 +85,15 @@ const Appointment = sequelize.define('Appointment', {
   }
 }, {
   tableName: 'appointments',
-  timestamps: true
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (appointment) => {
+      if (!appointment.id) {
+        const [result] = await sequelize.query('SELECT COALESCE(MAX(id), 0) as maxId FROM appointments', { type: sequelize.QueryTypes.SELECT });
+        appointment.id = (result.maxId || 0) + 1;
+      }
+    }
+  }
 });
 
 module.exports = Appointment;

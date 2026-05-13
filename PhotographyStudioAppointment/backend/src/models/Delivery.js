@@ -91,7 +91,15 @@ const Delivery = sequelize.define('Delivery', {
   }
 }, {
   tableName: 'deliveries',
-  timestamps: true
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (delivery) => {
+      if (!delivery.id) {
+        const [result] = await sequelize.query('SELECT COALESCE(MAX(id), 0) as maxId FROM deliveries', { type: sequelize.QueryTypes.SELECT });
+        delivery.id = (result.maxId || 0) + 1;
+      }
+    }
+  }
 });
 
 module.exports = Delivery;

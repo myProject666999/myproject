@@ -55,7 +55,15 @@ const Package = sequelize.define('Package', {
   }
 }, {
   tableName: 'packages',
-  timestamps: true
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (pkg) => {
+      if (!pkg.id) {
+        const [result] = await sequelize.query('SELECT COALESCE(MAX(id), 0) as maxId FROM packages', { type: sequelize.QueryTypes.SELECT });
+        pkg.id = (result.maxId || 0) + 1;
+      }
+    }
+  }
 });
 
 module.exports = Package;

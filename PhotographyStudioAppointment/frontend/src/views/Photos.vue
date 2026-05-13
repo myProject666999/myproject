@@ -16,6 +16,7 @@
         multiple
         accept="image/*"
         :on-change="handleFileChange"
+        :disabled="!filter.appointmentId"
         style="display: inline-block;"
       >
         <el-button type="primary" :disabled="!filter.appointmentId">
@@ -32,6 +33,10 @@
         取消选择
       </el-button>
     </div>
+
+    <el-empty v-if="appointments.length === 0" description="暂无订单，请先在预约管理中创建订单" style="margin-top: 100px;">
+      <el-button type="primary" @click="$router.push('/appointments')">去创建订单</el-button>
+    </el-empty>
 
     <div v-if="!filter.appointmentId" style="margin-top: 50px; text-align: center; color: #909399;">
       <el-icon :size="50"><Picture /></el-icon>

@@ -48,7 +48,15 @@ const Costume = sequelize.define('Costume', {
   }
 }, {
   tableName: 'costumes',
-  timestamps: true
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (costume) => {
+      if (!costume.id) {
+        const [result] = await sequelize.query('SELECT COALESCE(MAX(id), 0) as maxId FROM costumes', { type: sequelize.QueryTypes.SELECT });
+        costume.id = (result.maxId || 0) + 1;
+      }
+    }
+  }
 });
 
 module.exports = Costume;

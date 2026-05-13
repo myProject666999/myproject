@@ -7,11 +7,26 @@ const request = axios.create({
   timeout: 30000
 })
 
+const cleanParams = (params) => {
+  if (!params) return params
+  const cleaned = {}
+  for (const key in params) {
+    const value = params[key]
+    if (value !== null && value !== undefined && value !== '') {
+      cleaned[key] = value
+    }
+  }
+  return cleaned
+}
+
 request.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
+    }
+    if (config.params) {
+      config.params = cleanParams(config.params)
     }
     return config
   },
