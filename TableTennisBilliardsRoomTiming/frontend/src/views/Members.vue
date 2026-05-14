@@ -104,6 +104,63 @@
         <el-button type="primary" @click="confirmRecharge">确定充值</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="detailDialogVisible" title="会员详情" width="700px">
+      <el-descriptions :column="2" border v-if="memberDetail">
+        <el-descriptions-item label="会员号">
+          {{ memberDetail.member_no }}
+        </el-descriptions-item>
+        <el-descriptions-item label="姓名">
+          {{ memberDetail.name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="手机号">
+          {{ memberDetail.phone || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="性别">
+          {{ { male: '男', female: '女', other: '其他' }[memberDetail.gender] || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="当前余额">
+          <strong style="color: #409EFF; font-size: 18px;">¥{{ memberDetail.balance }}</strong>
+        </el-descriptions-item>
+        <el-descriptions-item label="会员等级">
+          <el-tag size="small">V{{ memberDetail.level }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="累计充值">
+          ¥{{ memberDetail.total_recharge }}
+        </el-descriptions-item>
+        <el-descriptions-item label="累计消费">
+          ¥{{ memberDetail.total_consumption }}
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="memberDetail.status === 'active' ? 'success' : 'danger'" size="small">
+            {{ { active: '正常', inactive: '停用', frozen: '冻结' }[memberDetail.status] }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="注册时间">
+          {{ memberDetail.created_at }}
+        </el-descriptions-item>
+      </el-descriptions>
+
+      <div style="margin-top: 20px;">
+        <h4 style="margin-bottom: 10px;">充值记录</h4>
+        <el-table :data="rechargeRecords" stripe size="small" v-if="rechargeRecords.length > 0">
+          <el-table-column prop="created_at" label="充值时间" width="170" />
+          <el-table-column prop="recharge_amount" label="充值金额" width="100">
+            <template #default="{ row }">¥{{ row.recharge_amount }}</template>
+          </el-table-column>
+          <el-table-column prop="gift_amount" label="赠送金额" width="100">
+            <template #default="{ row }">¥{{ row.gift_amount }}</template>
+          </el-table-column>
+          <el-table-column prop="payment_method" label="支付方式" width="100">
+            <template #default="{ row }">
+              {{ { cash: '现金', wechat: '微信', alipay: '支付宝', card: '银行卡', other: '其他' }[row.payment_method] }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="operator_name" label="操作员" />
+        </el-table>
+        <el-empty description="暂无充值记录" v-else :image-size="100" />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -117,7 +174,10 @@ const members = ref([])
 const searchKeyword = ref('')
 const addDialogVisible = ref(false)
 const rechargeDialogVisible = ref(false)
+const detailDialogVisible = ref(false)
 const selectedMember = ref(null)
+const memberDetail = ref(null)
+const rechargeRecords = ref([])
 
 const memberForm = reactive({
   name: '',
@@ -174,7 +234,9 @@ async function confirmRecharge() {
 async function viewDetail(row) {
   try {
     const response = await api.get(`/members/${row.id}`)
-    ElMessage.info(`会员 ${response.data.member.name}，余额: ¥${response.data.member.balance}`)
+    memberDetail.value = response.data.member
+    rechargeRecords.value = response.data.rechargeRecords || []
+    detailDialogVisible.value = true
   } catch (error) {
     console.error('获取会员详情失败:', error)
   }

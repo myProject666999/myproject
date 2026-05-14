@@ -25,7 +25,7 @@
             <div class="stat-title">新增会员</div>
             <div class="stat-value">{{ data.newMemberCount || 0 }}</div>
           </div>
-          <el-icon class="stat-icon"><UserPlus /></el-icon>
+          <el-icon class="stat-icon"><UserFilled /></el-icon>
         </el-card>
       </el-col>
       <el-col :span="6">
