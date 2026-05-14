@@ -80,7 +80,7 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitting">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -96,6 +96,7 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const formRef = ref(null)
 const isEdit = ref(false)
+const submitting = ref(false)
 
 const form = reactive({
   id: null,
@@ -155,7 +156,18 @@ const loadBays = async () => {
 const openDialog = (row = null) => {
   if (row) {
     isEdit.value = true
-    Object.assign(form, row)
+    Object.assign(form, {
+      id: row.id,
+      bay_number: row.bay_number,
+      bay_type: row.bay_type,
+      floor: row.floor,
+      position_x: row.position_x || 0,
+      position_y: row.position_y || 0,
+      has_sensor: row.has_sensor === 1 || row.has_sensor === true,
+      status: row.status,
+      price_per_hour: row.price_per_hour,
+      description: row.description
+    })
   } else {
     isEdit.value = false
     Object.assign(form, {
@@ -177,13 +189,24 @@ const openDialog = (row = null) => {
 const handleSubmit = async () => {
   try {
     await formRef.value.validate()
-    ElMessage.success(isEdit.value ? '编辑成功' : '新增成功')
+    submitting.value = true
+    
+    if (isEdit.value) {
+      await request.put(`/bays/${form.id}`, form)
+      ElMessage.success('编辑成功')
+    } else {
+      await request.post('/bays', form)
+      ElMessage.success('新增成功')
+    }
+    
     dialogVisible.value = false
     loadBays()
   } catch (error) {
     if (error !== false) {
       ElMessage.error('提交失败')
     }
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -194,6 +217,7 @@ const handleDelete = async (row) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
+    await request.delete(`/bays/${row.id}`)
     ElMessage.success('删除成功')
     loadBays()
   } catch (error) {

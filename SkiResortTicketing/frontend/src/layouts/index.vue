@@ -68,7 +68,13 @@ const menuItems = [
 ]
 
 const handleCommand = (command) => {
-  if (command === 'logout') {
+  if (command === 'profile') {
+    ElMessageBox.alert(
+      '用户名: admin\n真实姓名: 系统管理员\n手机号: 13800000000\n角色: 超级管理员\n状态: 正常',
+      '个人中心',
+      { confirmButtonText: '关闭' }
+    )
+  } else if (command === 'logout') {
     ElMessageBox.confirm('确定要退出登录吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',

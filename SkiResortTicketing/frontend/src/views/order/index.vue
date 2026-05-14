@@ -4,7 +4,10 @@
       <template #header>
         <div class="card-header">
           <span>订单管理</span>
-          <el-button type="primary">新建订单</el-button>
+          <el-button type="primary" @click="openCreateDialog">
+            <el-icon><Plus /></el-icon>
+            新建订单
+          </el-button>
         </div>
       </template>
 
@@ -16,7 +19,7 @@
           <el-input v-model="searchForm.customerName" placeholder="请输入客户姓名" clearable />
         </el-form-item>
         <el-form-item label="订单状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 120px">
             <el-option label="待支付" :value="0" />
             <el-option label="已支付" :value="1" />
             <el-option label="已入园" :value="2" />
@@ -31,7 +34,7 @@
         </el-form-item>
       </el-form>
 
-      <el-table :data="tableData" border v-loading="loading">
+      <el-table :data="filteredTableData" border v-loading="loading">
         <el-table-column prop="orderNo" label="订单编号" width="180" />
         <el-table-column prop="customerName" label="客户姓名" width="100" />
         <el-table-column prop="phone" label="联系电话" width="130" />
@@ -53,11 +56,13 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="下单时间" width="160" />
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="280">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleDetail(row)">详情</el-button>
-            <el-button type="warning" link size="small" v-if="row.status === 0">支付</el-button>
-            <el-button type="danger" link size="small" v-if="row.status === 0">取消</el-button>
+            <el-button type="success" link size="small" v-if="row.status === 0" @click="handlePay(row)">支付</el-button>
+            <el-button type="warning" link size="small" v-if="row.status === 1" @click="handleCheckIn(row)">入园</el-button>
+            <el-button type="info" link size="small" v-if="row.status === 2" @click="handleReturn(row)">归还</el-button>
+            <el-button type="danger" link size="small" v-if="row.status === 0" @click="handleCancel(row)">取消</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -84,7 +89,7 @@
         <el-descriptions-item label="身份证号">{{ currentOrder.idCard }}</el-descriptions-item>
         <el-descriptions-item label="下单时间">{{ currentOrder.createTime }}</el-descriptions-item>
         <el-descriptions-item label="票种">{{ currentOrder.ticketType }}</el-descriptions-item>
-        <el-descriptions-item label="雪具">{{ currentOrder.equipment }}</el-descriptions-item>
+        <el-descriptions-item label="雪具">{{ currentOrder.equipment || '-' }}</el-descriptions-item>
         <el-descriptions-item label="订单金额">
           <span style="color: #f56c6c; font-weight: bold">¥{{ currentOrder.totalAmount }}</span>
         </el-descriptions-item>
@@ -93,14 +98,50 @@
         </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
+
+    <el-dialog v-model="createDialogVisible" title="新建订单" width="600px">
+      <el-form :model="orderForm" label-width="100px">
+        <el-form-item label="客户姓名">
+          <el-input v-model="orderForm.customerName" placeholder="请输入客户姓名" />
+        </el-form-item>
+        <el-form-item label="联系电话">
+          <el-input v-model="orderForm.phone" placeholder="请输入联系电话" />
+        </el-form-item>
+        <el-form-item label="身份证号">
+          <el-input v-model="orderForm.idCard" placeholder="请输入身份证号" />
+        </el-form-item>
+        <el-form-item label="选择票种">
+          <el-select v-model="orderForm.ticketTypeId" placeholder="请选择票种" style="width: 100%">
+            <el-option v-for="ticket in ticketTypes" :key="ticket.id" :label="`${ticket.name} - ¥${ticket.price}`" :value="ticket.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="票种数量">
+          <el-input-number v-model="orderForm.ticketQuantity" :min="1" :max="10" />
+        </el-form-item>
+        <el-form-item label="选择雪具">
+          <el-select v-model="orderForm.equipmentIds" multiple placeholder="可多选雪具" style="width: 100%">
+            <el-option v-for="equip in equipmentTypes" :key="equip.id" :label="`${equip.name} - 押金¥${equip.deposit}`" :value="equip.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="orderForm.remark" type="textarea" :rows="2" placeholder="请输入备注" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="createDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="createOrder">创建订单</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
 const detailVisible = ref(false)
+const createDialogVisible = ref(false)
 const currentOrder = ref(null)
 
 const searchForm = reactive({
@@ -115,73 +156,57 @@ const pagination = reactive({
   total: 0
 })
 
-const tableData = ref([
-  {
-    id: 1,
-    orderNo: 'ORD202405140001',
-    customerName: '张三',
-    phone: '13800000001',
-    idCard: '110101199001011234',
-    ticketType: '周末全日票 x2',
-    equipment: '双板套装 x2',
-    totalAmount: 1552,
-    depositAmount: 1400,
-    status: 2,
-    createTime: '2024-05-14 09:15:30'
-  },
-  {
-    id: 2,
-    orderNo: 'ORD202405140002',
-    customerName: '李四',
-    phone: '13800000002',
-    idCard: '110101199002025678',
-    ticketType: '平日全日票 x1',
-    equipment: '单板套装 x1, 头盔 x1',
-    totalAmount: 788,
-    depositAmount: 600,
-    status: 1,
-    createTime: '2024-05-14 09:30:25'
-  },
-  {
-    id: 3,
-    orderNo: 'ORD202405140003',
-    customerName: '王五',
-    phone: '13800000003',
-    idCard: '110101199003039012',
-    ticketType: '夜场票 x3',
-    equipment: '',
-    totalAmount: 294,
-    depositAmount: 0,
-    status: 0,
-    createTime: '2024-05-14 10:05:12'
-  },
-  {
-    id: 4,
-    orderNo: 'ORD202405140004',
-    customerName: '赵六',
-    phone: '13800000004',
-    idCard: '110101199004043456',
-    ticketType: '周末半日票 x1',
-    equipment: '雪鞋 x1, 头盔 x1',
-    totalAmount: 318,
-    depositAmount: 300,
-    status: 3,
-    createTime: '2024-05-14 10:20:45'
-  },
-  {
-    id: 5,
-    orderNo: 'ORD202405140005',
-    customerName: '钱七',
-    phone: '13800000005',
-    idCard: '110101199005057890',
-    ticketType: '节日全日票 x2',
-    equipment: '',
-    totalAmount: 976,
-    depositAmount: 0,
-    status: 5,
-    createTime: '2024-05-14 10:45:18'
-  }
+const ticketTypes = ref([
+  { id: 1, name: '周末半日票', price: 158 },
+  { id: 2, name: '平日全日票', price: 288 },
+  { id: 3, name: '周末全日票', price: 388 },
+  { id: 4, name: '节日全日票', price: 488 },
+  { id: 5, name: '夜场票', price: 98 }
 ])
+
+const equipmentTypes = ref([
+  { id: 1, name: '双板滑雪板', deposit: 500, rentalPrice: 80 },
+  { id: 2, name: '单板滑雪板', deposit: 500, rentalPrice: 100 },
+  { id: 3, name: '滑雪鞋', deposit: 200, rentalPrice: 40 },
+  { id: 4, name: '头盔', deposit: 100, rentalPrice: 20 },
+  { id: 5, name: '雪杖', deposit: 50, rentalPrice: 10 },
+  { id: 6, name: '护目镜', deposit: 100, rentalPrice: 30 },
+  { id: 7, name: '护具套装', deposit: 150, rentalPrice: 40 },
+  { id: 8, name: '滑雪服', deposit: 300, rentalPrice: 60 }
+])
+
+const tableData = ref([
+  { id: 1, orderNo: 'ORD202405140001', customerName: '张三', phone: '13800000001', idCard: '110101199001011234', ticketType: '周末全日票 x2', equipment: '双板套装 x2', totalAmount: 1552, depositAmount: 1400, status: 2, createTime: '2024-05-14 09:15:30' },
+  { id: 2, orderNo: 'ORD202405140002', customerName: '李四', phone: '13800000002', idCard: '110101199002025678', ticketType: '平日全日票 x1', equipment: '单板套装 x1, 头盔 x1', totalAmount: 788, depositAmount: 600, status: 1, createTime: '2024-05-14 09:30:25' },
+  { id: 3, orderNo: 'ORD202405140003', customerName: '王五', phone: '13800000003', idCard: '110101199003039012', ticketType: '夜场票 x3', equipment: '', totalAmount: 294, depositAmount: 0, status: 0, createTime: '2024-05-14 10:05:12' },
+  { id: 4, orderNo: 'ORD202405140004', customerName: '赵六', phone: '13800000004', idCard: '110101199004043456', ticketType: '周末半日票 x1', equipment: '雪鞋 x1, 头盔 x1', totalAmount: 318, depositAmount: 300, status: 3, createTime: '2024-05-14 10:20:45' },
+  { id: 5, orderNo: 'ORD202405140005', customerName: '钱七', phone: '13800000005', idCard: '110101199005057890', ticketType: '节日全日票 x2', equipment: '', totalAmount: 976, depositAmount: 0, status: 5, createTime: '2024-05-14 10:45:18' }
+])
+
+const orderForm = reactive({
+  customerName: '',
+  phone: '',
+  idCard: '',
+  ticketTypeId: '',
+  ticketQuantity: 1,
+  equipmentIds: [],
+  remark: ''
+})
+
+const filteredTableData = computed(() => {
+  let data = tableData.value
+  if (searchForm.orderNo) {
+    data = data.filter(o => o.orderNo.includes(searchForm.orderNo))
+  }
+  if (searchForm.customerName) {
+    data = data.filter(o => o.customerName.includes(searchForm.customerName))
+  }
+  if (searchForm.status !== null) {
+    data = data.filter(o => o.status === searchForm.status)
+  }
+  pagination.total = data.length
+  return data
+})
 
 const getStatusName = (status) => {
   const map = { 0: '待支付', 1: '已支付', 2: '已入园', 3: '已归还', 4: '已取消', 5: '已退款' }
@@ -193,7 +218,10 @@ const getStatusType = (status) => {
   return map[status] || 'info'
 }
 
-const handleSearch = () => {}
+const handleSearch = () => {
+  ElMessage.success('查询完成')
+}
+
 const resetSearch = () => {
   searchForm.orderNo = ''
   searchForm.customerName = ''
@@ -203,5 +231,102 @@ const resetSearch = () => {
 const handleDetail = (row) => {
   currentOrder.value = row
   detailVisible.value = true
+}
+
+const openCreateDialog = () => {
+  Object.assign(orderForm, {
+    customerName: '',
+    phone: '',
+    idCard: '',
+    ticketTypeId: '',
+    ticketQuantity: 1,
+    equipmentIds: [],
+    remark: ''
+  })
+  createDialogVisible.value = true
+}
+
+const createOrder = () => {
+  if (!orderForm.customerName) {
+    ElMessage.warning('请输入客户姓名！')
+    return
+  }
+  if (!orderForm.ticketTypeId) {
+    ElMessage.warning('请选择票种！')
+    return
+  }
+
+  const ticket = ticketTypes.value.find(t => t.id === orderForm.ticketTypeId)
+  const selectedEquips = equipmentTypes.value.filter(e => orderForm.equipmentIds.includes(e.id))
+
+  let totalAmount = ticket.price * orderForm.ticketQuantity
+  let depositAmount = 0
+  selectedEquips.forEach(e => {
+    totalAmount += e.rentalPrice
+    depositAmount += e.deposit
+  })
+
+  const equipNames = selectedEquips.map(e => e.name).join(', ')
+
+  tableData.value.unshift({
+    id: Date.now(),
+    orderNo: 'ORD' + Date.now().toString().slice(-10),
+    customerName: orderForm.customerName,
+    phone: orderForm.phone,
+    idCard: orderForm.idCard,
+    ticketType: `${ticket.name} x${orderForm.ticketQuantity}`,
+    equipment: equipNames,
+    totalAmount: totalAmount,
+    depositAmount: depositAmount,
+    status: 0,
+    createTime: new Date().toLocaleString()
+  })
+
+  createDialogVisible.value = false
+  ElMessage.success('订单创建成功！')
+}
+
+const handlePay = (row) => {
+  ElMessageBox.confirm(`确认支付订单 ${row.orderNo}？金额: ¥${row.totalAmount}，押金: ¥${row.depositAmount}`, '支付确认', {
+    confirmButtonText: '确认支付',
+    cancelButtonText: '取消',
+    type: 'info'
+  }).then(() => {
+    row.status = 1
+    ElMessage.success('支付成功！')
+  }).catch(() => {})
+}
+
+const handleCheckIn = (row) => {
+  ElMessageBox.confirm(`确认订单 ${row.orderNo} 已入园？`, '入园确认', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'success'
+  }).then(() => {
+    row.status = 2
+    ElMessage.success('已确认入园！')
+  }).catch(() => {})
+}
+
+const handleReturn = (row) => {
+  ElMessageBox.confirm(`确认订单 ${row.orderNo} 雪具已归还？押金 ¥${row.depositAmount} 将退回。`, '归还确认', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'info'
+  }).then(() => {
+    row.status = 3
+    ElMessage.success('已确认归还，押金已退回！')
+  }).catch(() => {})
+}
+
+const handleCancel = (row) => {
+  ElMessageBox.confirm(`确定要取消订单 ${row.orderNo} 吗？`, '取消订单', {
+    confirmButtonText: '确定取消',
+    cancelButtonText: '返回',
+    type: 'warning'
+  }).then(() => {
+    row.status = 4
+    ElMessage.success('订单已取消')
+  }).catch(() => {})
 }
 </script>
