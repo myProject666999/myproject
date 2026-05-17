@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.incomeexpenditure.mapper.UserSettingMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.incomeexpenditure.entity.UserSetting">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="color_threshold1" property="colorThreshold1"/>
+        <result column="color_threshold2" property="colorThreshold2"/>
+        <result column="color_threshold3" property="colorThreshold3"/>
+        <result column="color1" property="color1"/>
+        <result column="color2" property="color2"/>
+        <result column="color3" property="color3"/>
+        <result column="color4" property="color4"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="findByUserId" resultMap="BaseResultMap">
+        SELECT * FROM user_setting WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="com.example.incomeexpenditure.entity.UserSetting" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_setting (user_id, color_threshold1, color_threshold2, color_threshold3, color1, color2, color3, color4)
+        VALUES (#{userId}, #{colorThreshold1}, #{colorThreshold2}, #{colorThreshold3}, #{color1}, #{color2}, #{color3}, #{color4})
+    </insert>
+
+    <update id="update" parameterType="com.example.incomeexpenditure.entity.UserSetting">
+        UPDATE user_setting
+        SET color_threshold1 = #{colorThreshold1}, color_threshold2 = #{colorThreshold2}, color_threshold3 = #{colorThreshold3},
+            color1 = #{color1}, color2 = #{color2}, color3 = #{color3}, color4 = #{color4}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

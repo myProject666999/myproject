@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.incomeexpenditure.mapper.CategoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.incomeexpenditure.entity.Category">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="icon" property="icon"/>
+        <result column="sort" property="sort"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM category ORDER BY sort
+    </select>
+
+    <select id="findByType" resultMap="BaseResultMap">
+        SELECT * FROM category WHERE type = #{type} ORDER BY sort
+    </select>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM category WHERE id = #{id}
+    </select>
+
+</mapper>

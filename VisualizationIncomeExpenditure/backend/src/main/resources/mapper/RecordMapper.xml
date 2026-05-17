@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.incomeexpenditure.mapper.RecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.incomeexpenditure.entity.Record">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="type" property="type"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="amount" property="amount"/>
+        <result column="date" property="date"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="category_icon" property="categoryIcon"/>
+    </resultMap>
+
+    <resultMap id="DailyStatsResultMap" type="com.example.incomeexpenditure.vo.DailyStatsVO">
+        <result column="date" property="date"/>
+        <result column="income" property="income"/>
+        <result column="expense" property="expense"/>
+        <result column="count" property="count"/>
+        <result column="holiday_name" property="holidayName"/>
+        <result column="holiday_type" property="holidayType"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.incomeexpenditure.entity.Record" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO record (user_id, type, category_id, amount, date, remark)
+        VALUES (#{userId}, #{type}, #{categoryId}, #{amount}, #{date}, #{remark})
+    </insert>
+
+    <update id="update" parameterType="com.example.incomeexpenditure.entity.Record">
+        UPDATE record
+        SET type = #{type}, category_id = #{categoryId}, amount = #{amount}, date = #{date}, remark = #{remark}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM record WHERE id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT r.*, c.name as category_name, c.icon as category_icon
+        FROM record r
+        LEFT JOIN category c ON r.category_id = c.id
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="findByDateRange" resultMap="BaseResultMap">
+        SELECT r.*, c.name as category_name, c.icon as category_icon
+        FROM record r
+        LEFT JOIN category c ON r.category_id = c.id
+        WHERE r.user_id = #{userId} AND r.date &gt;= #{startDate} AND r.date &lt;= #{endDate}
+        ORDER BY r.date DESC, r.create_time DESC
+    </select>
+
+    <select id="findByDate" resultMap="BaseResultMap">
+        SELECT r.*, c.name as category_name, c.icon as category_icon
+        FROM record r
+        LEFT JOIN category c ON r.category_id = c.id
+        WHERE r.user_id = #{userId} AND r.date = #{date}
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="getDailyStats" resultMap="DailyStatsResultMap">
+        SELECT
+            r.date,
+            SUM(CASE WHEN r.type = 1 THEN r.amount ELSE 0 END) as income,
+            SUM(CASE WHEN r.type = 2 THEN r.amount ELSE 0 END) as expense,
+            COUNT(*) as count,
+            h.name as holiday_name,
+            h.type as holiday_type
+        FROM record r
+        LEFT JOIN holiday h ON r.date = h.date
+        WHERE r.user_id = #{userId} AND r.date &gt;= #{startDate} AND r.date &lt;= #{endDate}
+        GROUP BY r.date, h.name, h.type
+        ORDER BY r.date
+    </select>
+
+    <select id="getTotalIncome" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0) FROM record WHERE user_id = #{userId} AND type = 1 AND date &gt;= #{startDate} AND date &lt;= #{endDate}
+    </select>
+
+    <select id="getTotalExpense" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0) FROM record WHERE user_id = #{userId} AND type = 2 AND date &gt;= #{startDate} AND date &lt;= #{endDate}
+    </select>
+
+    <select id="getIncomeCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM record WHERE user_id = #{userId} AND type = 1 AND date &gt;= #{startDate} AND date &lt;= #{endDate}
+    </select>
+
+    <select id="getExpenseCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM record WHERE user_id = #{userId} AND type = 2 AND date &gt;= #{startDate} AND date &lt;= #{endDate}
+    </select>
+
+    <select id="getTopExpenseDays" resultMap="DailyStatsResultMap">
+        SELECT
+            r.date,
+            SUM(CASE WHEN r.type = 1 THEN r.amount ELSE 0 END) as income,
+            SUM(CASE WHEN r.type = 2 THEN r.amount ELSE 0 END) as expense,
+            COUNT(*) as count,
+            h.name as holiday_name,
+            h.type as holiday_type
+        FROM record r
+        LEFT JOIN holiday h ON r.date = h.date
+        WHERE r.user_id = #{userId} AND r.date &gt;= #{startDate} AND r.date &lt;= #{endDate}
+        GROUP BY r.date, h.name, h.type
+        ORDER BY expense DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

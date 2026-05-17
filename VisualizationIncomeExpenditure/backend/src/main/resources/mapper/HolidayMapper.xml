@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.incomeexpenditure.mapper.HolidayMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.incomeexpenditure.entity.Holiday">
+        <id column="id" property="id"/>
+        <result column="date" property="date"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="findByDateRange" resultMap="BaseResultMap">
+        SELECT * FROM holiday WHERE date &gt;= #{startDate} AND date &lt;= #{endDate} ORDER BY date
+    </select>
+
+    <select id="findByDate" resultMap="BaseResultMap">
+        SELECT * FROM holiday WHERE date = #{date}
+    </select>
+
+</mapper>

@@ -1,0 +1,93 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f5f7fa;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+.page-container {
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #303133;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.stat-card {
+    text-align: center;
+    padding: 20px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #409eff;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #909399;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.status-active {
+    background-color: #f0f9eb;
+    color: #67c23a;
+}
+
+.status-inactive {
+    background-color: #f4f4f5;
+    color: #909399;
+}
+
+.days-remaining {
+    font-weight: 600;
+}
+
+.days-urgent {
+    color: #f56c6c;
+}
+
+.days-warning {
+    color: #e6a23c;
+}
+
+.days-normal {
+    color: #67c23a;
+}
+
+.chart-container {
+    width: 100%;
+    height: 300px;
+}
