@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('月度报表')}"></head>
+<body>
+<div class="container">
+    <div th:replace="~{fragments/layout :: sidebar('reports')}"></div>
+    <main class="main-content">
+    <div th:if="${success}" class="alert alert-success">✅ <span th:text="${success}"></span></div>
+    <div th:if="${error}" class="alert alert-error">❌ <span th:text="${error}"></span></div>
+
+    <div class="page-header">
+        <h1>📈 月度报表</h1>
+        <form method="get" style="display: flex; gap: 12px; align-items: center;">
+            <select name="year" onchange="this.form.submit()">
+                <option th:each="y : ${#numbers.sequence(year - 2, year + 0)}" th:value="${y}" th:selected="${y == year}" th:text="${y + '年'}"></option>
+            </select>
+            <select name="month" onchange="this.form.submit()">
+                <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:selected="${m == month}" th:text="${m + '月'}"></option>
+            </select>
+        </form>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card income">
+            <div class="label">📈 总收入</div>
+            <div class="value" th:text="'¥ ' + ${report.totalIncome}">¥ 0.00</div>
+        </div>
+        <div class="stat-card expense">
+            <div class="label">📉 总支出</div>
+            <div class="value" th:text="'¥ ' + ${report.totalExpense}">¥ 0.00</div>
+        </div>
+        <div class="stat-card" th:classappend="${report.netIncome.signum() >= 0 ? 'income' : 'expense'}">
+            <div class="label">💵 结余</div>
+            <div class="value" th:text="'¥ ' + ${report.netIncome}">¥ 0.00</div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header">
+                <h2>📊 收支趋势 (近12个月)</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>🍰 支出分类占比</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header">
+                <h2>💰 收入分类</h2>
+            </div>
+            <div th:if="${#lists.isEmpty(incomeByCategory)}" class="empty-state">
+                <div class="icon">💰</div>
+                <div>暂无收入数据</div>
+            </div>
+            <table th:unless="${#lists.isEmpty(incomeByCategory)}">
+                <thead>
+                <tr>
+                    <th>分类</th>
+                    <th class="text-right">金额</th>
+                    <th class="text-right">占比</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${incomeByCategory}">
+                    <td>
+                        <span th:text="${item[2]}"></span>
+                        <span th:text="${item[1]}"></span>
+                    </td>
+                    <td class="text-right amount-income" th:text="'¥ ' + ${item[3]}"></td>
+                    <td class="text-right">
+                        <span th:if="${report.totalIncome > 0}"
+                              th:text="${#numbers.formatDecimal(item[3] * 100 / report.totalIncome, 1, 1)} + '%'"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>💸 支出分类</h2>
+            </div>
+            <div th:if="${#lists.isEmpty(expenseByCategory)}" class="empty-state">
+                <div class="icon">💸</div>
+                <div>暂无支出数据</div>
+            </div>
+            <table th:unless="${#lists.isEmpty(expenseByCategory)}">
+                <thead>
+                <tr>
+                    <th>分类</th>
+                    <th class="text-right">金额</th>
+                    <th class="text-right">占比</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${expenseByCategory}">
+                    <td>
+                        <span th:text="${item[2]}"></span>
+                        <span th:text="${item[1]}"></span>
+                    </td>
+                    <td class="text-right amount-expense" th:text="'¥ ' + ${item[3]}"></td>
+                    <td class="text-right">
+                        <span th:if="${report.totalExpense > 0}"
+                              th:text="${#numbers.formatDecimal(item[3] * 100 / report.totalExpense, 1, 1)} + '%'"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>🏦 账户收支汇总</h2>
+        </div>
+        <div th:if="${#lists.isEmpty(accountSummary)}" class="empty-state">
+            <div class="icon">🏦</div>
+            <div>暂无数据</div>
+        </div>
+        <table th:unless="${#lists.isEmpty(accountSummary)}">
+            <thead>
+            <tr>
+                <th>账户</th>
+                <th class="text-right">净收入</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${accountSummary}">
+                <td th:text="${item[1]}"></td>
+                <td class="text-right"
+                    th:class="${item[2].signum() >= 0 ? 'amount-income' : 'amount-expense'}"
+                    th:text="'¥ ' + ${item[2]}">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    </main>
+</div>
+
+<script th:inline="javascript">
+    const trendLabels = /*[[${trendData.labels}]]*/ [];
+    const incomeData = /*[[${trendData.incomeData}]]*/ [];
+    const expenseData = /*[[${trendData.expenseData}]]*/ [];
+
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [
+                {
+                    label: '收入',
+                    data: incomeData,
+                    borderColor: '#48bb78',
+                    backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: '支出',
+                    data: expenseData,
+                    borderColor: '#f56565',
+                    backgroundColor: 'rgba(245, 101, 101, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    const expenseLabels = [];
+    const expenseValues = [];
+    /*[# th:each="item : ${expenseByCategory}"]*/
+        expenseLabels.push(/*[[${item[1]}]*/ '');
+        expenseValues.push(/*[[${item[3]}]*/ 0);
+    /*[/]*/
+
+    if (expenseLabels.length > 0) {
+        new Chart(document.getElementById('expenseChart'), {
+            type: 'pie',
+            data: {
+                labels: expenseLabels,
+                datasets: [{
+                    data: expenseValues,
+                    backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#43e97b', '#fa709a', '#fee140', '#30cfd0']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+</script>
+</body>
+</html>

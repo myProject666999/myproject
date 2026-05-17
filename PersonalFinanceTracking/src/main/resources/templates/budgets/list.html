@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('预算设置')}"></head>
+<body>
+<div class="container">
+    <div th:replace="~{fragments/layout :: sidebar('budgets')}"></div>
+    <main class="main-content">
+    <div th:if="${success}" class="alert alert-success">✅ <span th:text="${success}"></span></div>
+    <div th:if="${error}" class="alert alert-error">❌ <span th:text="${error}"></span></div>
+
+    <div class="page-header">
+        <h1>预算设置</h1>
+        <form method="get" style="display: flex; gap: 12px; align-items: center;">
+            <select name="year" onchange="this.form.submit()">
+                <option th:each="y : ${#numbers.sequence(year - 2, year)}" th:value="${y}" th:selected="${y == year}" th:text="${y + '年'}"></option>
+            </select>
+            <select name="month" onchange="this.form.submit()">
+                <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:selected="${m == month}" th:text="${m + '月'}"></option>
+            </select>
+        </form>
+    </div>
+
+    <div class="card" style="max-width: 500px; margin-bottom: 30px;">
+        <div class="card-header">
+            <h2>添加预算</h2>
+        </div>
+        <form th:action="@{/budgets}" method="post">
+            <input type="hidden" name="year" th:value="${year}">
+            <input type="hidden" name="month" th:value="${month}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>分类</label>
+                    <select name="categoryId" required>
+                        <option value="">请选择分类</option>
+                        <option th:each="c : ${expenseCategories}" th:value="${c.id}" th:text="${c.icon + ' ' + c.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>预算金额</label>
+                    <input type="number" step="0.01" name="budgetAmount" required placeholder="请输入预算金额">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">保存预算</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 th:text="${year + '年' + month + '月 预算列表'}"></h2>
+        </div>
+        <div th:if="${#lists.isEmpty(budgets)}" class="empty-state">
+            <div class="icon">🎯</div>
+            <div>暂无预算设置</div>
+        </div>
+        <table th:unless="${#lists.isEmpty(budgets)}">
+            <thead>
+            <tr>
+                <th>分类</th>
+                <th class="text-right">预算金额</th>
+                <th class="text-right">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="b : ${budgets}">
+                <td>
+                    <span th:each="c : ${expenseCategories}" th:if="${c.id == b.categoryId}">
+                        <span th:text="${c.icon}"></span>
+                        <span th:text="${c.name}"></span>
+                    </span>
+                </td>
+                <td class="text-right" style="font-weight: 600;" th:text="'¥ ' + ${b.budgetAmount}"></td>
+                <td class="text-right">
+                    <form th:action="@{/budgets/{id}/delete(id=${b.id})}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('确定删除该预算？');">删除</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    </main>
+</div>
+</body>
+</html>

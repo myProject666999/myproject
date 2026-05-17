@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' | 个人记账'">个人记账</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <aside class="sidebar" th:fragment="sidebar(activeMenu)">
+        <div class="sidebar-header">💰 个人记账</div>
+        <ul class="sidebar-menu">
+            <li><a th:href="@{/}" th:classappend="${activeMenu == 'dashboard'} ? 'active' : ''">📊 仪表盘</a></li>
+            <li><a th:href="@{/transactions}" th:classappend="${activeMenu == 'transactions'} ? 'active' : ''">📝 流水记录</a></li>
+            <li><a th:href="@{/transactions/add}" th:classappend="${activeMenu == 'add-transaction'} ? 'active' : ''">➕ 添加流水</a></li>
+            <li><a th:href="@{/reports}" th:classappend="${activeMenu == 'reports'} ? 'active' : ''">📈 月度报表</a></li>
+            <li><a th:href="@{/accounts}" th:classappend="${activeMenu == 'accounts'} ? 'active' : ''">💳 账户管理</a></li>
+            <li><a th:href="@{/budgets}" th:classappend="${activeMenu == 'budgets'} ? 'active' : ''">🎯 预算设置</a></li>
+            <li><a th:href="@{/settings}" th:classappend="${activeMenu == 'settings'} ? 'active' : ''">⚙️ 设置</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div th:if="${success}" class="alert alert-success">
+            ✅ <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+            ❌ <span th:text="${error}"></span>
+        </div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('设置')}"></head>
+<body>
+<div class="container">
+    <div th:replace="~{fragments/layout :: sidebar('settings')}"></div>
+    <main class="main-content">
+    <div th:if="${success}" class="alert alert-success">✅ <span th:text="${success}"></span></div>
+    <div th:if="${error}" class="alert alert-error">❌ <span th:text="${error}"></span></div>
+
+    <div class="page-header">
+        <h1>⚙️ 设置</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>📤 数据导出</h2>
+        </div>
+        <p style="margin-bottom: 16px; color: #718096;">导出所有交易记录为 CSV 文件，可用于备份或在 Excel 中查看。</p>
+        <a th:href="@{/csv/export}" class="btn btn-primary">⬇️ 导出 CSV</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>📥 数据导入</h2>
+        </div>
+        <p style="margin-bottom: 16px; color: #718096;">从 CSV 文件导入交易记录。文件格式：类型,金额,分类,账户,描述,日期</p>
+        <form th:action="@{/csv/import}" method="post" enctype="multipart/form-data" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <input type="file" name="file" accept=".csv" required class="form-control" style="flex: 1; min-width: 200px;">
+            <button type="submit" class="btn btn-success">⬆️ 导入 CSV</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>💳 账户列表</h2>
+            <a th:href="@{/accounts}" class="btn btn-sm">管理账户</a>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>账户名称</th>
+                <th>类型</th>
+                <th class="text-right">余额</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="account : ${accounts}">
+                <td th:text="${account.name}"></td>
+                <td><span class="badge" th:text="${account.type}"></span></td>
+                <td class="text-right" th:text="'¥ ' + ${account.balance}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>📂 分类列表</h2>
+        </div>
+        <div class="grid-2">
+            <div>
+                <h3 style="margin-bottom: 12px; color: #f56565;">📉 支出分类</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span th:each="c : ${categories}" th:if="${c.type == 'expense'}" class="badge" style="background: #fed7d7; color: #742a2a;" th:text="${c.icon + ' ' + c.name}"></span>
+                </div>
+            </div>
+            <div>
+                <h3 style="margin-bottom: 12px; color: #48bb78;">📈 收入分类</h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <span th:each="c : ${categories}" th:if="${c.type == 'income'}" class="badge" style="background: #c6f6d5; color: #22543d;" th:text="${c.icon + ' ' + c.name}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>ℹ️ 关于</h2>
+        </div>
+        <p style="color: #718096;">
+            个人记账系统 v1.0<br>
+            技术栈：Spring Boot + Thymeleaf + MySQL<br>
+            支持：账户管理、收支记录、分类预算、月度报表、CSV 导入导出
+        </p>
+    </div>
+
+    </main>
+</div>
+</body>
+</html>
