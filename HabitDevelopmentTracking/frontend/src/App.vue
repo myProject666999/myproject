@@ -19,7 +19,7 @@
             <span>习惯列表</span>
           </el-menu-item>
           <el-menu-item index="/heatmap">
-            <el-icon><DataAnalysis /></el-icon>
+            <el-icon><Histogram /></el-icon>
             <span>热力图</span>
           </el-menu-item>
         </el-menu>

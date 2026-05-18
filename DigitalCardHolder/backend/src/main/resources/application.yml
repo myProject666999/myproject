@@ -1,0 +1,42 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: digital-card-holder
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/digital_card_holder?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: "123456"
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+jwt:
+  secret: digital-card-holder-secret-key
+  expiration: 86400
+
+baidu:
+  ocr:
+    app-id: your-app-id
+    api-key: your-api-key
+    secret-key: your-secret-key
+
+file:
+  upload:
+    path: ./uploads/
