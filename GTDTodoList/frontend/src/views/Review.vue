@@ -66,7 +66,7 @@
                     />
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="saveReview">保存回顾</el-button>
+                    <el-button type="primary" @click="handleSaveReview">保存回顾</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
@@ -108,7 +108,7 @@
 import { ref, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
-import { getReviews, generateReview, saveReview } from '@/api/review'
+import { getReviews, generateReview, saveReview as saveReviewApi } from '@/api/review'
 
 const store = useStore()
 const userId = store.state.userId
@@ -140,8 +140,8 @@ const generateNewReview = async () => {
     }
 }
 
-const saveReview = async () => {
-    await saveReview({
+const handleSaveReview = async () => {
+    await saveReviewApi({
         ...currentReview.value,
         summary: reviewForm.value.summary,
         nextWeekGoals: reviewForm.value.nextWeekGoals

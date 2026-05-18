@@ -100,8 +100,8 @@ import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 import Sortable from 'sortablejs'
 import { getInboxItems, createInboxItem, processInboxItem, deleteInboxItem, updateInboxSortOrder } from '@/api/inbox'
-import { createTask } from '@/api/task'
-import { getProjects } from '@/api/project'
+import { createTask as createTaskApi } from '@/api/task'
+import { getProjects as getProjectsApi } from '@/api/project'
 
 const store = useStore()
 const userId = store.state.userId
@@ -137,7 +137,7 @@ const loadItems = async () => {
 }
 
 const loadProjects = async () => {
-    const res = await getProjects(userId)
+    const res = await getProjectsApi(userId)
     projects.value = res
 }
 
@@ -169,7 +169,7 @@ const processItem = (item) => {
 }
 
 const convertToTask = async () => {
-    await createTask({
+    await createTaskApi({
         ...taskForm.value,
         userId,
         description: currentItem.value.description

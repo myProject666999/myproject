@@ -2,6 +2,7 @@ package com.habit.tracking.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.habit.tracking.entity.CheckinRecord;
+import lombok.Data;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -24,8 +25,9 @@ public interface CheckinRecordRepository extends BaseMapper<CheckinRecord> {
             "GROUP BY DATE(c.checkin_time) ORDER BY checkin_date")
     List<CheckinCountVO> findDailyCheckinCount(@Param("userId") Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    interface CheckinCountVO {
-        LocalDate getCheckinDate();
-        Integer getHabitCount();
+    @Data
+    class CheckinCountVO {
+        private LocalDate checkinDate;
+        private Integer habitCount;
     }
 }

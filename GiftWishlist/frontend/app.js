@@ -50,11 +50,23 @@ const app = createApp({
             claimMessage: ''
         };
     },
-    mounted() {
+    async mounted() {
         const savedUser = localStorage.getItem('currentUser');
         if (savedUser) {
-            this.currentUser = JSON.parse(savedUser);
-            this.loadData();
+            try {
+                const user = JSON.parse(savedUser);
+                const res = await axios.get(`${API_BASE}/users/${user.id}`);
+                if (res.data.code === 200 && res.data.data) {
+                    this.currentUser = res.data.data;
+                    localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+                    this.loadData();
+                } else {
+                    this.logout();
+                }
+            } catch (e) {
+                console.error('验证用户信息失败', e);
+                this.logout();
+            }
         }
     },
     methods: {
@@ -122,9 +134,22 @@ const app = createApp({
                     this.showAddWishlist = false;
                     this.newWishlist = { title: '', description: '', isPublic: 1 };
                     this.loadMyWishlists();
+                } else {
+                    alert(res.data.message || '创建失败');
+                    if (res.data.message && res.data.message.includes('重新登录')) {
+                        this.logout();
+                    }
                 }
             } catch (e) {
                 console.error('创建心愿单失败', e);
+                if (e.response && e.response.data && e.response.data.message) {
+                    alert(e.response.data.message);
+                    if (e.response.data.message.includes('重新登录')) {
+                        this.logout();
+                    }
+                } else {
+                    alert('创建心愿单失败，请稍后重试');
+                }
             }
         },
         async deleteWishlist(id) {
@@ -278,25 +303,33 @@ const app = createApp({
             }
         },
         async addFriend() {
-            if (!this.newFriendId || this.newFriendId == this.currentUser.id) {
-                alert('请输入有效的用户ID');
+            if (!this.newFriendId) {
+                alert('请输入用户名或用户ID');
                 return;
             }
             try {
-                const res = await axios.post(`${API_BASE}/friendships`, {
-                    userId: this.currentUser.id,
-                    friendId: this.newFriendId
-                });
+                const isNumber = /^\d+$/.test(this.newFriendId);
+                const requestData = { userId: this.currentUser.id };
+                if (isNumber) {
+                    requestData.friendId = this.newFriendId;
+                } else {
+                    requestData.friendUsername = this.newFriendId;
+                }
+                const res = await axios.post(`${API_BASE}/friendships`, requestData);
                 if (res.data.code === 200) {
                     alert('添加好友成功！');
                     this.newFriendId = '';
                     this.loadFriends();
                 } else {
-                    alert(res.data.message);
+                    alert(res.data.message || '添加好友失败');
                 }
             } catch (e) {
                 console.error('添加好友失败', e);
-                alert('添加好友失败');
+                if (e.response && e.response.data && e.response.data.message) {
+                    alert(e.response.data.message);
+                } else {
+                    alert('添加好友失败');
+                }
             }
         },
         isBirthdaySoon(birthday) {

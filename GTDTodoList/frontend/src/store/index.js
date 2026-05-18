@@ -3,7 +3,7 @@ import { createStore } from 'vuex'
 export default createStore({
     state: {
         userId: 1,
-        apiBaseUrl: 'http://localhost:8080/api'
+        apiBaseUrl: 'http://localhost:8081/api'
     },
     mutations: {},
     actions: {},

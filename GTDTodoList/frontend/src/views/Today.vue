@@ -37,7 +37,7 @@
                                 size="small"
                                 type="danger"
                                 text
-                                @click="deleteTask(task.id)"
+                                @click="handleDeleteTask(task.id)"
                             >
                                 删除
                             </el-button>
@@ -72,7 +72,7 @@
                                 size="small"
                                 type="danger"
                                 text
-                                @click="deleteTask(task.id)"
+                                @click="handleDeleteTask(task.id)"
                             >
                                 删除
                             </el-button>
@@ -109,7 +109,7 @@
                                 size="small"
                                 type="danger"
                                 text
-                                @click="deleteTask(task.id)"
+                                @click="handleDeleteTask(task.id)"
                             >
                                 删除
                             </el-button>
@@ -144,7 +144,7 @@
                                 size="small"
                                 type="danger"
                                 text
-                                @click="deleteTask(task.id)"
+                                @click="handleDeleteTask(task.id)"
                             >
                                 删除
                             </el-button>
@@ -196,8 +196,8 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 import Sortable from 'sortablejs'
-import { getTodayTasks, createTask, toggleTaskComplete, deleteTask, updateTaskSortOrder } from '@/api/task'
-import { getProjects } from '@/api/project'
+import { getTodayTasks, createTask as createTaskApi, toggleTaskComplete, deleteTask as deleteTaskApi, updateTaskSortOrder } from '@/api/task'
+import { getProjects as getProjectsApi } from '@/api/project'
 
 const store = useStore()
 const userId = store.state.userId
@@ -242,7 +242,7 @@ const loadTasks = async () => {
 }
 
 const loadProjects = async () => {
-    const res = await getProjects(userId)
+    const res = await getProjectsApi(userId)
     projects.value = res
 }
 
@@ -251,7 +251,7 @@ const addTask = async () => {
         ElMessage.warning('请输入标题')
         return
     }
-    await createTask({
+    await createTaskApi({
         ...newTask.value,
         userId
     })
@@ -272,8 +272,8 @@ const toggleTask = async (id) => {
     loadTasks()
 }
 
-const deleteTask = async (id) => {
-    await deleteTask(id)
+const handleDeleteTask = async (id) => {
+    await deleteTaskApi(id)
     ElMessage.success('删除成功')
     loadTasks()
 }
