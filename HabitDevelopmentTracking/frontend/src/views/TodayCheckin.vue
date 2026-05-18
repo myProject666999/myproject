@@ -41,7 +41,7 @@
         <el-card class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-              <el-icon :size="28"><LineChart /></el-icon>
+              <el-icon :size="28"><TrendCharts /></el-icon>
             </div>
             <div class="stat-info">
               <p class="stat-value">{{ stats.checkRate || 0 }}%</p>
@@ -120,7 +120,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh, Aim, Check, LineChart, Trophy } from '@element-plus/icons-vue'
+import { Refresh, Aim, Check, TrendCharts, Trophy } from '@element-plus/icons-vue'
 import { getTodayHabits, checkin, cancelCheckin, getStats } from '../api/habit'
 
 const loading = ref(false)
