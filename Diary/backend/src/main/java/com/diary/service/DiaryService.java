@@ -123,12 +123,14 @@ public class DiaryService {
         List<Diary> diaries = diaryMapper.findByUserIdAndDateRange(userId, startDate, endDate);
 
         List<Map<String, Object>> result = new ArrayList<>();
-        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+        LocalDate date = startDate;
+        while (!date.isAfter(endDate)) {
             Map<String, Object> dayData = new HashMap<>();
             dayData.put("date", date.toString());
 
+            final LocalDate currentDate = date;
             Diary diary = diaries.stream()
-                    .filter(d -> d.getDiaryDate().equals(date))
+                    .filter(d -> d.getDiaryDate().equals(currentDate))
                     .findFirst()
                     .orElse(null);
 
@@ -143,6 +145,7 @@ public class DiaryService {
             }
 
             result.add(dayData);
+            date = date.plusDays(1);
         }
 
         return result;

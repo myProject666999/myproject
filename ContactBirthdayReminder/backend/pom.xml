@@ -11,15 +11,16 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.diary</groupId>
-    <artifactId>diary-backend</artifactId>
+    <groupId>com.birthdayreminder</groupId>
+    <artifactId>birthday-reminder</artifactId>
     <version>1.0.0</version>
-    <name>diary-backend</name>
-    <description>日记本应用后端</description>
+    <name>birthday-reminder</name>
+    <description>Contact Birthday Reminder</description>
 
     <properties>
         <java.version>1.8</java.version>
-        <mybatis-plus.version>3.5.3</mybatis-plus.version>
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <threeten-lunar.version>1.11.0</threeten-lunar.version>
     </properties>
 
     <dependencies>
@@ -40,9 +41,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.threetenlunar</groupId>
+            <artifactId>threeten-lunar</artifactId>
+            <version>${threeten-lunar.version}</version>
         </dependency>
 
         <dependency>
@@ -55,12 +62,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-            <version>5.8.22</version>
         </dependency>
     </dependencies>
 
