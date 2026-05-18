@@ -66,8 +66,9 @@ public class TaskService {
     public void updateSortOrder(List<Long> taskIds) {
         for (int i = 0; i < taskIds.size(); i++) {
             Long id = taskIds.get(i);
+            final int sortOrder = i;
             taskRepository.findById(id).ifPresent(task -> {
-                task.setSortOrder(i);
+                task.setSortOrder(sortOrder);
                 taskRepository.save(task);
             });
         }

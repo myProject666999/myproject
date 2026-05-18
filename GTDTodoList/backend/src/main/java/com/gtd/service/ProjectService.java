@@ -55,8 +55,9 @@ public class ProjectService {
     public void updateSortOrder(List<Long> projectIds) {
         for (int i = 0; i < projectIds.size(); i++) {
             Long id = projectIds.get(i);
+            final int sortOrder = i;
             projectRepository.findById(id).ifPresent(project -> {
-                project.setSortOrder(i);
+                project.setSortOrder(sortOrder);
                 projectRepository.save(project);
             });
         }

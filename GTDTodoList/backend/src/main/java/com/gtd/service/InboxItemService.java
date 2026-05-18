@@ -47,8 +47,9 @@ public class InboxItemService {
     public void updateSortOrder(List<Long> itemIds) {
         for (int i = 0; i < itemIds.size(); i++) {
             Long id = itemIds.get(i);
+            final int sortOrder = i;
             inboxItemRepository.findById(id).ifPresent(item -> {
-                item.setSortOrder(i);
+                item.setSortOrder(sortOrder);
                 inboxItemRepository.save(item);
             });
         }

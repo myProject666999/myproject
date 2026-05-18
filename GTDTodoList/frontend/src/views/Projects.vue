@@ -17,7 +17,6 @@
             >
                 <div class="project-header" :style="{ borderLeftColor: project.color }">
                     <h3>{{ project.name }}</h3>
-                    <span class="project-count">{{ getProjectTaskCount(project.id) }}</span>
                 </div>
                 <p v-if="project.description" class="project-desc">{{ project.description }}</p>
                 <div class="project-footer">
@@ -26,7 +25,7 @@
                         size="small"
                         type="danger"
                         text
-                        @click.stop="deleteProject(project.id)"
+                        @click.stop="handleDeleteProject(project.id)"
                     >
                         删除
                     </el-button>
@@ -60,7 +59,7 @@
                         >
                             <el-checkbox
                                 :model-value="task.completed"
-                                @change="toggleTask(task.id)"
+                                @change="handleToggleTask(task.id)"
                             />
                             <div class="task-content">
                                 <span class="task-title">{{ task.title }}</span>
@@ -80,7 +79,7 @@
                                         重要
                                     </el-tag>
                                     <span v-if="task.dueDate" class="task-due">
-                                        📅 {{ formatDate(task.dueDate) }}
+                                        {{ formatDate(task.dueDate) }}
                                     </span>
                                 </div>
                             </div>
@@ -88,7 +87,7 @@
                                 size="small"
                                 type="danger"
                                 text
-                                @click="deleteTask(task.id)"
+                                @click="handleDeleteTask(task.id)"
                             >
                                 删除
                             </el-button>
@@ -117,7 +116,7 @@
             </el-form>
             <template #footer>
                 <el-button @click="showAddDialog = false">取消</el-button>
-                <el-button type="primary" @click="addProject">确定</el-button>
+                <el-button type="primary" @click="handleAddProject">确定</el-button>
             </template>
         </el-dialog>
 
@@ -142,7 +141,7 @@
             </el-form>
             <template #footer>
                 <el-button @click="showAddTaskDialog = false">取消</el-button>
-                <el-button type="primary" @click="addTask">确定</el-button>
+                <el-button type="primary" @click="handleAddTask">确定</el-button>
             </template>
         </el-dialog>
     </div>
@@ -183,10 +182,6 @@ const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('zh-CN')
 }
 
-const getProjectTaskCount = (projectId) => {
-    return projectTasks.value.filter(t => t.projectId === projectId && !t.completed).length
-}
-
 const loadProjects = async () => {
     const res = await getProjects(userId)
     projects.value = res
@@ -199,7 +194,7 @@ const selectProject = async (project) => {
     showProjectDetail.value = true
 }
 
-const addProject = async () => {
+const handleAddProject = async () => {
     if (!newProject.value.name.trim()) {
         ElMessage.warning('请输入项目名称')
         return
@@ -218,13 +213,13 @@ const addProject = async () => {
     loadProjects()
 }
 
-const deleteProject = async (id) => {
+const handleDeleteProject = async (id) => {
     await deleteProject(id)
     ElMessage.success('删除成功')
     loadProjects()
 }
 
-const addTask = async () => {
+const handleAddTask = async () => {
     if (!newTask.value.title.trim()) {
         ElMessage.warning('请输入标题')
         return
@@ -245,12 +240,12 @@ const addTask = async () => {
     selectProject(selectedProject.value)
 }
 
-const toggleTask = async (id) => {
+const handleToggleTask = async (id) => {
     await toggleTaskComplete(id)
     selectProject(selectedProject.value)
 }
 
-const deleteTask = async (id) => {
+const handleDeleteTask = async (id) => {
     await deleteTask(id)
     ElMessage.success('删除成功')
     selectProject(selectedProject.value)
@@ -305,13 +300,6 @@ onMounted(() => {
     margin: 0;
     font-size: 18px;
     color: #333;
-}
-.project-count {
-    background: #f0f0f0;
-    padding: 2px 10px;
-    border-radius: 12px;
-    font-size: 14px;
-    color: #666;
 }
 .project-desc {
     color: #666;
