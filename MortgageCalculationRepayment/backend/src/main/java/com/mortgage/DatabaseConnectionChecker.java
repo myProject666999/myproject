@@ -27,8 +27,22 @@ public class DatabaseConnectionChecker implements CommandLineRunner {
         try {
             jdbcTemplate.queryForObject("SELECT 1", Integer.class);
             logger.info("========================================");
-            logger.info("✅ 数据库连接成功!");
+            logger.info("✅ MySQL 连接成功!");
             logger.info("========================================");
+
+            Integer dbExists = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'mortgage_calculator'",
+                Integer.class
+            );
+
+            if (dbExists == null || dbExists == 0) {
+                logger.info("数据库 mortgage_calculator 不存在，开始自动创建...");
+                jdbcTemplate.execute("CREATE DATABASE IF NOT EXISTS mortgage_calculator DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                logger.info("✅ 数据库创建成功!");
+            }
+
+            jdbcTemplate.execute("USE mortgage_calculator");
+            logger.info("✅ 已切换到 mortgage_calculator 数据库");
 
             Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'mortgage_calculator'",

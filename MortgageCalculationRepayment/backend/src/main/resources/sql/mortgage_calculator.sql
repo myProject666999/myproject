@@ -1,9 +1,4 @@
-DROP TABLE IF EXISTS prepayment_record;
-DROP TABLE IF EXISTS repayment_plan;
-DROP TABLE IF EXISTS interest_rate_adjustment;
-DROP TABLE IF EXISTS loan_scheme;
-
-CREATE TABLE loan_scheme (
+CREATE TABLE IF NOT EXISTS loan_scheme (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL COMMENT '方案名称',
     loan_amount DECIMAL(15,2) NOT NULL COMMENT '贷款金额（元）',
@@ -14,7 +9,7 @@ CREATE TABLE loan_scheme (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='贷款方案表';
 
-CREATE TABLE repayment_plan (
+CREATE TABLE IF NOT EXISTS repayment_plan (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     loan_scheme_id BIGINT NOT NULL COMMENT '贷款方案ID',
     period INT NOT NULL COMMENT '期数',
@@ -30,7 +25,7 @@ CREATE TABLE repayment_plan (
     INDEX idx_loan_scheme_id (loan_scheme_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='还款计划表';
 
-CREATE TABLE prepayment_record (
+CREATE TABLE IF NOT EXISTS prepayment_record (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     loan_scheme_id BIGINT NOT NULL COMMENT '贷款方案ID',
     prepayment_date DATE NOT NULL COMMENT '提前还款日期',
@@ -45,7 +40,7 @@ CREATE TABLE prepayment_record (
     INDEX idx_loan_scheme_id (loan_scheme_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='提前还款记录表';
 
-CREATE TABLE interest_rate_adjustment (
+CREATE TABLE IF NOT EXISTS interest_rate_adjustment (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     loan_scheme_id BIGINT NOT NULL COMMENT '贷款方案ID',
     adjustment_date DATE NOT NULL COMMENT '调整日期',
@@ -56,6 +51,6 @@ CREATE TABLE interest_rate_adjustment (
     INDEX idx_loan_scheme_id (loan_scheme_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='利率调整记录表';
 
-INSERT INTO loan_scheme (name, loan_amount, loan_term_months, annual_interest_rate, repayment_type) VALUES
-('首套房公积金贷款', 1000000.00, 360, 3.1000, 'EQUAL_INSTALLMENT'),
-('商贷等额本金', 2000000.00, 360, 4.2000, 'EQUAL_PRINCIPAL');
+INSERT IGNORE INTO loan_scheme (id, name, loan_amount, loan_term_months, annual_interest_rate, repayment_type) VALUES
+(1, '首套房公积金贷款', 1000000.00, 360, 3.1000, 'EQUAL_INSTALLMENT'),
+(2, '商贷等额本金', 2000000.00, 360, 4.2000, 'EQUAL_PRINCIPAL');

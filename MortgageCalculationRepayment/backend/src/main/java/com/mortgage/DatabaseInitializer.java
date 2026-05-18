@@ -27,35 +27,15 @@ public class DatabaseInitializer {
 
     public void initializeDatabase() {
         try {
-            logger.info("开始检查并初始化数据库...");
+            logger.info("开始导入数据库表结构和初始化数据...");
 
-            Integer dbExists = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'mortgage_calculator'",
-                Integer.class
-            );
-
-            if (dbExists == null || dbExists == 0) {
-                logger.info("数据库不存在，创建数据库...");
-                jdbcTemplate.execute("CREATE DATABASE mortgage_calculator DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                logger.info("数据库创建成功！");
-            } else {
-                logger.info("数据库已存在");
-            }
-
-            jdbcTemplate.execute("USE mortgage_calculator");
+            executeSqlScript();
 
             Integer tableCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'mortgage_calculator'",
                 Integer.class
             );
-
-            if (tableCount == null || tableCount == 0) {
-                logger.info("数据库表不存在，开始导入表结构...");
-                executeSqlScript();
-                logger.info("数据库表导入成功！");
-            } else {
-                logger.info("数据库表已存在，数量: {}", tableCount);
-            }
+            logger.info("✅ 数据库表导入完成，共 {} 张表", tableCount);
 
         } catch (Exception e) {
             logger.error("数据库初始化失败: {}", e.getMessage(), e);

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家庭购物清单</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 32px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 6px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .tab:hover { background: rgba(255,255,255,0.15); }
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input, select, textarea {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-1px); }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+        .btn-danger { background: #ff6b6b; color: white; }
+        .btn-danger:hover { background: #ee5a5a; }
+        .btn-success { background: #51cf66; color: white; }
+        .btn-success:hover { background: #40c057; }
+        .item-list { list-style: none; }
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            gap: 12px;
+        }
+        .item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .item.purchased { opacity: 0.6; }
+        .item.purchased .item-name { text-decoration: line-through; color: #888; }
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .checkbox.checked {
+            background: #51cf66;
+            border-color: #51cf66;
+            color: white;
+        }
+        .item-info { flex: 1; }
+        .item-name { font-weight: 500; margin-bottom: 4px; }
+        .item-meta { font-size: 12px; color: #888; }
+        .category-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #eef2ff;
+            color: #667eea;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .price-input { width: 80px; }
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-card .value { font-size: 28px; font-weight: 600; margin-bottom: 4px; }
+        .stat-card .label { font-size: 12px; opacity: 0.9; }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        .template-card {
+            border: 2px solid #eee;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .template-card:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .template-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .record-item:last-child { border-bottom: none; }
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .sync-indicator.show { opacity: 1; }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .modal h3 { margin-bottom: 16px; }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>🏠 家庭购物清单</h1>
+                <p>全家共享，谁去超市谁勾选</p>
+            </div>
+
+            <div class="tabs">
+                <div class="tab" :class="{active: currentTab === 'list'}" @click="currentTab = 'list'">
+                    📝 当前清单
+                </div>
+                <div class="tab" :class="{active: currentTab === 'templates'}" @click="currentTab = 'templates'; loadTemplates()">
+                    📋 历史模板
+                </div>
+                <div class="tab" :class="{active: currentTab === 'stats'}" @click="currentTab = 'stats'; loadStats()">
+                    📊 消费统计
+                </div>
+            </div>
+
+            <div class="card" v-if="currentTab === 'list'">
+                <h2 class="section-title">当前购物清单</h2>
+
+                <div class="input-group">
+                    <input v-model="newItem.name" placeholder="输入商品名称..." @keyup.enter="addItem">
+                    <select v-model="newItem.categoryId">
+                        <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                            {{ cat.icon }} {{ cat.name }}
+                        </option>
+                    </select>
+                    <input v-model.number="newItem.quantity" type="number" min="1" placeholder="数量" style="width: 80px;">
+                    <button class="btn-primary" @click="addItem">添加</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn-secondary" @click="saveAsTemplate">💾 保存为模板</button>
+                    <button class="btn-danger" @click="clearPurchased">🗑️ 清除已购</button>
+                </div>
+
+                <ul class="item-list" v-if="shoppingList && shoppingList.items && shoppingList.items.length">
+                    <li class="item" v-for="item in sortedItems" :key="item.id" :class="{purchased: item.purchased}">
+                        <div class="checkbox" :class="{checked: item.purchased}" @click="toggleItem(item)">
+                            {{ item.purchased ? '✓' : '' }}
+                        </div>
+                        <div class="item-info">
+                            <div class="item-name">
+                                {{ item.name }}
+                                <span class="category-tag" v-if="item.category">
+                                    {{ item.category.icon }} {{ item.category.name }}
+                                </span>
+                            </div>
+                            <div class="item-meta">
+                                数量: {{ item.quantity }}
+                                <span v-if="item.note"> | 备注: {{ item.note }}</span>
+                            </div>
+                        </div>
+                        <input class="price-input" v-model.number="item.price" type="number" step="0.01" placeholder="价格" @change="updateItem(item)">
+                        <button class="btn-danger" @click="deleteItem(item.id)">删除</button>
+                    </li>
+                </ul>
+                <div class="empty" v-else>
+                    🛒 清单空空如也，快添加商品吧！
+                </div>
+            </div>
+
+            <div class="card" v-if="currentTab === 'templates'">
+                <h2 class="section-title">历史模板</h2>
+
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <input v-model="newTemplateName" placeholder="输入模板名称...">
+                    <button class="btn-primary" @click="createTemplate">创建空模板</button>
+                </div>
+
+                <div v-if="templates.length">
+                    <div class="template-card" v-for="template in templates" :key="template.id">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>{{ template.name }}</strong>
+                            <span style="color: #888; font-size: 12px;">{{ template.items ? template.items.length : 0 }} 个商品</span>
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn-primary" @click="applyTemplate(template.id)">应用到当前清单</button>
+                            <button class="btn-secondary" @click="editTemplate(template)">编辑</button>
+                            <button class="btn-danger" @click="deleteTemplate(template.id)">删除</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="empty" v-else>
+                    还没有模板，快去创建吧！
+                </div>
+            </div>
+
+            <div class="card" v-if="currentTab === 'stats'">
+                <h2 class="section-title">月度消费统计</h2>
+
+                <div class="input-group">
+                    <select v-model.number="selectedYear">
+                        <option v-for="y in availableYears" :key="y" :value="y">{{ y }}年</option>
+                    </select>
+                    <select v-model.number="selectedMonth">
+                        <option v-for="m in 12" :key="m" :value="m">{{ m }}月</option>
+                    </select>
+                    <button class="btn-primary" @click="loadStats">查询</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="value">¥{{ monthTotal.toFixed(2) }}</div>
+                        <div class="label">本月总消费</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="value">{{ records.length }}</div>
+                        <div class="label">购买记录数</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="value">{{ categoryCount }}</div>
+                        <div class="label">涉及分类数</div>
+                    </div>
+                </div>
+
+                <h3 class="section-title" style="margin-top: 24px;">分类消费占比</h3>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+
+                <h3 class="section-title" style="margin-top: 24px;">购买记录</h3>
+                <div v-if="records.length">
+                    <div class="record-item" v-for="record in records" :key="record.id">
+                        <div>
+                            <span class="category-tag" v-if="record.category">{{ record.category.icon }} {{ record.category.name }}</span>
+                            {{ record.itemName }}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <span style="color: #667eea; font-weight: 600;">¥{{ record.price.toFixed(2) }}</span>
+                            <span style="color: #888; font-size: 12px;">{{ record.purchaseDate }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="empty" v-else>本月还没有购买记录</div>
+            </div>
+        </div>
+
+        <div class="sync-indicator" :class="{show: syncing}">
+            🔄 同步中...
+        </div>
+
+        <div class="modal-overlay" v-if="showTemplateModal">
+            <div class="modal">
+                <h3>保存为模板</h3>
+                <input v-model="saveTemplateName" placeholder="输入模板名称..." style="width: 100%; margin-bottom: 10px;">
+                <div class="modal-actions">
+                    <button class="btn-secondary" @click="showTemplateModal = false">取消</button>
+                    <button class="btn-primary" @click="confirmSaveTemplate">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch, nextTick } = Vue;
+
+        const API_BASE = 'http://localhost:8081/api';
+
+        createApp({
+            setup() {
+                const currentTab = ref('list');
+                const categories = ref([]);
+                const shoppingList = ref(null);
+                const templates = ref([]);
+                const records = ref([]);
+                const categorySummary = ref({});
+                const monthTotal = ref(0);
+                const syncing = ref(false);
+                const showTemplateModal = ref(false);
+                const saveTemplateName = ref('');
+                const newTemplateName = ref('');
+                const selectedYear = ref(new Date().getFullYear());
+                const selectedMonth = ref(new Date().getMonth() + 1);
+                const editingTemplate = ref(null);
+
+                const newItem = ref({
+                    name: '',
+                    categoryId: 1,
+                    quantity: 1
+                });
+
+                const availableYears = computed(() => {
+                    const current = new Date().getFullYear();
+                    return [current - 2, current - 1, current, current + 1];
+                });
+
+                const categoryCount = computed(() => Object.keys(categorySummary.value).length);
+
+                const sortedItems = computed(() => {
+                    if (!shoppingList.value || !shoppingList.value.items) return [];
+                    return [...shoppingList.value.items].sort((a, b) => {
+                        if (a.purchased === b.purchased) {
+                            return (a.id || 0) - (b.id || 0);
+                        }
+                        return a.purchased ? 1 : -1;
+                    });
+                });
+
+                const loadCategories = async () => {
+                    try {
+                        const res = await axios.get(`${API_BASE}/categories`);
+                        categories.value = res.data;
+                    } catch (e) {
+                        console.error('加载分类失败', e);
+                    }
+                };
+
+                const loadShoppingList = async () => {
+                    try {
+                        const res = await axios.get(`${API_BASE}/lists/active`);
+                        shoppingList.value = res.data;
+                    } catch (e) {
+                        console.error('加载清单失败', e);
+                    }
+                };
+
+                const loadTemplates = async () => {
+                    try {
+                        const res = await axios.get(`${API_BASE}/lists/templates`);
+                        templates.value = res.data;
+                    } catch (e) {
+                        console.error('加载模板失败', e);
+                    }
+                };
+
+                const loadStats = async () => {
+                    try {
+                        const [recordsRes, totalRes, summaryRes] = await Promise.all([
+                            axios.get(`${API_BASE}/records`, { params: { year: selectedYear.value, month: selectedMonth.value } }),
+                            axios.get(`${API_BASE}/records/total`, { params: { year: selectedYear.value, month: selectedMonth.value } }),
+                            axios.get(`${API_BASE}/records/category-summary`, { params: { year: selectedYear.value, month: selectedMonth.value } })
+                        ]);
+                        records.value = recordsRes.data;
+                        monthTotal.value = totalRes.data || 0;
+                        categorySummary.value = summaryRes.data || {};
+                        nextTick(() => renderChart());
+                    } catch (e) {
+                        console.error('加载统计失败', e);
+                    }
+                };
+
+                const addItem = async () => {
+                    if (!newItem.value.name.trim() || !shoppingList.value) return;
+                    try {
+                        syncing.value = true;
+                        const category = categories.value.find(c => c.id === newItem.value.categoryId);
+                        await axios.post(`${API_BASE}/lists/${shoppingList.value.id}/items`, {
+                            name: newItem.value.name.trim(),
+                            category: category,
+                            quantity: newItem.value.quantity,
+                            purchased: false
+                        });
+                        newItem.value.name = '';
+                        newItem.value.quantity = 1;
+                        await loadShoppingList();
+                    } catch (e) {
+                        console.error('添加失败', e);
+                        alert('添加失败');
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                const updateItem = async (item) => {
+                    try {
+                        syncing.value = true;
+                        await axios.put(`${API_BASE}/lists/items/${item.id}`, item);
+                    } catch (e) {
+                        console.error('更新失败', e);
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                const toggleItem = async (item) => {
+                    try {
+                        syncing.value = true;
+                        await axios.put(`${API_BASE}/lists/items/${item.id}/toggle`);
+                        await loadShoppingList();
+                    } catch (e) {
+                        console.error('切换失败', e);
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                const deleteItem = async (id) => {
+                    if (!confirm('确定删除这个商品？')) return;
+                    try {
+                        syncing.value = true;
+                        await axios.delete(`${API_BASE}/lists/items/${id}`);
+                        await loadShoppingList();
+                    } catch (e) {
+                        console.error('删除失败', e);
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                const clearPurchased = async () => {
+                    if (!shoppingList.value) return;
+                    if (!confirm('确定清除所有已购商品？')) return;
+                    try {
+                        syncing.value = true;
+                        await axios.delete(`${API_BASE}/lists/${shoppingList.value.id}/clear-purchased`);
+                        await loadShoppingList();
+                    } catch (e) {
+                        console.error('清除失败', e);
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                const saveAsTemplate = () => {
+                    saveTemplateName.value = '';
+                    showTemplateModal.value = true;
+                };
+
+                const confirmSaveTemplate = async () => {
+                    if (!saveTemplateName.value.trim() || !shoppingList.value) return;
+                    try {
+                        syncing.value = true;
+                        await axios.post(`${API_BASE}/lists/${shoppingList.value.id}/save-as-template`, {
+                            name: saveTemplateName.value.trim()
+                        });
+                        showTemplateModal.value = false;
+                        alert('保存成功！');
+                    } catch (e) {
+                        console.error('保存失败', e);
+                        alert('保存失败');
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                const createTemplate = async () => {
+                    if (!newTemplateName.value.trim()) return;
+                    try {
+                        syncing.value = true;
+                        await axios.post(`${API_BASE}/lists/templates`, { name: newTemplateName.value.trim() });
+                        newTemplateName.value = '';
+                        await loadTemplates();
+                    } catch (e) {
+                        console.error('创建失败', e);
+                        alert('创建失败');
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                const applyTemplate = async (templateId) => {
+                    if (!confirm('应用模板将覆盖当前清单，确定继续？')) return;
+                    try {
+                        syncing.value = true;
+                        await axios.post(`${API_BASE}/lists/templates/${templateId}/apply`);
+                        await loadShoppingList();
+                        currentTab.value = 'list';
+                        alert('应用成功！');
+                    } catch (e) {
+                        console.error('应用失败', e);
+                        alert('应用失败');
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                const editTemplate = async (template) => {
+                    editingTemplate.value = template;
+                    alert('编辑功能可在此扩展，当前先展示模板ID: ' + template.id);
+                };
+
+                const deleteTemplate = async (id) => {
+                    if (!confirm('确定删除这个模板？')) return;
+                    try {
+                        syncing.value = true;
+                        await axios.delete(`${API_BASE}/lists/${id}`);
+                        await loadTemplates();
+                    } catch (e) {
+                        console.error('删除失败', e);
+                        alert('删除失败');
+                    } finally {
+                        syncing.value = false;
+                    }
+                };
+
+                let chartInstance = null;
+                const renderChart = () => {
+                    const canvas = document.getElementById('categoryChart');
+                    if (!canvas) return;
+                    if (chartInstance) chartInstance.destroy();
+
+                    const labels = Object.keys(categorySummary.value);
+                    const data = Object.values(categorySummary.value);
+                    const colors = [
+                        '#667eea', '#f5576c', '#4facfe', '#43e97b',
+                        '#fa709a', '#fee140', '#a8edea', '#fed6e3'
+                    ];
+
+                    chartInstance = new Chart(canvas, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: colors.slice(0, labels.length),
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right'
+                                }
+                            }
+                        }
+                    });
+                };
+
+                onMounted(() => {
+                    loadCategories();
+                    loadShoppingList();
+                    setInterval(loadShoppingList, 5000);
+                });
+
+                return {
+                    currentTab,
+                    categories,
+                    shoppingList,
+                    templates,
+                    records,
+                    monthTotal,
+                    categoryCount,
+                    syncing,
+                    showTemplateModal,
+                    saveTemplateName,
+                    newTemplateName,
+                    newItem,
+                    selectedYear,
+                    selectedMonth,
+                    availableYears,
+                    sortedItems,
+                    addItem,
+                    updateItem,
+                    toggleItem,
+                    deleteItem,
+                    clearPurchased,
+                    saveAsTemplate,
+                    confirmSaveTemplate,
+                    createTemplate,
+                    applyTemplate,
+                    editTemplate,
+                    deleteTemplate,
+                    loadTemplates,
+                    loadStats
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

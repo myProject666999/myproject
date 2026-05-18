@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>礼物心愿单</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <header class="header">
+                <h1>🎁 礼物心愿单</h1>
+                <div class="user-info" v-if="currentUser">
+                    <span>{{ currentUser.nickname }}</span>
+                    <button @click="logout" class="btn btn-secondary">退出</button>
+                </div>
+            </header>
+
+            <div class="login-form" v-if="!currentUser">
+                <h2>登录</h2>
+                <form @submit.prevent="login">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" v-model="loginForm.username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" v-model="loginForm.password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">登录</button>
+                    <button type="button" @click="showRegister = true" class="btn btn-secondary">注册</button>
+                </form>
+
+                <div class="register-form" v-if="showRegister">
+                    <h2>注册</h2>
+                    <form @submit.prevent="register">
+                        <div class="form-group">
+                            <label>用户名</label>
+                            <input type="text" v-model="registerForm.username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>昵称</label>
+                            <input type="text" v-model="registerForm.nickname" required>
+                        </div>
+                        <div class="form-group">
+                            <label>生日</label>
+                            <input type="date" v-model="registerForm.birthday">
+                        </div>
+                        <div class="form-group">
+                            <label>密码</label>
+                            <input type="password" v-model="registerForm.password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">注册</button>
+                        <button type="button" @click="showRegister = false" class="btn btn-secondary">取消</button>
+                    </form>
+                </div>
+            </div>
+
+            <div v-else>
+                <nav class="tabs">
+                    <button @click="activeTab = 'my'" :class="{active: activeTab === 'my'}" class="tab-btn">我的心愿单</button>
+                    <button @click="activeTab = 'friends'" :class="{active: activeTab === 'friends'}" class="tab-btn">朋友心愿单</button>
+                    <button @click="activeTab = 'records'" :class="{active: activeTab === 'records'}" class="tab-btn">领取记录</button>
+                    <button @click="activeTab = 'friends-list'" :class="{active: activeTab === 'friends-list'}" class="tab-btn">好友列表</button>
+                </nav>
+
+                <div v-show="activeTab === 'my'" class="tab-content">
+                    <div class="wishlist-header">
+                        <h2>我的心愿单</h2>
+                        <button @click="showAddWishlist = true" class="btn btn-primary">+ 新建心愿单</button>
+                    </div>
+
+                    <div class="modal" v-if="showAddWishlist">
+                        <div class="modal-content">
+                            <h3>新建心愿单</h3>
+                            <div class="form-group">
+                                <label>标题</label>
+                                <input type="text" v-model="newWishlist.title" required>
+                            </div>
+                            <div class="form-group">
+                                <label>描述</label>
+                                <textarea v-model="newWishlist.description"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label><input type="checkbox" v-model="newWishlist.isPublic"> 公开</label>
+                            </div>
+                            <button @click="createWishlist" class="btn btn-primary">创建</button>
+                            <button @click="showAddWishlist = false" class="btn btn-secondary">取消</button>
+                        </div>
+                    </div>
+
+                    <div class="wishlist-grid">
+                        <div v-for="wishlist in myWishlists" :key="wishlist.id" class="wishlist-card">
+                            <div class="wishlist-card-header">
+                                <h3>{{ wishlist.title }}</h3>
+                                <button @click="deleteWishlist(wishlist.id)" class="btn btn-danger btn-sm">删除</button>
+                            </div>
+                            <p>{{ wishlist.description }}</p>
+                            <button @click="selectWishlist(wishlist)" class="btn btn-primary btn-sm">查看详情</button>
+                        </div>
+                    </div>
+
+                    <div v-if="selectedWishlist" class="items-section">
+                        <div class="items-header">
+                            <h3>{{ selectedWishlist.title }} - 商品列表</h3>
+                            <button @click="showAddItem = true" class="btn btn-primary">+ 添加商品</button>
+                        </div>
+
+                        <div class="modal" v-if="showAddItem">
+                            <div class="modal-content">
+                                <h3>添加商品</h3>
+                                <div class="form-group">
+                                    <label>商品链接（自动抓取信息）</label>
+                                    <input type="url" v-model="newItem.url" @blur="fetchMetadata">
+                                </div>
+                                <div class="form-group">
+                                    <label>标题</label>
+                                    <input type="text" v-model="newItem.title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>描述</label>
+                                    <textarea v-model="newItem.description"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>价格</label>
+                                    <input type="number" v-model="newItem.price" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>优先级</label>
+                                    <select v-model="newItem.priority">
+                                        <option value="1">普通</option>
+                                        <option value="2">重要</option>
+                                        <option value="3">非常重要</option>
+                                    </select>
+                                </div>
+                                <div v-if="newItem.imageUrl" class="preview-image">
+                                    <img :src="newItem.imageUrl" alt="预览图">
+                                </div>
+                                <button @click="addItem" class="btn btn-primary">添加</button>
+                                <button @click="showAddItem = false" class="btn btn-secondary">取消</button>
+                            </div>
+                        </div>
+
+                        <div class="item-grid">
+                            <div v-for="item in items" :key="item.id" class="item-card">
+                                <div v-if="item.imageUrl" class="item-image">
+                                    <img :src="item.imageUrl" :alt="item.title">
+                                </div>
+                                <div class="item-body">
+                                    <h4>{{ item.title }}</h4>
+                                    <p>{{ item.description }}</p>
+                                    <p class="price" v-if="item.price">¥{{ item.price }}</p>
+                                    <span class="priority" :class="'priority-' + item.priority">
+                                        {{ item.priority === 3 ? '非常重要' : item.priority === 2 ? '重要' : '普通' }}
+                                    </span>
+                                    <span class="status" :class="item.isClaimed ? 'claimed' : 'available'">
+                                        {{ item.isClaimed ? '已被领取' : '可领取' }}
+                                    </span>
+                                    <a v-if="item.url" :href="item.url" target="_blank" class="item-link">查看商品</a>
+                                    <button @click="deleteItem(item.id)" class="btn btn-danger btn-sm">删除</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-show="activeTab === 'friends'" class="tab-content">
+                    <h2>朋友心愿单</h2>
+                    <div v-if="friends.length === 0" class="empty-state">
+                        还没有好友，去添加好友吧！
+                    </div>
+                    <div v-else>
+                        <div class="friend-selector">
+                            <label>选择好友：</label>
+                            <select v-model="selectedFriendId" @change="loadFriendWishlists">
+                                <option value="">请选择</option>
+                                <option v-for="friend in friends" :key="friend.id" :value="friend.id">
+                                    {{ friend.nickname }}
+                                    <span v-if="isBirthdaySoon(friend.birthday)" class="birthday-soon">🎂 生日快到了！</span>
+                                </option>
+                            </select>
+                        </div>
+
+                        <div v-if="friendWishlists.length > 0" class="wishlist-grid">
+                            <div v-for="wishlist in friendWishlists" :key="wishlist.id" class="wishlist-card">
+                                <h3>{{ wishlist.title }}</h3>
+                                <p>{{ wishlist.description }}</p>
+                                <button @click="selectFriendWishlist(wishlist)" class="btn btn-primary btn-sm">查看商品</button>
+                            </div>
+                        </div>
+
+                        <div v-if="selectedFriendWishlist" class="items-section">
+                            <h3>{{ selectedFriendWishlist.title }}</h3>
+                            <div class="item-grid">
+                                <div v-for="item in friendItems" :key="item.id" class="item-card">
+                                    <div v-if="item.imageUrl" class="item-image">
+                                        <img :src="item.imageUrl" :alt="item.title">
+                                    </div>
+                                    <div class="item-body">
+                                        <h4>{{ item.title }}</h4>
+                                        <p>{{ item.description }}</p>
+                                        <p class="price" v-if="item.price">¥{{ item.price }}</p>
+                                        <span class="priority" :class="'priority-' + item.priority">
+                                            {{ item.priority === 3 ? '非常重要' : item.priority === 2 ? '重要' : '普通' }}
+                                        </span>
+                                        <span class="status" :class="item.isClaimed ? 'claimed' : 'available'">
+                                            {{ item.isClaimed ? '已被领取' : '可领取' }}
+                                        </span>
+                                        <a v-if="item.url" :href="item.url" target="_blank" class="item-link">查看商品</a>
+                                        <button v-if="!item.isClaimed" @click="claimItem(item)" class="btn btn-success btn-sm">领取</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-show="activeTab === 'records'" class="tab-content">
+                    <div class="records-tabs">
+                        <button @click="recordType = 'myClaims'" :class="{active: recordType === 'myClaims'}" class="tab-btn">我领取的</button>
+                        <button @click="recordType = 'othersClaims'" :class="{active: recordType === 'othersClaims'}" class="tab-btn">别人领我的</button>
+                    </div>
+
+                    <div v-if="recordType === 'myClaims'">
+                        <h2>我领取的礼物</h2>
+                        <div v-if="myClaims.length === 0" class="empty-state">还没有领取记录</div>
+                        <div class="record-list">
+                            <div v-for="record in myClaims" :key="record.id" class="record-card">
+                                <p>商品ID：{{ record.itemId }}</p>
+                                <p>留言：{{ record.message }}</p>
+                                <p>领取时间：{{ formatDate(record.createdAt) }}</p>
+                                <span class="status" :class="record.isPurchased ? 'purchased' : 'pending'">
+                                    {{ record.isPurchased ? '已购买' : '待购买' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else>
+                        <h2>别人领取我的</h2>
+                        <div v-if="othersClaims.length === 0" class="empty-state">还没有领取记录</div>
+                        <div class="record-list">
+                            <div v-for="record in othersClaims" :key="record.id" class="record-card">
+                                <p>领取人ID：{{ record.userId }}</p>
+                                <p>商品ID：{{ record.itemId }}</p>
+                                <p>留言：{{ record.message }}</p>
+                                <p>领取时间：{{ formatDate(record.createdAt) }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-show="activeTab === 'friends-list'" class="tab-content">
+                    <h2>好友列表</h2>
+                    <div class="add-friend-section">
+                        <div class="form-group">
+                            <label>添加好友（输入用户ID）</label>
+                            <input type="number" v-model="newFriendId" placeholder="输入用户ID">
+                        </div>
+                        <button @click="addFriend" class="btn btn-primary">添加</button>
+                    </div>
+
+                    <h3>我的好友</h3>
+                    <div v-if="friends.length === 0" class="empty-state">还没有好友</div>
+                    <div class="friend-list">
+                        <div v-for="friend in friends" :key="friend.id" class="friend-card">
+                            <div class="friend-info">
+                                <h4>{{ friend.nickname }}</h4>
+                                <p>用户名：{{ friend.username }}</p>
+                                <p v-if="friend.birthday">生日：{{ friend.birthday }}</p>
+                            </div>
+                            <span v-if="isBirthdaySoon(friend.birthday)" class="birthday-badge">🎂 生日快到了！</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" v-if="showClaimModal">
+            <div class="modal-content">
+                <h3>领取礼物</h3>
+                <p>确定要领取 {{ claimingItem.title }} 吗？</p>
+                <div class="form-group">
+                    <label>留言（可选）</label>
+                    <textarea v-model="claimMessage" placeholder="给TA留个言..."></textarea>
+                </div>
+                <button @click="confirmClaim" class="btn btn-primary">确定领取</button>
+                <button @click="showClaimModal = false" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
