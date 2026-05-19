@@ -20,7 +20,7 @@
     <properties>
         <java.version>1.8</java.version>
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
-        <threeten-lunar.version>1.11.0</threeten-lunar.version>
+        <lunar.version>1.3.12</lunar.version>
     </properties>
 
     <dependencies>
@@ -41,15 +41,15 @@
         </dependency>
 
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
-            <groupId>com.github.threetenlunar</groupId>
-            <artifactId>threeten-lunar</artifactId>
-            <version>${threeten-lunar.version}</version>
+            <groupId>cn.6tail</groupId>
+            <artifactId>lunar</artifactId>
+            <version>${lunar.version}</version>
         </dependency>
 
         <dependency>

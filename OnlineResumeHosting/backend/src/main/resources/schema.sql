@@ -1,8 +1,3 @@
--- 创建数据库
-CREATE DATABASE IF NOT EXISTS `online_resume` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-USE `online_resume`;
-
 -- 用户表
 CREATE TABLE IF NOT EXISTS `user` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -133,16 +128,16 @@ CREATE TABLE IF NOT EXISTS `visit_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='访问日志表';
 
 -- 初始化模板数据
-INSERT INTO `template` (`name`, `code`, `description`, `is_active`) VALUES
-('经典模板', 'classic', '简洁经典的简历模板，适合大多数场景', 1),
-('现代模板', 'modern', '现代化设计风格，适合互联网行业', 1),
-('简约模板', 'minimal', '极简风格，突出内容本身', 1),
-('创意模板', 'creative', '创意设计，适合设计和创意岗位', 1);
+INSERT IGNORE INTO `template` (`id`, `name`, `code`, `description`, `is_active`) VALUES
+(1, '经典模板', 'classic', '简洁经典的简历模板，适合大多数场景', 1),
+(2, '现代模板', 'modern', '现代化设计风格，适合互联网行业', 1),
+(3, '简约模板', 'minimal', '极简风格，突出内容本身', 1),
+(4, '创意模板', 'creative', '创意设计，适合设计和创意岗位', 1);
 
 -- 初始化测试用户
-INSERT INTO `user` (`username`, `password`, `email`) VALUES
-('test', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', 'test@example.com');
+INSERT IGNORE INTO `user` (`id`, `username`, `password`, `email`) VALUES
+(1, 'test', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', 'test@example.com');
 
 -- 初始化测试简历
-INSERT INTO `resume` (`user_id`, `template_id`, `title`, `name`, `gender`, `phone`, `email`, `location`, `summary`) VALUES
-(1, 1, '我的简历', '张三', '男', '13800138000', 'zhangsan@example.com', '北京', '拥有5年Java开发经验，熟悉Spring Boot微服务架构，热衷于技术研究和分享。');
+INSERT IGNORE INTO `resume` (`id`, `user_id`, `template_id`, `title`, `name`, `gender`, `phone`, `email`, `location`, `summary`) VALUES
+(1, 1, 1, '我的简历', '张三', '男', '13800138000', 'zhangsan@example.com', '北京', '拥有5年Java开发经验，熟悉Spring Boot微服务架构，热衷于技术研究和分享。');

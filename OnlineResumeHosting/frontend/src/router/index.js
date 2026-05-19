@@ -1,9 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ResumeList from '@/views/ResumeList.vue'
-import ResumeEdit from '@/views/ResumeEdit.vue'
-import ResumePreview from '@/views/ResumePreview.vue'
-import TemplateSelect from '@/views/TemplateSelect.vue'
-import Analytics from '@/views/Analytics.vue'
 
 const routes = [
   {
@@ -13,32 +8,32 @@ const routes = [
   {
     path: '/resumes',
     name: 'ResumeList',
-    component: ResumeList
+    component: () => import('../views/ResumeList.vue')
   },
   {
-    path: '/resume/edit/:id',
+    path: '/resume/edit/:id?',
     name: 'ResumeEdit',
-    component: ResumeEdit
+    component: () => import('../views/ResumeEdit.vue')
   },
   {
     path: '/resume/preview/:id',
     name: 'ResumePreview',
-    component: ResumePreview
+    component: () => import('../views/ResumePreview.vue')
   },
   {
-    path: '/resume/templates',
+    path: '/resume/:id/templates',
     name: 'TemplateSelect',
-    component: TemplateSelect
+    component: () => import('../views/TemplateSelect.vue')
   },
   {
-    path: '/resume/:id/analytics',
-    name: 'Analytics',
-    component: Analytics
+    path: '/resume/:id/logs',
+    name: 'VisitLogs',
+    component: () => import('../views/VisitLogs.vue')
   },
   {
-    path: '/s/:code',
-    name: 'ShortLinkRedirect',
-    component: () => import('@/views/ShortLinkRedirect.vue')
+    path: '/public/:code',
+    name: 'PublicResume',
+    component: () => import('../views/PublicResume.vue')
   }
 ]
 

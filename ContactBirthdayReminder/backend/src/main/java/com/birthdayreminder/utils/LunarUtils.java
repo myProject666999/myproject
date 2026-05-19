@@ -1,21 +1,21 @@
 package com.birthdayreminder.utils;
 
-import cn.threeten.lunar.LunarDate;
-import cn.threeten.lunar.SolarDate;
+import com.nlf.calendar.Lunar;
+import com.nlf.calendar.Solar;
 
 import java.time.LocalDate;
 
 public class LunarUtils {
 
     public static LocalDate lunarToSolar(int lunarYear, int lunarMonth, int lunarDay, boolean isLeap) {
-        LunarDate lunarDate = LunarDate.of(lunarYear, lunarMonth, lunarDay, isLeap);
-        SolarDate solarDate = lunarDate.toSolar();
-        return LocalDate.of(solarDate.getYear(), solarDate.getMonth(), solarDate.getDay());
+        Lunar lunar = Lunar.fromYmd(lunarYear, lunarMonth, lunarDay);
+        Solar solar = lunar.getSolar();
+        return LocalDate.of(solar.getYear(), solar.getMonth(), solar.getDay());
     }
 
-    public static LunarDate solarToLunar(LocalDate solarDate) {
-        SolarDate solar = SolarDate.of(solarDate.getYear(), solarDate.getMonthValue(), solarDate.getDayOfMonth());
-        return solar.toLunar();
+    public static Lunar solarToLunar(LocalDate solarDate) {
+        Solar solar = Solar.fromYmd(solarDate.getYear(), solarDate.getMonthValue(), solarDate.getDayOfMonth());
+        return solar.getLunar();
     }
 
     public static LocalDate getNextBirthday(LocalDate birthday, int calendarType) {
@@ -27,22 +27,20 @@ public class LunarUtils {
             }
             return LocalDate.of(today.getYear() + 1, birthday.getMonth(), birthday.getDayOfMonth());
         } else {
-            LunarDate lunarBirthday = solarToLunar(birthday);
+            Lunar lunarBirthday = solarToLunar(birthday);
+            int lunarMonth = lunarBirthday.getMonth();
+            int lunarDay = lunarBirthday.getDay();
             int currentYear = today.getYear();
             for (int year = currentYear; year < currentYear + 2; year++) {
                 try {
-                    LocalDate solarBirthday = lunarToSolar(year, lunarBirthday.getMonth(), lunarBirthday.getDay(), lunarBirthday.isLeap());
+                    LocalDate solarBirthday = lunarToSolar(year, lunarMonth, lunarDay, false);
                     if (!solarBirthday.isBefore(today)) {
                         return solarBirthday;
                     }
                 } catch (Exception e) {
-                    LocalDate solarBirthday = lunarToSolar(year, lunarBirthday.getMonth(), lunarBirthday.getDay(), false);
-                    if (!solarBirthday.isBefore(today)) {
-                        return solarBirthday;
-                    }
                 }
             }
-            return lunarToSolar(currentYear + 1, lunarBirthday.getMonth(), lunarBirthday.getDay(), false);
+            return lunarToSolar(currentYear + 1, lunarMonth, lunarDay, false);
         }
     }
 

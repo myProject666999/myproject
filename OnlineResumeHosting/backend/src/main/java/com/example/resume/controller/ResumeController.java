@@ -81,4 +81,11 @@ public class ResumeController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @PostMapping("/{id}/short-link")
+    public Result<com.example.resume.entity.ShortLink> createShortLink(@PathVariable Long id, HttpServletRequest request) {
+        String originalUrl = request.getHeader("Origin") + "/resume/preview/" + id;
+        com.example.resume.entity.ShortLink shortLink = resumeService.createShortLink(id, originalUrl, null);
+        return Result.success(shortLink);
+    }
 }
