@@ -24,32 +24,32 @@
       </template>
       <el-table :data="records" v-loading="loading">
         <el-table-column prop="startTime" label="开始时间" width="160">
-          <template #default="{ row }">
+          <template v-slot:default="{ row }">
             {{ formatTime(row.startTime) }}
           </template>
         </el-table-column>
         <el-table-column prop="endTime" label="结束时间" width="160">
-          <template #default="{ row }">
+          <template v-slot:default="{ row }">
             {{ formatTime(row.endTime) }}
           </template>
         </el-table-column>
         <el-table-column label="类别" width="120">
-          <template #default="{ row }">
+          <template v-slot:default="{ row }">
             <el-tag :color="getCategoryColor(row.categoryId)">
               {{ getCategoryName(row.categoryId) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="时长" width="100">
-          <template #default="{ row }">
+          <template v-slot:default="{ row }">
             {{ formatDuration(row.duration) }}
           </template>
         </el-table-column>
         <el-table-column prop="description" label="描述" />
         <el-table-column label="操作" width="140" fixed="right">
-          <template #default="{ row }">
+          <template v-slot:default="{ row }">
             <el-button size="small" type="primary" link @click="editRecord(row)">编辑</el-button>
-            <el-button size="small" type="danger" link @click="deleteRecord(row.id)">删除</el-button>
+            <el-button size="small" type="danger" link @click="handleDeleteRecord(row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -99,7 +99,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 import { getCategories } from '../api/category'
-import { getRecordsByDate, createRecord, updateRecord, deleteRecord } from '../api/record'
+import { getRecordsByDate, createRecord, updateRecord, deleteRecord as deleteRecordApi } from '../api/record'
 
 const currentDate = ref(dayjs().format('YYYY-MM-DD'))
 const records = ref([])
@@ -189,11 +189,11 @@ const submitForm = async () => {
   }
 }
 
-const deleteRecord = (id) => {
+const handleDeleteRecord = (id) => {
   ElMessageBox.confirm('确定要删除这条记录吗？', '提示', {
     type: 'warning'
   }).then(async () => {
-    await deleteRecord(id)
+    await deleteRecordApi(id)
     ElMessage.success('删除成功')
     loadRecords()
   }).catch(() => {})

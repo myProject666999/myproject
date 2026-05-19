@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Upload from './views/Upload.vue'
-import Versions from './views/Versions.vue'
-import Compare from './views/Compare.vue'
-import Download from './views/Download.vue'
+import Upload from '../views/Upload.vue'
+import Versions from '../views/Versions.vue'
+import Compare from '../views/Compare.vue'
+import Download from '../views/Download.vue'
 
 const routes = [
   { path: '/', redirect: '/upload' },

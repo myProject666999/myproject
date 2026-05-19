@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudbackup.entity.Contact;
 import com.cloudbackup.entity.VersionSnapshot;
 import com.cloudbackup.mapper.VersionSnapshotMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VersionSnapshotService extends ServiceImpl<VersionSnapshotMapper, VersionSnapshot> {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Transactional(rollbackFor = Exception.class)
     public VersionSnapshot createSnapshot(Long addressBookId, String changeType, String description, List<Contact> contacts) {
@@ -35,9 +36,9 @@ public class VersionSnapshotService extends ServiceImpl<VersionSnapshotMapper, V
 
         try {
             snapshot.setSnapshotData(objectMapper.writeValueAsString(contacts));
-        } catch (Exception e) {
-            log.error("序列化联系人数据失败", e);
-            throw new RuntimeException("创建快照失败");
+        } catch (JsonProcessingException e) {
+            log.error("序列化联系人数据失败, 联系人数量: {}", contacts.size(), e);
+            throw new RuntimeException("创建快照失败: " + e.getMessage());
         }
 
         save(snapshot);

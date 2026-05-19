@@ -38,10 +38,6 @@ public class TimeRecord {
     @Column(name = "is_cross_day")
     private Integer isCrossDay = 0;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", insertable = false, updatable = false)
-    private Category category;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

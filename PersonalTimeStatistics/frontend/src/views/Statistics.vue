@@ -24,24 +24,24 @@
     <el-row :gutter="16">
       <el-col :span="12">
         <el-card class="chart-card">
-          <template #header>时间分配饼图</template>
+          <template v-slot:header>时间分配饼图</template>
           <div ref="pieChartRef" class="chart"></div>
         </el-card>
       </el-col>
       <el-col :span="12">
         <el-card class="chart-card">
-          <template #header>每日时长趋势</template>
+          <template v-slot:header>每日时长趋势</template>
           <div ref="lineChartRef" class="chart"></div>
         </el-card>
       </el-col>
     </el-row>
 
     <el-card class="summary-card">
-      <template #header>统计汇总</template>
+      <template v-slot:header>统计汇总</template>
       <el-row :gutter="16">
         <el-col :span="6" v-for="item in categoryStats" :key="item.categoryId">
           <el-statistic :title="getCategoryName(item.categoryId)" :value="item.totalMinutes" suffix="分钟">
-            <template #prefix>
+            <template v-slot:prefix>
               <el-icon :color="getCategoryColor(item.categoryId)"><Clock /></el-icon>
             </template>
           </el-statistic>
@@ -50,7 +50,7 @@
     </el-card>
 
     <el-card class="goal-card">
-      <template #header>目标完成情况</template>
+      <template v-slot:header>目标完成情况</template>
       <el-table :data="goalProgress">
         <el-table-column label="类别">
           <template #default="{ row }">

@@ -12,7 +12,7 @@
         <el-card>
           <el-table :data="dailyGoals" v-loading="loading">
             <el-table-column label="类别" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-tag v-if="row.categoryId" :color="getCategoryColor(row.categoryId)">
                   {{ getCategoryName(row.categoryId) }}
                 </el-tag>
@@ -20,26 +20,26 @@
               </template>
             </el-table-column>
             <el-table-column label="目标时长" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 {{ formatDuration(row.targetMinutes) }}
               </template>
             </el-table-column>
             <el-table-column prop="period" label="周期" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 {{ row.period || '每天' }}
               </template>
             </el-table-column>
             <el-table-column label="状态" width="100">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-tag :type="row.isActive === 1 ? 'success' : 'info'">
                   {{ row.isActive === 1 ? '启用' : '禁用' }}
                 </el-tag>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="200" fixed="right">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-button size="small" type="primary" link @click="editGoal(row)">编辑</el-button>
-                <el-button size="small" type="danger" link @click="deleteGoal(row.id)">删除</el-button>
+                <el-button size="small" type="danger" link @click="handleDeleteGoal(row.id)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -49,7 +49,7 @@
         <el-card>
           <el-table :data="weeklyGoals" v-loading="loading">
             <el-table-column label="类别" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-tag v-if="row.categoryId" :color="getCategoryColor(row.categoryId)">
                   {{ getCategoryName(row.categoryId) }}
                 </el-tag>
@@ -57,26 +57,26 @@
               </template>
             </el-table-column>
             <el-table-column label="目标时长" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 {{ formatDuration(row.targetMinutes) }}
               </template>
             </el-table-column>
             <el-table-column prop="period" label="周期" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 {{ row.period || '每周' }}
               </template>
             </el-table-column>
             <el-table-column label="状态" width="100">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-tag :type="row.isActive === 1 ? 'success' : 'info'">
                   {{ row.isActive === 1 ? '启用' : '禁用' }}
                 </el-tag>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="200" fixed="right">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-button size="small" type="primary" link @click="editGoal(row)">编辑</el-button>
-                <el-button size="small" type="danger" link @click="deleteGoal(row.id)">删除</el-button>
+                <el-button size="small" type="danger" link @click="handleDeleteGoal(row.id)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -86,7 +86,7 @@
         <el-card>
           <el-table :data="monthlyGoals" v-loading="loading">
             <el-table-column label="类别" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-tag v-if="row.categoryId" :color="getCategoryColor(row.categoryId)">
                   {{ getCategoryName(row.categoryId) }}
                 </el-tag>
@@ -94,26 +94,26 @@
               </template>
             </el-table-column>
             <el-table-column label="目标时长" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 {{ formatDuration(row.targetMinutes) }}
               </template>
             </el-table-column>
             <el-table-column prop="period" label="周期" width="150">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 {{ row.period || '每月' }}
               </template>
             </el-table-column>
             <el-table-column label="状态" width="100">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-tag :type="row.isActive === 1 ? 'success' : 'info'">
                   {{ row.isActive === 1 ? '启用' : '禁用' }}
                 </el-tag>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="200" fixed="right">
-              <template #default="{ row }">
+              <template v-slot:default="{ row }">
                 <el-button size="small" type="primary" link @click="editGoal(row)">编辑</el-button>
-                <el-button size="small" type="danger" link @click="deleteGoal(row.id)">删除</el-button>
+                <el-button size="small" type="danger" link @click="handleDeleteGoal(row.id)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -146,7 +146,7 @@
           <el-switch v-model="form.isActive" :active-value="1" :inactive-value="0" />
         </el-form-item>
       </el-form>
-      <template #footer>
+      <template v-slot:footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="submitForm">确定</el-button>
       </template>
@@ -158,7 +158,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCategories } from '../api/category'
-import { getGoals, createGoal, updateGoal, deleteGoal } from '../api/goal'
+import { getGoals, createGoal, updateGoal, deleteGoal as deleteGoalApi } from '../api/goal'
 
 const activeTab = ref('daily')
 const loading = ref(false)
@@ -244,11 +244,11 @@ const submitForm = async () => {
   }
 }
 
-const deleteGoal = (id) => {
+const handleDeleteGoal = (id) => {
   ElMessageBox.confirm('确定要删除这个目标吗？', '提示', {
     type: 'warning'
   }).then(async () => {
-    await deleteGoal(id)
+    await deleteGoalApi(id)
     ElMessage.success('删除成功')
     loadGoals()
   }).catch(() => {})

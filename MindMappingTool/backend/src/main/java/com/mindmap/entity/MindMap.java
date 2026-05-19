@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Data
 @TableName(value = "mindmap", autoResultMap = true)
@@ -20,8 +19,7 @@ public class MindMap {
     private String title;
     private String description;
 
-    @TableField(typeHandler = FastjsonTypeHandler.class)
-    private Map<String, Object> mindmapData;
+    private String mindmapData;
 
     private String theme;
 

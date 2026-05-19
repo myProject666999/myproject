@@ -64,6 +64,35 @@ public class CloudBackupTest {
     }
 
     @Test
+    public void testContactToVCard() throws IOException {
+        String vcardContent = "BEGIN:VCARD\n" +
+                "VERSION:3.0\n" +
+                "N:张;三;;;\n" +
+                "FN:张三\n" +
+                "TEL;TYPE=CELL:13800138000\n" +
+                "EMAIL;TYPE=WORK:zhangsan@example.com\n" +
+                "ORG:科技有限公司\n" +
+                "TITLE:高级工程师\n" +
+                "END:VCARD";
+
+        File tempFile = File.createTempFile("test", ".vcf");
+        FileUtil.writeUtf8String(vcardContent, tempFile);
+
+        List<Contact> contacts = VCardUtil.parseVCardFile(new org.springframework.mock.web.MockMultipartFile(
+                "file", tempFile.getName(), "text/vcard", FileUtil.readBytes(tempFile)
+        ));
+
+        System.out.println("解析到 " + contacts.size() + " 个联系人，开始测试导出...");
+        
+        String exportedVCard = VCardUtil.contactsToVCard(contacts);
+        System.out.println("导出的 vCard 内容:");
+        System.out.println(exportedVCard);
+        System.out.println("---");
+
+        tempFile.delete();
+    }
+
+    @Test
     public void testCompareVersions() {
         Map<String, Object> result = versionSnapshotService.compareVersions(1L, 2L);
         System.out.println("对比结果: " + result);

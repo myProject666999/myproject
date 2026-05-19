@@ -46,7 +46,7 @@ INSERT INTO user (username, password, nickname) VALUES
 
 INSERT INTO mindmap (user_id, title, description, mindmap_data, theme) VALUES 
 (1, '欢迎使用思维导图', '这是一个示例思维导图', 
-'{\"meta\":{\"name\":\"jsmind\",\"version\":\"0.4.7\"},\"data\":{\"id\":\"root\",\"topic\":\"思维导图中心\",\"children\":[{\"id\":\"node1\",\"topic\":\"节点一\",\"children\":[{\"id\":\"node1-1\",\"topic\":\"子节点A\"},{\"id\":\"node1-2\",\"topic\":\"子节点B\"}]},{\"id\":\"node2\",\"topic\":\"节点二\"},{\"id\":\"node3\",\"topic\":\"节点三\"}]}}', 
+'{"meta":{"name":"jsmind","version":"0.4.7"},"data":{"id":"root","topic":"思维导图中心","children":[{"id":"node1","topic":"节点一","children":[{"id":"node1-1","topic":"子节点A"},{"id":"node1-2","topic":"子节点B"}]},{"id":"node2","topic":"节点二"},{"id":"node3","topic":"节点三"}]}}', 
 'primary');
 
 INSERT INTO share (mindmap_id, share_code) VALUES 

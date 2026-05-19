@@ -216,7 +216,7 @@ public class VCardUtil {
         VCard vcard = new VCard();
 
         if (StrUtil.isNotBlank(contact.getVcardUid())) {
-            vcard.setUid(contact.getVcardUid());
+            vcard.setUid(new Uid(contact.getVcardUid()));
         }
 
         vcard.setFormattedName(contact.getFormattedName());
@@ -235,7 +235,7 @@ public class VCardUtil {
         }
 
         if (StrUtil.isNotBlank(contact.getTitle())) {
-            vcard.setTitle(contact.getTitle());
+            vcard.addTitle(new Title(contact.getTitle()));
         }
 
         if (StrUtil.isNotBlank(contact.getOrganization())) {
@@ -279,7 +279,9 @@ public class VCardUtil {
         }
 
         if (contact.getBirthday() != null) {
-            vcard.setBirthday(contact.getBirthday());
+            java.time.LocalDate localDate = new java.sql.Date(contact.getBirthday().getTime())
+                    .toLocalDate();
+            vcard.setBirthday(localDate);
         }
 
         return vcard;

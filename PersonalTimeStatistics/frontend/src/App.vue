@@ -87,6 +87,8 @@ body, html, #app {
 
 .el-container {
   margin-left: 200px;
+  width: calc(100% - 200px);
+  min-height: 100vh;
 }
 
 .header {
@@ -105,5 +107,7 @@ body, html, #app {
   background-color: #f0f2f5;
   padding: 20px;
   min-height: calc(100vh - 60px);
+  width: 100%;
+  box-sizing: border-box;
 }
 </style>

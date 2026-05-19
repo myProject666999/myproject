@@ -9,27 +9,45 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { shareApi } from '../api'
-import 'jsmind'
+import jsMind from 'jsmind'
+import 'jsmind/style/jsmind.css'
 
 const route = useRoute()
 const title = ref('思维导图')
 const viewCount = ref(0)
-let jm = null
+const jm = ref(null)
 
 const loadShare = async () => {
   const code = route.params.code
-  const res = await shareApi.get(code)
-  if (res.data.code === 200) {
-    const data = res.data.data
-    title.value = data.title
-    if (data.mindmapData) {
-      initJsmind(data.mindmapData)
+  try {
+    const res = await shareApi.get(code)
+    if (res.data.code === 200) {
+      const data = res.data.data
+      title.value = data.title
+      if (data.mindmapData) {
+        try {
+          let mindData
+          if (typeof data.mindmapData === 'string') {
+            mindData = JSON.parse(data.mindmapData)
+          } else {
+            mindData = data.mindmapData
+          }
+          await nextTick()
+          initJsmind(mindData)
+        } catch (parseError) {
+          console.error('解析思维导图数据失败', parseError)
+          alert('数据解析失败')
+        }
+      }
+    } else {
+      alert(res.data.message)
     }
-  } else {
-    alert(res.data.message)
+  } catch (e) {
+    console.error('加载分享失败', e)
+    alert('加载失败：' + e.message)
   }
 }
 
@@ -50,8 +68,13 @@ const initJsmind = (mindData) => {
       vspace: 20
     }
   }
-  jm = new jsMind(options)
-  jm.show(mindData)
+  try {
+    jm.value = new jsMind(options)
+    jm.value.show(mindData)
+  } catch (e) {
+    console.error('jsMind 初始化失败', e)
+    alert('jsMind 初始化失败：' + e.message)
+  }
 }
 
 onMounted(() => {
@@ -59,8 +82,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (jm) {
-    jm.destroy()
+  if (jm.value) {
+    jm.value.destroy()
+    jm.value = null
   }
 })
 </script>
