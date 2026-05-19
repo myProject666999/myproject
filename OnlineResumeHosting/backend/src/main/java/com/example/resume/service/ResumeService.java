@@ -37,7 +37,15 @@ public class ResumeService {
     }
 
     public Optional<Resume> getResumeById(Long id) {
-        return resumeRepository.findByIdWithAllDetails(id);
+        return resumeRepository.findById(id).map(this::loadResumeDetails);
+    }
+
+    private Resume loadResumeDetails(Resume resume) {
+        resume.setEducations(educationRepository.findByResumeIdOrderBySortOrderAsc(resume.getId()));
+        resume.setExperiences(experienceRepository.findByResumeIdOrderBySortOrderAsc(resume.getId()));
+        resume.setProjects(projectRepository.findByResumeIdOrderBySortOrderAsc(resume.getId()));
+        resume.setSkills(skillRepository.findByResumeIdOrderBySortOrderAsc(resume.getId()));
+        return resume;
     }
 
     public Optional<Resume> getResumeByIdAndUserId(Long id, Long userId) {
@@ -84,19 +92,19 @@ public class ResumeService {
         Resume resume = resumeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Resume not found"));
 
-        resume.setTitle(resumeDetails.getTitle());
-        resume.setName(resumeDetails.getName());
-        resume.setGender(resumeDetails.getGender());
-        resume.setPhone(resumeDetails.getPhone());
-        resume.setEmail(resumeDetails.getEmail());
-        resume.setLocation(resumeDetails.getLocation());
-        resume.setAvatarUrl(resumeDetails.getAvatarUrl());
-        resume.setSummary(resumeDetails.getSummary());
-        resume.setTemplateId(resumeDetails.getTemplateId());
-        resume.setIsPublic(resumeDetails.getIsPublic());
+        if (resumeDetails.getTitle() != null) resume.setTitle(resumeDetails.getTitle());
+        if (resumeDetails.getName() != null) resume.setName(resumeDetails.getName());
+        if (resumeDetails.getGender() != null) resume.setGender(resumeDetails.getGender());
+        if (resumeDetails.getPhone() != null) resume.setPhone(resumeDetails.getPhone());
+        if (resumeDetails.getEmail() != null) resume.setEmail(resumeDetails.getEmail());
+        if (resumeDetails.getLocation() != null) resume.setLocation(resumeDetails.getLocation());
+        if (resumeDetails.getAvatarUrl() != null) resume.setAvatarUrl(resumeDetails.getAvatarUrl());
+        if (resumeDetails.getSummary() != null) resume.setSummary(resumeDetails.getSummary());
+        if (resumeDetails.getTemplateId() != null) resume.setTemplateId(resumeDetails.getTemplateId());
+        if (resumeDetails.getIsPublic() != null) resume.setIsPublic(resumeDetails.getIsPublic());
 
-        educationRepository.deleteByResumeId(id);
         if (resumeDetails.getEducations() != null) {
+            educationRepository.deleteByResumeId(id);
             for (ResumeEducation education : resumeDetails.getEducations()) {
                 education.setId(null);
                 education.setResumeId(id);
@@ -104,8 +112,8 @@ public class ResumeService {
             }
         }
 
-        experienceRepository.deleteByResumeId(id);
         if (resumeDetails.getExperiences() != null) {
+            experienceRepository.deleteByResumeId(id);
             for (ResumeExperience experience : resumeDetails.getExperiences()) {
                 experience.setId(null);
                 experience.setResumeId(id);
@@ -113,8 +121,8 @@ public class ResumeService {
             }
         }
 
-        projectRepository.deleteByResumeId(id);
         if (resumeDetails.getProjects() != null) {
+            projectRepository.deleteByResumeId(id);
             for (ResumeProject project : resumeDetails.getProjects()) {
                 project.setId(null);
                 project.setResumeId(id);
@@ -122,8 +130,8 @@ public class ResumeService {
             }
         }
 
-        skillRepository.deleteByResumeId(id);
         if (resumeDetails.getSkills() != null) {
+            skillRepository.deleteByResumeId(id);
             for (ResumeSkill skill : resumeDetails.getSkills()) {
                 skill.setId(null);
                 skill.setResumeId(id);
@@ -181,7 +189,7 @@ public class ResumeService {
     }
 
     public Optional<ShortLink> getShortLink(String shortCode) {
-        return shortLinkRepository.findByShortCodeAndExpireAtAfterOrExpireAtIsNull(shortCode, LocalDateTime.now());
+        return shortLinkRepository.findValidShortLink(shortCode, LocalDateTime.now());
     }
 
     public VisitLog recordVisit(Long resumeId, HttpServletRequest request) {
@@ -210,7 +218,7 @@ public class ResumeService {
     }
 
     public byte[] exportResumeToPdf(Long resumeId) throws Exception {
-        Resume resume = resumeRepository.findByIdWithAllDetails(resumeId)
+        Resume resume = getResumeById(resumeId)
                 .orElseThrow(() -> new RuntimeException("Resume not found"));
 
         String htmlContent = generateResumeHtml(resume);

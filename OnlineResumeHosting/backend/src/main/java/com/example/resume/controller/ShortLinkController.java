@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/short-links")
+@RequestMapping("/short-links")
 @RequiredArgsConstructor
 public class ShortLinkController {
     private final ResumeService resumeService;

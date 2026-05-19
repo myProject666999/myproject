@@ -91,15 +91,7 @@ public class MoodExtractor {
     }
 
     public static int calculateMoodScore(List<MoodTag> tags, int userScore) {
-        if (tags == null || tags.isEmpty()) {
-            return userScore;
-        }
-
-        double avgWeight = tags.stream()
-                .collect(Collectors.averagingInt(MoodTag::getWeight));
-
-        int baseScore = (int) Math.round(avgWeight);
-        return (int) Math.round((baseScore * 0.3 + userScore * 0.7));
+        return userScore;
     }
 
     public static String generateMoodSummary(List<MoodTag> tags) {

@@ -46,7 +46,7 @@ export function deleteTarget(id) {
 
 export function getMilestoneList(targetId) {
   return request({
-    url: `/milestone/list?targetId=${targetId}`,
+    url: `/milestone/target/${targetId}`,
     method: 'get'
   })
 }
@@ -75,7 +75,7 @@ export function deleteMilestone(id) {
 }
 
 export function getReviewList(targetId) {
-  const url = targetId ? `/review/list?targetId=${targetId}` : '/review/list'
+  const url = targetId ? `/review/target/${targetId}` : '/review'
   return request({
     url,
     method: 'get'

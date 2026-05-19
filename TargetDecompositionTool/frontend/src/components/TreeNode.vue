@@ -35,7 +35,7 @@
                 <el-icon><TrendCharts /></el-icon>调整进度
               </el-dropdown-item>
               <el-dropdown-item command="archive" divided>
-                <el-icon><FolderOpened /></el-icon>归档
+                <el-icon><Folder /></el-icon>归档
               </el-dropdown-item>
               <el-dropdown-item command="delete" divided>
                 <el-icon><Delete /></el-icon>删除
@@ -69,7 +69,7 @@ import {
   Plus,
   Edit,
   TrendCharts,
-  FolderOpened,
+  Folder,
   Delete
 } from '@element-plus/icons-vue'
 import { deleteTarget } from '@/api/target'

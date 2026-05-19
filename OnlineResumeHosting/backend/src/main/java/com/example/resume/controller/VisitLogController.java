@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/visit-logs")
+@RequestMapping("/visit-logs")
 @RequiredArgsConstructor
 public class VisitLogController {
     private final ResumeService resumeService;

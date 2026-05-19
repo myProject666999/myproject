@@ -37,7 +37,7 @@
       <el-col :span="6">
         <div class="stat-card gradient-orange">
           <div class="stat-icon">
-            <el-icon size="32"><FolderOpened /></el-icon>
+            <el-icon size="32"><Folder /></el-icon>
           </div>
           <div class="stat-info">
             <div class="stat-value">{{ stats.archived }}</div>
@@ -107,7 +107,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Flag, VideoPlay, CircleCheck, FolderOpened, Refresh } from '@element-plus/icons-vue'
+import { Flag, VideoPlay, CircleCheck, Folder, Refresh } from '@element-plus/icons-vue'
 import TreeNode from '@/components/TreeNode.vue'
 import { getTargetList, addTarget, updateTarget } from '@/api/target'
 

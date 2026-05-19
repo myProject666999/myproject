@@ -6,7 +6,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -61,19 +60,15 @@ public class Resume {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "resumeId", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sortOrder ASC")
-    private List<ResumeEducation> educations = new ArrayList<>();
+    @Transient
+    private List<ResumeEducation> educations;
 
-    @OneToMany(mappedBy = "resumeId", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sortOrder ASC")
-    private List<ResumeExperience> experiences = new ArrayList<>();
+    @Transient
+    private List<ResumeExperience> experiences;
 
-    @OneToMany(mappedBy = "resumeId", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sortOrder ASC")
-    private List<ResumeProject> projects = new ArrayList<>();
+    @Transient
+    private List<ResumeProject> projects;
 
-    @OneToMany(mappedBy = "resumeId", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sortOrder ASC")
-    private List<ResumeSkill> skills = new ArrayList<>();
+    @Transient
+    private List<ResumeSkill> skills;
 }

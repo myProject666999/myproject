@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/templates")
+@RequestMapping("/templates")
 @RequiredArgsConstructor
 public class TemplateController {
     private final TemplateService templateService;

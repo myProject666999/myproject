@@ -2,7 +2,7 @@
   <el-container class="app-container">
     <el-aside width="220px" class="sidebar">
       <div class="logo">
-        <el-icon size="32" color="#3b82f6"><Target /></el-icon>
+        <el-icon size="32" color="#3b82f6"><Aim /></el-icon>
         <span class="title">目标分解工具</span>
       </div>
       <el-menu
@@ -13,7 +13,7 @@
         active-text-color="#3b82f6"
       >
         <el-menu-item index="/">
-          <el-icon><Tree /></el-icon>
+          <el-icon><Menu /></el-icon>
           <span>目标树</span>
         </el-menu-item>
         <el-menu-item index="/review">
@@ -21,7 +21,7 @@
           <span>复盘记录</span>
         </el-menu-item>
         <el-menu-item index="/archive">
-          <el-icon><FolderOpened /></el-icon>
+          <el-icon><Folder /></el-icon>
           <span>目标归档</span>
         </el-menu-item>
       </el-menu>
@@ -80,7 +80,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Target, Tree, Document, FolderOpened, Plus } from '@element-plus/icons-vue'
+import { Aim, Menu, Document, Folder, Plus } from '@element-plus/icons-vue'
 import { addTarget } from '@/api/target'
 
 const route = useRoute()
