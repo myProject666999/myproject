@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -108,6 +108,10 @@ const deletePage = async () => {
 }
 
 onMounted(() => {
+  loadPage()
+})
+
+watch(() => route.params.pageId, () => {
   loadPage()
 })
 </script>

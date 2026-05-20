@@ -93,6 +93,9 @@ const handleSubmit = async () => {
   
   try {
     let response
+    const parentType = props.parentData?.type
+    console.log('Creating:', props.type, 'parentData:', props.parentData, 'parentType:', parentType)
+    
     switch (props.type) {
       case 'notebook':
         response = await notebookApi.create({
@@ -101,21 +104,27 @@ const handleSubmit = async () => {
         })
         break
       case 'section':
+        const notebookId = props.parentData.notebookId || props.parentData.id
+        const parentId = parentType === 'section' ? props.parentData.id : null
+        console.log('Creating section with:', { notebookId, parentId, name: formData.name.trim() })
         response = await sectionApi.create({
           name: formData.name.trim(),
-          notebookId: props.parentData.notebookId || props.parentData.id,
-          parentId: props.parentData.type === 'section' ? props.parentData.id : null
+          notebookId: notebookId,
+          parentId: parentId
         })
         break
       case 'page':
         let sectionId
-        if (props.parentData.type === 'section') {
+        if (parentType === 'section') {
           sectionId = props.parentData.id
-        } else if (props.parentData.type === 'notebook') {
+        } else if (parentType === 'notebook') {
+          console.log('Getting sections for notebook:', props.parentData.id)
           const sectionsRes = await sectionApi.getByNotebook(props.parentData.id)
+          console.log('Sections response:', sectionsRes.data)
           if (sectionsRes.data.length > 0) {
             sectionId = sectionsRes.data[0].id
           } else {
+            console.log('Creating default section')
             const newSection = await sectionApi.create({
               name: '默认分区',
               notebookId: props.parentData.id,
@@ -123,7 +132,10 @@ const handleSubmit = async () => {
             })
             sectionId = newSection.data.id
           }
+        } else {
+          throw new Error('无法确定创建位置，请先选择一个笔记本或分区')
         }
+        console.log('Creating page with sectionId:', sectionId)
         response = await pageApi.create({
           title: formData.name.trim(),
           content: '',
@@ -136,7 +148,8 @@ const handleSubmit = async () => {
     emit('created')
   } catch (e) {
     console.error('Create failed:', e)
-    alert('创建失败，请检查网络连接')
+    const errorMsg = e.response?.data?.message || e.message || '创建失败，请检查网络连接'
+    alert(errorMsg)
   }
 }
 

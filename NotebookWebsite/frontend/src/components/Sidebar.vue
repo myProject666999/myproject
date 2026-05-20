@@ -77,13 +77,13 @@ const handleNewNotebook = () => {
 
 const handleNewPage = (data) => {
   dialogType.value = 'page'
-  dialogParentData.value = data.node || data
+  dialogParentData.value = data
   showDialog.value = true
 }
 
 const handleNewSection = (data) => {
   dialogType.value = 'section'
-  dialogParentData.value = data.node || data
+  dialogParentData.value = data
   showDialog.value = true
 }
 

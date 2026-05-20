@@ -12,8 +12,8 @@
       <span class="tree-toggle" v-else-if="type !== 'page'"></span>
       <span>{{ getIcon() }} {{ node.name || node.title }}</span>
       <span class="tree-actions" v-if="isSelected && type !== 'page'">
-        <button class="btn-icon" title="新建页面" @click.stop="$emit('new-page', node)">📄</button>
-        <button class="btn-icon" title="新建分区" @click.stop="$emit('new-section', node)" v-if="type !== 'page'">📁</button>
+        <button class="btn-icon" title="新建页面" @click.stop="emitNewPage">📄</button>
+        <button class="btn-icon" title="新建分区" @click.stop="emitNewSection" v-if="type !== 'page'">📁</button>
       </span>
     </div>
     <div v-if="expanded && children.length > 0" class="tree-children">
@@ -22,6 +22,8 @@
         :key="child.id" 
         :node="child" 
         :type="child.type || 'section'"
+        @new-page="(data) => emit('new-page', data)"
+        @new-section="(data) => emit('new-section', data)"
       />
     </div>
   </div>
@@ -90,10 +92,18 @@ const handleClick = () => {
   }
 }
 
+const emitNewPage = () => {
+  emit('new-page', { ...props.node, type: props.type })
+}
+
+const emitNewSection = () => {
+  emit('new-section', { ...props.node, type: props.type })
+}
+
 const handleRightClick = () => {
   store.setSelectedNode(props.node, props.type)
   if (props.type !== 'page') {
-    emit('new-page', { node: props.node, type: props.type })
+    emit('new-page', { ...props.node, type: props.type })
   }
 }
 
