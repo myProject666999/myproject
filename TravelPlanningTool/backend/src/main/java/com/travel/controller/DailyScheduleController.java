@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/daily-schedules")
-@CrossOrigin(origins = "*")
 public class DailyScheduleController {
 
     @Autowired

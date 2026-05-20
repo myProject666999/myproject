@@ -138,8 +138,27 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="mapDialogVisible" title="地图位置" width="800px">
-      <div id="map-container" style="width: 100%; height: 400px"></div>
+    <el-dialog v-model="mapDialogVisible" title="地图位置" width="800px" @opened="onMapDialogOpened">
+      <el-alert
+        v-if="!isAmapLoaded"
+        title="地图未加载"
+        type="warning"
+        :closable="false"
+        style="margin-bottom: 15px"
+      >
+        <template #default>
+          <p>请在 <code>frontend/index.html</code> 中配置高德地图 API Key</p>
+          <p>1. 访问 <a href="https://lbs.amap.com/" target="_blank">https://lbs.amap.com/</a> 注册账号</p>
+          <p>2. 创建应用，获取 Web 端 (JS API) Key</p>
+          <p>3. 替换 index.html 中的 <code>YOUR_AMAP_KEY</code></p>
+        </template>
+      </el-alert>
+      <div id="map-container" style="width: 100%; height: 400px; background: #f5f5f5; border: 1px solid #ebeef5; border-radius: 4px;"></div>
+      <div v-if="isAmapLoaded && currentAttraction" style="margin-top: 10px; padding: 10px; background: #f5f7fa; border-radius: 4px;">
+        <p><strong>{{ currentAttraction.name }}</strong></p>
+        <p>地址: {{ currentAttraction.address || '暂无' }}</p>
+        <p>坐标: {{ currentAttraction.longitude }}, {{ currentAttraction.latitude }}</p>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -180,6 +199,7 @@ const attractionForm = ref({
 
 const mapDialogVisible = ref(false)
 const currentAttraction = ref(null)
+const isAmapLoaded = ref(typeof AMap !== 'undefined')
 
 const loadTrips = async () => {
   try {
@@ -258,23 +278,64 @@ const openAttractionDialog = (scheduleId, attraction) => {
   isAttractionEdit.value = !!attraction
   currentScheduleIdForAttraction.value = scheduleId
   currentAttractionId.value = attraction?.id || null
-  attractionForm.value = attraction ? { ...attraction } : {
-    name: '',
-    description: '',
-    address: '',
-    longitude: null,
-    latitude: null,
-    visitTime: null,
-    duration: null,
-    cost: 0,
-    sortOrder: 0
+  
+  if (attraction) {
+    attractionForm.value = {
+      ...attraction,
+      visitTime: parseTime(attraction.visitTime)
+    }
+  } else {
+    attractionForm.value = {
+      name: '',
+      description: '',
+      address: '',
+      longitude: null,
+      latitude: null,
+      visitTime: null,
+      duration: null,
+      cost: 0,
+      sortOrder: 0
+    }
   }
   attractionDialogVisible.value = true
 }
 
+const parseTime = (timeStr) => {
+  if (!timeStr) return null
+  if (timeStr instanceof Date) return timeStr
+  const parts = timeStr.split(':')
+  if (parts.length >= 2) {
+    const d = new Date()
+    d.setHours(parseInt(parts[0]), parseInt(parts[1]), parts[2] ? parseInt(parts[2]) : 0)
+    return d
+  }
+  return null
+}
+
+const formatTime = (date) => {
+  if (!date) return null
+  if (typeof date === 'string') return date
+  const d = new Date(date)
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  const seconds = String(d.getSeconds()).padStart(2, '0')
+  return `${hours}:${minutes}:${seconds}`
+}
+
 const saveAttraction = async () => {
   try {
-    const data = { ...attractionForm.value, dailyScheduleId: currentScheduleIdForAttraction.value }
+    const formData = { ...attractionForm.value }
+    formData.visitTime = formatTime(formData.visitTime)
+    
+    if (formData.longitude !== null && formData.longitude !== undefined) {
+      formData.longitude = Number(formData.longitude)
+    }
+    if (formData.latitude !== null && formData.latitude !== undefined) {
+      formData.latitude = Number(formData.latitude)
+    }
+    
+    const data = { ...formData, dailyScheduleId: currentScheduleIdForAttraction.value }
+    
     if (isAttractionEdit.value) {
       await attractionApi.update(currentAttractionId.value, data)
       ElMessage.success('更新成功')
@@ -285,31 +346,63 @@ const saveAttraction = async () => {
     attractionDialogVisible.value = false
     loadSchedules()
   } catch (error) {
-    ElMessage.error('保存失败')
+    console.error('保存景点错误:', error)
+    ElMessage.error('保存失败: ' + (error.response?.data?.message || error.message))
   }
 }
 
 const openMap = (attraction) => {
   currentAttraction.value = attraction
+  isAmapLoaded.value = typeof AMap !== 'undefined'
+  
+  if (!isAmapLoaded.value) {
+    ElMessage.warning('高德地图 API 未加载，请先配置 API Key')
+  }
+  
   mapDialogVisible.value = true
-  nextTick(() => {
-    initMap(attraction)
-  })
+}
+
+const onMapDialogOpened = () => {
+  if (isAmapLoaded.value && currentAttraction.value) {
+    nextTick(() => {
+      initMap(currentAttraction.value)
+    })
+  }
 }
 
 const initMap = (attraction) => {
-  if (typeof AMap !== 'undefined') {
+  try {
+    if (typeof AMap === 'undefined') {
+      ElMessage.error('高德地图 API 未加载')
+      return
+    }
+    
+    const container = document.getElementById('map-container')
+    if (!container) {
+      ElMessage.error('地图容器未找到')
+      return
+    }
+    
+    const longitude = attraction.longitude ? Number(attraction.longitude) : 116.397428
+    const latitude = attraction.latitude ? Number(attraction.latitude) : 39.90923
+    
     const map = new AMap.Map('map-container', {
       zoom: 15,
-      center: [attraction.longitude || 116.397428, attraction.latitude || 39.90923]
+      center: [longitude, latitude]
     })
+    
     if (attraction.longitude && attraction.latitude) {
       new AMap.Marker({
-        position: [attraction.longitude, attraction.latitude],
+        position: [longitude, latitude],
         title: attraction.name,
         map: map
       })
     }
+    
+    ElMessage.success('地图加载成功')
+  } catch (error) {
+    console.error('地图初始化错误:', error)
+    ElMessage.error('地图加载失败: ' + error.message)
   }
 }
 

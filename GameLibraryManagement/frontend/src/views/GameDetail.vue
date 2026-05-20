@@ -39,13 +39,13 @@
             <p>{{ game.description || '暂无描述' }}</p>
           </div>
           <div class="actions">
-            <el-button type="primary">
+            <el-button type="primary" :disabled="isInLibrary" @click="addToLibrary">
               <el-icon><Collection /></el-icon>
-              添加到我的游戏库
+              {{ isInLibrary ? '已在游戏库' : '添加到我的游戏库' }}
             </el-button>
-            <el-button>
-              <el-icon><Star /></el-icon>
-              收藏
+            <el-button :type="isFavorite ? 'warning' : 'default'" @click="toggleFavorite">
+              <el-icon><Star :fill="isFavorite ? '#f59e0b' : 'none'" /></el-icon>
+              {{ isFavorite ? '已收藏' : '收藏' }}
             </el-button>
           </div>
         </el-card>
@@ -63,19 +63,107 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { gameApi } from '../api'
+import { gameApi, userGameApi } from '../api'
 
 const route = useRoute()
 const game = ref(null)
+const isInLibrary = ref(false)
+const isFavorite = ref(false)
+const userGameId = ref(null)
+const userId = 1
 
 const loadGameDetail = async () => {
   try {
     const res = await gameApi.getGame(route.params.id)
     if (res.code === 200) {
       game.value = res.data
+      checkUserGame()
     }
   } catch (error) {
     ElMessage.error('加载游戏详情失败')
+  }
+}
+
+const checkUserGame = async () => {
+  try {
+    const res = await userGameApi.getUserGameDetail(userId, route.params.id)
+    if (res.code === 200 && res.data) {
+      isInLibrary.value = true
+      isFavorite.value = res.data.isFavorite === 1
+      userGameId.value = res.data.id
+    }
+  } catch (error) {
+    console.log('游戏不在用户库中')
+  }
+}
+
+const addToLibrary = async () => {
+  if (!game.value) return
+  try {
+    const userGame = {
+      userId: userId,
+      gameId: game.value.id,
+      totalPlayTime: 0,
+      completionStatus: 0,
+      completionPercentage: 0,
+      isFavorite: 0
+    }
+    const res = await userGameApi.addUserGame(userGame)
+    if (res.code === 200 && res.data) {
+      isInLibrary.value = true
+      ElMessage.success('已添加到游戏库')
+      checkUserGame()
+    } else {
+      ElMessage.error('添加失败')
+    }
+  } catch (error) {
+    ElMessage.error('添加失败')
+  }
+}
+
+const toggleFavorite = async () => {
+  if (!game.value) return
+  
+  if (!isInLibrary.value) {
+    try {
+      const userGame = {
+        userId: userId,
+        gameId: game.value.id,
+        totalPlayTime: 0,
+        completionStatus: 0,
+        completionPercentage: 0,
+        isFavorite: 1
+      }
+      const res = await userGameApi.addUserGame(userGame)
+      if (res.code === 200 && res.data) {
+        isInLibrary.value = true
+        isFavorite.value = true
+        ElMessage.success('已添加到游戏库并收藏')
+        checkUserGame()
+      } else {
+        ElMessage.error('操作失败')
+      }
+    } catch (error) {
+      ElMessage.error('操作失败')
+    }
+  } else {
+    try {
+      const res = await userGameApi.getUserGameDetail(userId, route.params.id)
+      if (res.code === 200 && res.data) {
+        const userGame = res.data
+        const newFavoriteStatus = isFavorite.value ? 0 : 1
+        userGame.isFavorite = newFavoriteStatus
+        const updateRes = await userGameApi.updateUserGame(userGame)
+        if (updateRes.code === 200 && updateRes.data) {
+          isFavorite.value = newFavoriteStatus === 1
+          ElMessage.success(isFavorite.value ? '已收藏' : '已取消收藏')
+        } else {
+          ElMessage.error('操作失败')
+        }
+      }
+    } catch (error) {
+      ElMessage.error('操作失败')
+    }
   }
 }
 

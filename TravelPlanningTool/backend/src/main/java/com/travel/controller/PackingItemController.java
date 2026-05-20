@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/packing-items")
-@CrossOrigin(origins = "*")
 public class PackingItemController {
 
     @Autowired
