@@ -1,11 +1,14 @@
 package com.travel.config;
 
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -23,13 +26,10 @@ public class JacksonConfig {
         };
     }
 
-    public static class CustomLocalTimeDeserializer extends LocalTimeDeserializer {
-        public CustomLocalTimeDeserializer() {
-            super(TIME_FORMATTER);
-        }
-
+    public static class CustomLocalTimeDeserializer extends JsonDeserializer<LocalTime> {
         @Override
-        protected LocalTime _deserialize(String timeStr, DateTimeFormatter formatter) {
+        public LocalTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String timeStr = p.getText();
             try {
                 if (timeStr == null || timeStr.isEmpty()) {
                     return null;

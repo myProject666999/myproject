@@ -1,4 +1,4 @@
-package com.itinerary.util;
+package com.restaurant.evaluation.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -7,9 +7,8 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.security.Key;
 import java.util.Date;
 
 @Component
@@ -18,31 +17,24 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    @Value("${jwt.expire}")
+    private long expire;
 
-    private SecretKey signingKey;
-
-    private SecretKey getSigningKey() {
-        if (signingKey == null) {
-            byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
-            if (keyBytes.length < 32) {
-                keyBytes = Arrays.copyOf(keyBytes, 32);
-            }
-            signingKey = Keys.hmacShaKeyFor(keyBytes);
-        }
-        return signingKey;
+    private Key getSigningKey() {
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String generateToken(Long userId, String username) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expiration);
+        Date expiryDate = new Date(now.getTime() + expire);
+
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .claim("username", username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -60,11 +52,15 @@ public class JwtUtil {
 
     public Long getUserIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        return claims != null ? Long.parseLong(claims.getSubject()) : null;
+        if (claims != null) {
+            return Long.parseLong(claims.getSubject());
+        }
+        return null;
     }
 
     public boolean validateToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims != null && claims.getExpiration().after(new Date());
     }
+
 }

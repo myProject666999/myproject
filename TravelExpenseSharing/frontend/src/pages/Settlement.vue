@@ -114,7 +114,7 @@
           </div>
           <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-2 rounded-lg border border-green-100">
             <p class="text-sm text-green-700">
-              <TrendDown class="w-4 h-4 inline mr-1" />
+              <SortDown class="w-4 h-4 inline mr-1" />
               最优方案，已最小化转账次数
             </p>
           </div>
@@ -218,7 +218,7 @@ import {
   ArrowRight, 
   CircleCheck, 
   InfoFilled,
-  TrendDown
+  SortDown
 } from '@element-plus/icons-vue'
 import { settlementApi, billApi } from '../api'
 
