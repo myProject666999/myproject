@@ -3,8 +3,8 @@ package com.booklist.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -16,26 +16,23 @@ public class ReadingRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_list_id", nullable = false)
+    private BookList bookList;
 
-    @Column(name = "book_id", nullable = false)
-    private Long bookId;
+    @Column(name = "read_date", nullable = false)
+    private LocalDate readDate;
 
-    @Column(name = "pages_read", nullable = false)
+    @Column(name = "duration_minutes", nullable = false)
+    private Integer durationMinutes;
+
+    @Column(name = "pages_read")
     private Integer pagesRead;
 
-    @Column(name = "record_date", nullable = false)
-    private LocalDateTime recordDate;
-
-    @Column(length = 1000)
-    private String notes;
+    @Column(columnDefinition = "TEXT")
+    private String note;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

@@ -3,7 +3,6 @@ package com.booklist.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -19,14 +18,10 @@ public class Tag {
     @Column(nullable = false, unique = true, length = 50)
     private String name;
 
-    @Column(length = 200)
-    private String description;
+    @Column(length = 20)
+    private String color;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

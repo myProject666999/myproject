@@ -1,32 +1,34 @@
 package com.booklist.dto;
 
-import com.booklist.entity.BookList.Status;
-import jakarta.validation.constraints.NotNull;
+import com.booklist.entity.BookListStatus;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class BookListDTO {
 
     private Long id;
 
-    @NotNull(message = "用户ID不能为空")
-    private Long userId;
+    private BookDTO book;
 
-    @NotNull(message = "书籍ID不能为空")
-    private Long bookId;
-
-    @NotNull(message = "状态不能为空")
-    private Status status;
+    private BookListStatus status;
 
     private Integer rating;
 
     private String review;
 
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
-    private BookDTO book;
+    private List<TagDTO> tags;
+
+    private Integer totalReadingMinutes;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 }

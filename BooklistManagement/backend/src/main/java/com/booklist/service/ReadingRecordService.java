@@ -21,7 +21,7 @@ public class ReadingRecordService {
     private final BookListRepository bookListRepository;
 
     public List<ReadingRecordDTO> findByBookListId(Long bookListId) {
-        return readingRecordRepository.findByBookListIdOrderByReadDateDesc(bookListId).stream()
+        return readingRecordRepository.findByBookList_IdOrderByReadDateDesc(bookListId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

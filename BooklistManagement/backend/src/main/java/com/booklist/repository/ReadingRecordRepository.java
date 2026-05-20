@@ -11,9 +11,10 @@ import java.util.List;
 
 @Repository
 public interface ReadingRecordRepository extends JpaRepository<ReadingRecord, Long> {
-    List<ReadingRecord> findByBookListIdOrderByReadDateDesc(Long bookListId);
 
-    @Query("SELECT rr FROM ReadingRecord rr WHERE rr.bookListId = :bookListId AND rr.readDate BETWEEN :startDate AND :endDate ORDER BY rr.readDate")
+    List<ReadingRecord> findByBookList_IdOrderByReadDateDesc(Long bookListId);
+
+    @Query("SELECT rr FROM ReadingRecord rr WHERE rr.bookList.id = :bookListId AND rr.readDate BETWEEN :startDate AND :endDate ORDER BY rr.readDate")
     List<ReadingRecord> findByBookListIdAndDateRange(@Param("bookListId") Long bookListId,
                                                      @Param("startDate") LocalDate startDate,
                                                      @Param("endDate") LocalDate endDate);
@@ -26,6 +27,6 @@ public interface ReadingRecordRepository extends JpaRepository<ReadingRecord, Lo
     Integer sumDurationByDateRange(@Param("startDate") LocalDate startDate,
                                    @Param("endDate") LocalDate endDate);
 
-    @Query("SELECT COALESCE(SUM(rr.durationMinutes), 0) FROM ReadingRecord rr WHERE rr.bookListId = :bookListId")
+    @Query("SELECT COALESCE(SUM(rr.durationMinutes), 0) FROM ReadingRecord rr WHERE rr.bookList.id = :bookListId")
     Integer sumDurationByBookListId(@Param("bookListId") Long bookListId);
 }

@@ -10,17 +10,25 @@ public class YearlyReportDTO {
 
     private Integer year;
 
-    private Integer totalBooksRead;
+    private Integer booksFinished;
+
+    private Integer booksReading;
+
+    private Integer booksInWishlist;
+
+    private Integer totalReadingMinutes;
+
+    private Double totalReadingHours;
 
     private Integer totalPagesRead;
 
     private Double averageRating;
 
-    private List<String> topAuthors;
+    private Map<String, Integer> topTags;
 
-    private List<String> topCategories;
+    private Map<String, Integer> topAuthors;
 
-    private Map<String, Integer> monthlyBooks;
+    private Map<String, Integer> monthlyReadingMinutes;
 
-    private List<BookDTO> favoriteBooks;
+    private List<BookListDTO> finishedBooks;
 }

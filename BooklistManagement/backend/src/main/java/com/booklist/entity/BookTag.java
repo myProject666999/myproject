@@ -3,7 +3,6 @@ package com.booklist.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -16,11 +15,12 @@ public class BookTag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "book_id", nullable = false)
-    private Long bookId;
+    @Column(name = "book_list_id", nullable = false)
+    private Long bookListId;
 
-    @Column(name = "tag_id", nullable = false)
-    private Long tagId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tag_id", nullable = false)
+    private Tag tag;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
