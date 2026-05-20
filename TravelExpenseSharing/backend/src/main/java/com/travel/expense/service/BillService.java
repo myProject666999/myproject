@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,7 +57,10 @@ public class BillService {
             split.setBillId(savedBill.getId());
             split.setParticipantId(splitDTO.getParticipantId());
             split.setSplitRatio(splitDTO.getSplitRatio());
-            split.setSplitAmount(splitDTO.getSplitAmount());
+            BigDecimal splitAmount = bill.getAmount()
+                    .multiply(splitDTO.getSplitRatio())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            split.setSplitAmount(splitAmount);
             billSplitRepository.save(split);
         }
         
@@ -78,7 +83,10 @@ public class BillService {
                 split.setBillId(bill.getId());
                 split.setParticipantId(splitDTO.getParticipantId());
                 split.setSplitRatio(splitDTO.getSplitRatio());
-                split.setSplitAmount(splitDTO.getSplitAmount());
+                BigDecimal splitAmount = bill.getAmount()
+                        .multiply(splitDTO.getSplitRatio())
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                split.setSplitAmount(splitAmount);
                 billSplitRepository.save(split);
             }
             
