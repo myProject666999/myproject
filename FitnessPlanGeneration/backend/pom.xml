@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -12,12 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.exercise</groupId>
-    <artifactId>exercise-diary</artifactId>
+    <groupId>com.fitness</groupId>
+    <artifactId>fitness-plan</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
-    <name>exercise-diary</name>
-    <description>运动日记后端</description>
+    <name>fitness-plan</name>
+    <description>健身计划生成系统</description>
 
     <properties>
         <java.version>1.8</java.version>
@@ -44,14 +42,18 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
-            <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.22</version>
         </dependency>
 
         <dependency>
@@ -62,7 +64,6 @@
     </dependencies>
 
     <build>
-        <finalName>exercise-diary</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
