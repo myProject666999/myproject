@@ -1,154 +1,100 @@
 <template>
-  <div class="container">
-    <div class="page-header">
-      <h1 class="page-title">我的评价</h1>
-    </div>
+  <div>
+    <h2 style="margin-bottom: 20px">我的评价</h2>
 
-    <div class="reviews-container">
-      <div v-for="review in reviews" :key="review.id" class="review-card card">
-        <div class="review-header">
-          <div class="review-meta">
-            <span class="review-date">{{ formatDate(review.createTime) }}</span>
-            <el-tag :type="getRepurchaseTagType(review.repurchaseIntention)">
-              {{ review.repurchaseIntentionText }}
-            </el-tag>
+    <el-card v-for="review in reviews" :key="review.id" style="margin-bottom: 20px">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px">
+        <div>
+          <div style="font-weight: bold; font-size: 16px; cursor: pointer; color: #409eff" @click="goToRestaurant(review.restaurantId)">
+            <el-icon><Shop /></el-icon>
+            查看餐厅
           </div>
-          <div class="review-actions">
-            <el-button type="primary" size="small" :icon="Edit" @click="openEditDialog(review)">
-              编辑
-            </el-button>
-            <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(review.id)">
-              删除
-            </el-button>
-          </div>
+          <div style="font-size: 12px; color: #999; margin-top: 5px">{{ formatDate(review.createTime) }}</div>
         </div>
-
-        <div class="restaurant-link" @click="goToRestaurant(review.restaurantId)">
-          <el-icon><Shop /></el-icon>
-          <span>{{ review.restaurantName }}</span>
-          <el-icon class="arrow"><ArrowRight /></el-icon>
+        <div>
+          <el-button type="danger" size="small" @click="deleteReview(review.id)">
+            <el-icon><Delete /></el-icon>
+            删除
+          </el-button>
         </div>
-
-        <div class="review-scores">
-          <div class="score-item">
-            <span class="label">口味</span>
-            <el-rate v-model="review.tasteScore" disabled size="small" />
-            <span class="score">{{ review.tasteScore }}</span>
-          </div>
-          <div class="score-item">
-            <span class="label">环境</span>
-            <el-rate v-model="review.environmentScore" disabled size="small" />
-            <span class="score">{{ review.environmentScore }}</span>
-          </div>
-          <div class="score-item">
-            <span class="label">服务</span>
-            <el-rate v-model="review.serviceScore" disabled size="small" />
-            <span class="score">{{ review.serviceScore }}</span>
-          </div>
-          <div class="score-item overall">
-            <span class="label">综合</span>
-            <span class="overall-score">{{ review.overallScore }}</span>
-          </div>
-        </div>
-
-        <p v-if="review.content" class="review-content">{{ review.content }}</p>
-        
-        <p v-if="review.visitDate" class="visit-date">
-          <el-icon><Calendar /></el-icon> 用餐日期：{{ formatDate(review.visitDate) }}
-        </p>
       </div>
 
-      <el-empty v-if="reviews.length === 0" description="暂无评价，去餐厅页面写下你的第一条评价吧" :image-size="120" />
-    </div>
+      <div style="display: flex; gap: 25px; margin-bottom: 15px">
+        <div style="text-align: center">
+          <div style="font-size: 20px; font-weight: bold; color: #ff9900">{{ review.overallScore }}</div>
+          <div style="font-size: 12px; color: #999">综合</div>
+        </div>
+        <div>
+          <el-rate v-model="review.tasteScore" disabled :max="5" size="small" />
+          <div style="font-size: 12px; color: #999">口味</div>
+        </div>
+        <div>
+          <el-rate v-model="review.envScore" disabled :max="5" size="small" />
+          <div style="font-size: 12px; color: #999">环境</div>
+        </div>
+        <div>
+          <el-rate v-model="review.serviceScore" disabled :max="5" size="small" />
+          <div style="font-size: 12px; color: #999">服务</div>
+        </div>
+      </div>
 
-    <el-dialog v-model="editDialogVisible" title="修改评价" width="600px">
-      <el-form :model="editForm" :rules="editRules" ref="editFormRef" label-width="80px">
-        <el-form-item label="口味" prop="tasteScore">
-          <el-rate v-model="editForm.tasteScore" :max="5" show-text />
-        </el-form-item>
-        <el-form-item label="环境" prop="environmentScore">
-          <el-rate v-model="editForm.environmentScore" :max="5" show-text />
-        </el-form-item>
-        <el-form-item label="服务" prop="serviceScore">
-          <el-rate v-model="editForm.serviceScore" :max="5" show-text />
-        </el-form-item>
-        <el-form-item label="复购意愿" prop="repurchaseIntention">
-          <el-radio-group v-model="editForm.repurchaseIntention">
-            <el-radio :label="1">不想去</el-radio>
-            <el-radio :label="2">可能会去</el-radio>
-            <el-radio :label="3">一定会去</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="评价内容" prop="content">
-          <el-input v-model="editForm.content" type="textarea" :rows="4" placeholder="分享您的用餐体验..." />
-        </el-form-item>
-        <el-form-item label="用餐日期" prop="visitDate">
-          <el-date-picker v-model="editForm.visitDate" type="date" placeholder="选择日期" style="width: 100%" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleUpdateReview" :loading="submitting">保存</el-button>
-      </template>
-    </el-dialog>
+      <div style="margin-bottom: 10px">
+        <el-tag :type="getRepurchaseType(review.repurchaseWillingness)" size="small">
+          复购意愿：{{ getRepurchaseText(review.repurchaseWillingness) }}
+        </el-tag>
+      </div>
+
+      <div v-if="review.content" style="margin-bottom: 10px; line-height: 1.6">
+        {{ review.content }}
+      </div>
+
+      <div v-if="review.visitDate" style="font-size: 12px; color: #999">
+        用餐日期：{{ review.visitDate }}
+      </div>
+    </el-card>
+
+    <el-empty v-if="reviews.length === 0" description="暂无评价" />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getMyReviews, updateReview, deleteReview } from '@/api'
+import { getReviewsByUser, deleteReview as deleteReviewApi } from '../api'
 
 const router = useRouter()
 
 const reviews = ref([])
-const editDialogVisible = ref(false)
-const editFormRef = ref()
-const submitting = ref(false)
-const currentReviewId = ref(null)
 
-const editForm = reactive({
-  tasteScore: 5,
-  environmentScore: 5,
-  serviceScore: 5,
-  repurchaseIntention: 2,
-  content: '',
-  visitDate: null
+const currentUser = computed(() => {
+  const user = localStorage.getItem('currentUser')
+  return user ? JSON.parse(user) : null
 })
 
-const editRules = {
-  tasteScore: [{ required: true, message: '请给口味评分', trigger: 'change' }],
-  environmentScore: [{ required: true, message: '请给环境评分', trigger: 'change' }],
-  serviceScore: [{ required: true, message: '请给服务评分', trigger: 'change' }],
-  repurchaseIntention: [{ required: true, message: '请选择复购意愿', trigger: 'change' }]
-}
-
-const fetchReviews = async () => {
+const loadReviews = async () => {
+  if (!currentUser.value) return
   try {
-    const res = await getMyReviews()
-    reviews.value = res
+    reviews.value = await getReviewsByUser(currentUser.value.id)
   } catch (error) {
-    console.error('Failed to fetch my reviews:', error)
+    console.error('加载我的评价失败:', error)
   }
 }
 
-const formatDate = (date) => {
-  if (!date) return ''
-  const d = new Date(date)
-  return d.toLocaleDateString('zh-CN', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
-}
-
-const getRepurchaseTagType = (intention) => {
-  switch (intention) {
-    case 1: return 'danger'
-    case 2: return 'warning'
-    case 3: return 'success'
-    default: return 'info'
+const deleteReview = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这条评价吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await deleteReviewApi(id)
+    ElMessage.success('删除成功')
+    loadReviews()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除评价失败:', error)
+    }
   }
 }
 
@@ -156,165 +102,22 @@ const goToRestaurant = (id) => {
   router.push(`/restaurant/${id}`)
 }
 
-const openEditDialog = (review) => {
-  currentReviewId.value = review.id
-  Object.assign(editForm, {
-    tasteScore: review.tasteScore,
-    environmentScore: review.environmentScore,
-    serviceScore: review.serviceScore,
-    repurchaseIntention: review.repurchaseIntention,
-    content: review.content || '',
-    visitDate: review.visitDate || null
-  })
-  editDialogVisible.value = true
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return dateStr.replace('T', ' ').substring(0, 16)
 }
 
-const handleUpdateReview = async () => {
-  if (!editFormRef.value) return
-  await editFormRef.value.validate(async (valid) => {
-    if (valid) {
-      submitting.value = true
-      try {
-        await updateReview(currentReviewId.value, {
-          ...editForm,
-          restaurantId: reviews.value.find(r => r.id === currentReviewId.value)?.restaurantId
-        })
-        ElMessage.success('评价修改成功')
-        editDialogVisible.value = false
-        fetchReviews()
-      } catch (error) {
-        console.error('Failed to update review:', error)
-      } finally {
-        submitting.value = false
-      }
-    }
-  })
+const getRepurchaseText = (value) => {
+  const texts = ['不确定', '不会', '可能会', '一定会']
+  return texts[value] || '不确定'
 }
 
-const handleDelete = (id) => {
-  ElMessageBox.confirm('确定要删除这条评价吗？', '确认删除', {
-    type: 'warning',
-    confirmButtonText: '删除',
-    cancelButtonText: '取消'
-  }).then(async () => {
-    try {
-      await deleteReview(id)
-      ElMessage.success('删除成功')
-      fetchReviews()
-    } catch (error) {
-      console.error('Failed to delete review:', error)
-    }
-  }).catch(() => {})
+const getRepurchaseType = (value) => {
+  const types = ['info', 'danger', 'warning', 'success']
+  return types[value] || 'info'
 }
 
 onMounted(() => {
-  fetchReviews()
+  loadReviews()
 })
 </script>
-
-<style scoped lang="scss">
-.reviews-container {
-  .review-card {
-    .review-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-
-      .review-meta {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .review-date {
-          font-size: 13px;
-          color: #909399;
-        }
-      }
-    }
-
-    .restaurant-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: #ecf5ff;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #409eff;
-      font-weight: 500;
-
-      &:hover {
-        background: #d9ecff;
-      }
-
-      .arrow {
-        margin-left: auto;
-      }
-    }
-
-    .review-scores {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      padding: 16px;
-      background: #f5f7fa;
-      border-radius: 8px;
-      margin-bottom: 16px;
-
-      .score-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .label {
-          font-size: 13px;
-          color: #606266;
-          width: 36px;
-        }
-
-        .score {
-          font-weight: 600;
-          color: #f59e0b;
-          font-size: 14px;
-        }
-
-        &.overall {
-          padding-left: 16px;
-          border-left: 2px solid #ebeef5;
-
-          .label {
-            width: auto;
-            font-weight: 600;
-            color: #303133;
-          }
-
-          .overall-score {
-            font-size: 20px;
-            font-weight: 700;
-            color: #f59e0b;
-          }
-        }
-      }
-    }
-
-    .review-content {
-      margin: 0 0 12px;
-      color: #606266;
-      line-height: 1.8;
-      font-size: 14px;
-    }
-
-    .visit-date {
-      margin: 0;
-      font-size: 12px;
-      color: #909399;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-  }
-}
-</style>

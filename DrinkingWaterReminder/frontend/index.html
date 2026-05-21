@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>饮水提醒</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <div class="app-container">
+            <header class="app-header">
+                <h1>💧 饮水提醒</h1>
+            </header>
+
+            <nav class="app-nav">
+                <button :class="['nav-btn', currentPage === 'today' ? 'active' : '']" @click="currentPage = 'today'">
+                    <span class="nav-icon">📅</span>
+                    <span>今日</span>
+                </button>
+                <button :class="['nav-btn', currentPage === 'stats' ? 'active' : '']" @click="currentPage = 'stats'">
+                    <span class="nav-icon">📊</span>
+                    <span>统计</span>
+                </button>
+                <button :class="['nav-btn', currentPage === 'settings' ? 'active' : '']" @click="currentPage = 'settings'">
+                    <span class="nav-icon">⚙️</span>
+                    <span>设置</span>
+                </button>
+            </nav>
+
+            <main class="app-main">
+                <div v-if="currentPage === 'today'" class="page page-today">
+                    <div class="progress-card">
+                        <div class="progress-ring">
+                            <svg width="180" height="180">
+                                <circle cx="90" cy="90" r="75" class="progress-bg" />
+                                <circle cx="90" cy="90" r="75" class="progress-fill" 
+                                        :style="{ strokeDasharray: progressDasharray, strokeDashoffset: progressDashoffset }" />
+                            </svg>
+                            <div class="progress-text">
+                                <span class="progress-value">{{ todayTotal }}</span>
+                                <span class="progress-unit">ml</span>
+                            </div>
+                        </div>
+                        <div class="progress-info">
+                            <p>目标: <strong>{{ dailyTarget }}</strong> ml</p>
+                            <p>已完成: <strong>{{ progressPercent }}%</strong></p>
+                            <p>剩余: <strong>{{ remaining }} ml</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="drink-actions">
+                        <h3>一键打卡</h3>
+                        <div class="drink-buttons">
+                            <button v-for="amt in quickAmounts" :key="amt" class="drink-btn" @click="drinkWater(amt)">
+                                {{ amt }}ml
+                            </button>
+                        </div>
+                        <div class="custom-drink">
+                            <input type="number" v-model.number="customAmount" placeholder="自定义饮水量" min="1">
+                            <button class="drink-btn custom" @click="drinkWater(customAmount)">喝水</button>
+                        </div>
+                    </div>
+
+                    <div class="today-records">
+                        <h3>今日记录</h3>
+                        <div v-if="todayRecords.length === 0" class="empty-state">
+                            <p>今天还没有喝水记录</p>
+                        </div>
+                        <div v-else class="records-list">
+                            <div v-for="record in todayRecords" :key="record.id" class="record-item">
+                                <span class="record-time">{{ record.recordTime }}</span>
+                                <span class="record-amount">{{ record.amount }}ml</span>
+                                <button class="record-delete" @click="deleteRecord(record.id)">✕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="achievementMsg" class="achievement-popup">
+                        <div class="achievement-content">
+                            <h2>🎉 恭喜达成目标！</h2>
+                            <p>今天已经喝够 {{ dailyTarget }}ml 水了！</p>
+                            <button @click="achievementMsg = false">知道了</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentPage === 'stats'" class="page page-stats">
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-icon">🔥</div>
+                            <div class="stat-value">{{ continuousDays }}</div>
+                            <div class="stat-label">连续达标</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-value">{{ weeklyAchievedDays }}</div>
+                            <div class="stat-label">本周达标</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📆</div>
+                            <div class="stat-value">{{ monthlyAchievedDays }}</div>
+                            <div class="stat-label">本月达标</div>
+                        </div>
+                    </div>
+
+                    <div class="weekly-chart">
+                        <h3>近7天饮水统计</h3>
+                        <div class="chart-container">
+                            <div v-for="data in weeklyData" :key="data.date" class="chart-item">
+                                <div class="bar-container">
+                                    <div class="bar" :style="{ height: data.height + '%' }" 
+                                         :class="{ 'achieved': data.isAchieved }">
+                                        <span class="bar-value">{{ data.totalAmount }}ml</span>
+                                    </div>
+                                </div>
+                                <div class="bar-label">{{ data.dateLabel }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="target-line">
+                        <div class="target-indicator">目标线</div>
+                    </div>
+                </div>
+
+                <div v-if="currentPage === 'settings'" class="page page-settings">
+                    <div class="setting-card">
+                        <h3>体重设置</h3>
+                        <div class="setting-row">
+                            <label>当前体重 (kg)</label>
+                            <input type="number" v-model.number="weight" step="0.1" min="1" @blur="onWeightChange">
+                        </div>
+                        <div class="setting-hint">
+                            <p>💡 每日饮水量 = 体重 × 35ml</p>
+                            <p>根据体重计算的建议饮水量: <strong>{{ calculatedTarget }}ml</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="setting-card">
+                        <h3>目标设置</h3>
+                        <div class="setting-row">
+                            <label>每日目标 (ml)</label>
+                            <input type="number" v-model.number="dailyTarget" min="100" step="50" @blur="onTargetChange">
+                        </div>
+                    </div>
+
+                    <div class="setting-card">
+                        <h3>提醒设置</h3>
+                        <div class="setting-row">
+                            <label>提醒间隔 (分钟)</label>
+                            <select v-model.number="reminderInterval" @change="onSettingChange">
+                                <option :value="15">15</option>
+                                <option :value="30">30</option>
+                                <option :value="45">45</option>
+                                <option :value="60">60</option>
+                                <option :value="90">90</option>
+                                <option :value="120">120</option>
+                            </select>
+                        </div>
+                        <div class="setting-row">
+                            <label>开启提醒</label>
+                            <label class="switch">
+                                <input type="checkbox" v-model="reminderEnabled" @change="onSettingChange">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-hint" v-if="reminderEnabled">
+                            <p>⏰ 每 {{ reminderInterval }} 分钟提醒一次</p>
+                            <p>下次提醒: {{ nextReminderTime }}</p>
+                        </div>
+                    </div>
+
+                    <div class="setting-card">
+                        <h3>浏览器通知</h3>
+                        <div class="setting-row">
+                            <label>通知权限</label>
+                            <span :class="['notification-status', notificationPermission]">
+                                {{ notificationText }}
+                            </span>
+                        </div>
+                        <button class="btn-primary" @click="requestNotificationPermission">
+                            {{ notificationPermission === 'granted' ? '已授权' : '授权通知' }}
+                        </button>
+                    </div>
+
+                    <div v-if="saveMsg" class="save-toast">
+                        {{ saveMsg }}
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

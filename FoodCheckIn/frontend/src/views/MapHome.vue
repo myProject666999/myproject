@@ -37,7 +37,13 @@
       </div>
     </div>
 
-    <el-dialog v-model="showAddRestaurant" title="新增餐厅" width="600px">
+    <el-dialog 
+      v-model="showAddRestaurant" 
+      title="新增餐厅" 
+      width="600px"
+      @close="onDialogClose"
+      @open="onDialogOpen"
+    >
       <el-form :model="restaurantForm" label-width="80px">
         <el-form-item label="餐厅名称">
           <el-input v-model="restaurantForm.name" placeholder="请输入餐厅名称" />
@@ -49,11 +55,11 @@
           <div class="location-picker">
             <el-input 
               v-model="locationText" 
-              :placeholder="isAddingMode ? '请在地图上点击选择位置...' : '已选择位置'"
+              :placeholder="isAddingMode ? '请在地图上点击选择位置...' : '请选择位置'"
               readonly
             >
               <template #append>
-                <el-button @click="clearLocation">
+                <el-button @click="reopenLocationPicker">
                   <el-icon><Refresh /></el-icon>
                 </el-button>
               </template>
@@ -82,9 +88,9 @@
                 />
               </el-form-item>
             </div>
-            <div v-if="isAddingMode && !restaurantForm.latitude" class="tips">
+            <div v-if="!restaurantForm.latitude" class="tips">
               <el-icon color="#e6a23c"><InfoFilled /></el-icon>
-              <span>请先关闭对话框，在地图上点击选择位置</span>
+              <span>点击右侧刷新按钮，在地图上点击选择位置</span>
             </div>
           </div>
         </el-form-item>
@@ -118,7 +124,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showAddRestaurant = false">取消</el-button>
+        <el-button @click="onCancel">取消</el-button>
         <el-button type="primary" @click="saveRestaurant">保存</el-button>
       </template>
     </el-dialog>
@@ -131,6 +137,7 @@ import { useRouter } from 'vue-router'
 import L from 'leaflet'
 import { restaurantApi, mapApi } from '@/api'
 import { ElMessage } from 'element-plus'
+import { Plus, Refresh, InfoFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const mapContainer = ref(null)
@@ -239,6 +246,56 @@ const goToDetail = (id) => {
 
 window.routerGo = goToDetail
 
+const startAddRestaurant = () => {
+  resetForm()
+  isAddingMode.value = true
+  showAddRestaurant.value = false
+  ElMessage.info('请在地图上点击选择餐厅位置')
+}
+
+const onCoordsChange = () => {
+  if (restaurantForm.value.latitude && restaurantForm.value.longitude) {
+    locationText.value = `已选择位置: ${restaurantForm.value.latitude.toFixed(6)}, ${restaurantForm.value.longitude.toFixed(6)}`
+    
+    if (tempMarker) {
+      map.removeLayer(tempMarker)
+    }
+    tempMarker = L.marker([restaurantForm.value.latitude, restaurantForm.value.longitude], { 
+      icon: L.divIcon({
+        className: 'temp-marker',
+        html: '<div style="background:#67c23a;width:24px;height:24px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:12px;font-weight:bold;">+</span></div>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      })
+    }).addTo(map)
+    
+    map.setView([restaurantForm.value.latitude, restaurantForm.value.longitude], 15)
+  }
+}
+
+const clearLocation = () => {
+  restaurantForm.value.latitude = null
+  restaurantForm.value.longitude = null
+  locationText.value = ''
+  if (tempMarker) {
+    map.removeLayer(tempMarker)
+    tempMarker = null
+  }
+  isAddingMode.value = false
+  showAddRestaurant.value = false
+  ElMessage.info('请在地图上点击选择新位置')
+  setTimeout(() => {
+    isAddingMode.value = true
+  }, 300)
+}
+
+const reopenLocationPicker = () => {
+  // 让用户可以重新在地图上选择位置
+  showAddRestaurant.value = false
+  isAddingMode.value = true
+  ElMessage.info('请在地图上点击选择新位置')
+}
+
 const saveRestaurant = async () => {
   if (!restaurantForm.value.name) {
     ElMessage.error('请输入餐厅名称')
@@ -276,6 +333,32 @@ const resetForm = () => {
     description: ''
   }
   locationText.value = ''
+}
+
+const onCancel = () => {
+  showAddRestaurant.value = false
+  isAddingMode.value = false
+  if (tempMarker) {
+    map.removeLayer(tempMarker)
+    tempMarker = null
+  }
+}
+
+const onDialogOpen = () => {
+  isAddingMode.value = false
+}
+
+const onDialogClose = () => {
+  // 只有在没有选择位置或者是新增模式时才重置
+  if (isAddingMode.value || !restaurantForm.value.latitude) {
+    isAddingMode.value = false
+    if (tempMarker) {
+      map.removeLayer(tempMarker)
+      tempMarker = null
+    }
+    resetForm()
+  }
+  // 如果已经选择了位置，不清空表单，等保存或取消时再处理
 }
 
 onMounted(async () => {
@@ -367,6 +450,29 @@ onMounted(async () => {
     margin-top: 8px;
     color: #67c23a;
     font-size: 12px;
+  }
+  
+  .coords-input {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f5f7fa;
+    border-radius: 6px;
+    
+    :deep(.el-form-item) {
+      margin-bottom: 8px;
+    }
+  }
+  
+  .tips {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #fdf6ec;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #e6a23c;
   }
 }
 

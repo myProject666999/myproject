@@ -137,6 +137,18 @@ const deleteRestaurant = async (row) => {
 }
 
 const save = async () => {
+  if (!form.value.name) {
+    ElMessage.error('请输入餐厅名称')
+    return
+  }
+  if (!form.value.address) {
+    ElMessage.error('请输入详细地址')
+    return
+  }
+  if (!form.value.latitude || !form.value.longitude) {
+    ElMessage.error('请输入纬度和经度')
+    return
+  }
   try {
     if (isEdit.value) {
       await restaurantApi.update(form.value)

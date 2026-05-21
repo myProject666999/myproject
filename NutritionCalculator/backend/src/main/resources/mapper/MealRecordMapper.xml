@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nutrition.mapper.MealRecordMapper">
+
+    <resultMap id="MealRecordVOMap" type="com.nutrition.vo.MealRecordVO">
+        <id column="id" property="id"/>
+        <result column="meal_type" property="mealType"/>
+        <result column="food_name" property="foodName"/>
+        <result column="amount" property="amount"/>
+        <result column="calories" property="calories"/>
+        <result column="protein" property="protein"/>
+        <result column="fat" property="fat"/>
+        <result column="carbs" property="carbs"/>
+    </resultMap>
+
+    <resultMap id="DailySummaryVOMap" type="com.nutrition.vo.DailySummaryVO">
+        <result column="meal_date" property="date"/>
+        <result column="total_calories" property="totalCalories"/>
+        <result column="total_protein" property="totalProtein"/>
+        <result column="total_fat" property="totalFat"/>
+        <result column="total_carbs" property="totalCarbs"/>
+    </resultMap>
+
+    <select id="selectMealRecordsWithFood" resultMap="MealRecordVOMap">
+        SELECT
+            mr.id,
+            mr.meal_type,
+            f.name as food_name,
+            mr.amount,
+            ROUND(f.calories * mr.amount / f.unit_gram) as calories,
+            ROUND(f.protein * mr.amount / f.unit_gram) as protein,
+            ROUND(f.fat * mr.amount / f.unit_gram) as fat,
+            ROUND(f.carbs * mr.amount / f.unit_gram) as carbs
+        FROM meal_record mr
+        LEFT JOIN food f ON mr.food_id = f.id
+        WHERE mr.meal_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY mr.meal_date, mr.meal_type, mr.id
+    </select>
+
+    <select id="selectDailySummary" resultMap="DailySummaryVOMap">
+        SELECT
+            mr.meal_date,
+            SUM(ROUND(f.calories * mr.amount / f.unit_gram)) as total_calories,
+            SUM(ROUND(f.protein * mr.amount / f.unit_gram)) as total_protein,
+            SUM(ROUND(f.fat * mr.amount / f.unit_gram)) as total_fat,
+            SUM(ROUND(f.carbs * mr.amount / f.unit_gram)) as total_carbs
+        FROM meal_record mr
+        LEFT JOIN food f ON mr.food_id = f.id
+        WHERE mr.meal_date BETWEEN #{startDate} AND #{endDate}
+        GROUP BY mr.meal_date
+        ORDER BY mr.meal_date
+    </select>
+</mapper>

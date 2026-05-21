@@ -1,81 +1,73 @@
-import request from '@/utils/request'
+import request from '../utils/request'
 
 export const login = (data) => {
   return request({
-    url: '/user/login',
+    url: '/users/login',
     method: 'post',
     data
   })
 }
 
-export const getCurrentUser = () => {
+export const getRestaurants = () => {
   return request({
-    url: '/user/current',
+    url: '/restaurants',
     method: 'get'
   })
 }
 
-export const getRestaurantList = () => {
+export const getRestaurantById = (id) => {
   return request({
-    url: '/restaurant/list',
+    url: `/restaurants/${id}`,
     method: 'get'
   })
 }
 
-export const getRestaurantDetail = (id) => {
+export const createRestaurant = (data) => {
   return request({
-    url: `/restaurant/detail/${id}`,
-    method: 'get'
-  })
-}
-
-export const addRestaurant = (data) => {
-  return request({
-    url: '/restaurant/add',
+    url: '/restaurants',
     method: 'post',
     data
   })
 }
 
-export const updateRestaurant = (id, data) => {
+export const searchRestaurants = (name) => {
   return request({
-    url: `/restaurant/update/${id}`,
-    method: 'put',
-    data
-  })
-}
-
-export const deleteRestaurant = (id) => {
-  return request({
-    url: `/restaurant/delete/${id}`,
-    method: 'delete'
+    url: `/restaurants/search?name=${name}`,
+    method: 'get'
   })
 }
 
 export const getReviewsByRestaurant = (restaurantId) => {
   return request({
-    url: `/review/restaurant/${restaurantId}`,
+    url: `/reviews/restaurant/${restaurantId}`,
     method: 'get'
   })
 }
 
-export const getMyReviews = () => {
+export const getReviewsByUser = (userId) => {
   return request({
-    url: '/review/my',
+    url: `/reviews/user/${userId}`,
     method: 'get'
   })
 }
 
-export const getFriendReviews = () => {
+export const getFriendsReviews = (userId) => {
   return request({
-    url: '/review/friend',
+    url: `/reviews/friends/${userId}`,
     method: 'get'
   })
 }
 
-export const addReview = (data) => {
+export const getReviewByUserAndRestaurant = (userId, restaurantId) => {
   return request({
-    url: '/review/add',
+    url: `/reviews/user/${userId}/restaurant/${restaurantId}`,
+    method: 'get'
+  })
+}
+
+export const createReview = (data) => {
+  return request({
+    url: '/reviews',
     method: 'post',
     data
   })
@@ -83,7 +75,7 @@ export const addReview = (data) => {
 
 export const updateReview = (id, data) => {
   return request({
-    url: `/review/update/${id}`,
+    url: `/reviews/${id}`,
     method: 'put',
     data
   })
@@ -91,29 +83,28 @@ export const updateReview = (id, data) => {
 
 export const deleteReview = (id) => {
   return request({
-    url: `/review/delete/${id}`,
+    url: `/reviews/${id}`,
     method: 'delete'
   })
 }
 
-export const getDishesByRestaurant = (restaurantId) => {
+export const getRecommendedDishesByRestaurant = (restaurantId) => {
   return request({
-    url: `/dish/restaurant/${restaurantId}`,
+    url: `/reviews/restaurant/${restaurantId}/dishes`,
     method: 'get'
   })
 }
 
-export const addRecommendedDish = (data) => {
+export const getRecommendedDishesByReview = (reviewId) => {
   return request({
-    url: '/dish/add',
-    method: 'post',
-    data
+    url: `/reviews/${reviewId}/dishes`,
+    method: 'get'
   })
 }
 
-export const getFriendList = () => {
+export const getFriends = (userId) => {
   return request({
-    url: '/friend/list',
+    url: `/friends/${userId}`,
     method: 'get'
   })
 }

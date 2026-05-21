@@ -4,44 +4,31 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
-    meta: { requiresAuth: false }
+    component: () => import('../views/Login.vue')
+  },
+  {
+    path: '/restaurants',
+    name: 'Restaurants',
+    component: () => import('../views/RestaurantList.vue')
+  },
+  {
+    path: '/restaurant/:id',
+    name: 'RestaurantDetail',
+    component: () => import('../views/RestaurantDetail.vue')
+  },
+  {
+    path: '/friends-reviews',
+    name: 'FriendsReviews',
+    component: () => import('../views/FriendsReviews.vue')
+  },
+  {
+    path: '/my-reviews',
+    name: 'MyReviews',
+    component: () => import('../views/MyReviews.vue')
   },
   {
     path: '/',
-    name: 'Layout',
-    component: () => import('@/views/Layout.vue'),
-    meta: { requiresAuth: true },
-    children: [
-      {
-        path: '',
-        redirect: '/restaurants'
-      },
-      {
-        path: 'restaurants',
-        name: 'RestaurantList',
-        component: () => import('@/views/RestaurantList.vue'),
-        meta: { title: '餐厅列表' }
-      },
-      {
-        path: 'restaurant/:id',
-        name: 'RestaurantDetail',
-        component: () => import('@/views/RestaurantDetail.vue'),
-        meta: { title: '餐厅详情' }
-      },
-      {
-        path: 'friend-reviews',
-        name: 'FriendReviews',
-        component: () => import('@/views/FriendReviews.vue'),
-        meta: { title: '好友评价' }
-      },
-      {
-        path: 'my-reviews',
-        name: 'MyReviews',
-        component: () => import('@/views/MyReviews.vue'),
-        meta: { title: '我的评价' }
-      }
-    ]
+    redirect: '/restaurants'
   }
 ]
 
@@ -51,12 +38,9 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  
-  if (to.meta.requiresAuth && !token) {
+  const currentUser = localStorage.getItem('currentUser')
+  if (to.path !== '/login' && !currentUser) {
     next('/login')
-  } else if (to.path === '/login' && token) {
-    next('/restaurants')
   } else {
     next()
   }
