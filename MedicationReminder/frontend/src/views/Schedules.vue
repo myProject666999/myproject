@@ -40,17 +40,19 @@
         </template>
       </el-table-column>
       <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="操作" width="260" fixed="right">
         <template #default="{ row }">
-          <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-          <el-button
-            size="small"
-            :type="row.status === 1 ? 'warning' : 'success'"
-            @click="toggleStatus(row)"
-          >
-            {{ row.status === 1 ? '停用' : '启用' }}
-          </el-button>
-          <el-button size="small" type="danger" @click="handleDeleteSchedule(row)">删除</el-button>
+          <div class="action-buttons">
+            <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
+            <el-button
+              size="small"
+              :type="row.status === 1 ? 'warning' : 'success'"
+              @click="toggleStatus(row)"
+            >
+              {{ row.status === 1 ? '停用' : '启用' }}
+            </el-button>
+            <el-button size="small" type="danger" @click="handleDeleteSchedule(row)">删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -372,5 +374,14 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.action-buttons .el-button {
+  flex-shrink: 0;
 }
 </style>

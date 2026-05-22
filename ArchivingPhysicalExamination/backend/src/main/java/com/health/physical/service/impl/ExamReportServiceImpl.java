@@ -12,6 +12,7 @@ import com.health.physical.vo.AbnormalIndicatorVO;
 import com.health.physical.vo.ReportDetailVO;
 import com.health.physical.vo.ReportListVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class ExamReportServiceImpl extends ServiceImpl<ExamReportMapper, ExamReport> implements ExamReportService {
 
     @Autowired
+    @Lazy
     private ExamIndicatorService examIndicatorService;
 
     @Autowired

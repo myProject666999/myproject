@@ -8,7 +8,7 @@
         </div>
         <div class="user-selector">
           <span class="label">当前用户：</span>
-          <el-select v-model="currentUserId" placeholder="请选择用户" @change="onUserChange">
+          <el-select v-model="currentUserId" placeholder="请选择用户" @change="onUserChange" style="width: 140px;">
             <el-option
               v-for="user in users"
               :key="user.id"

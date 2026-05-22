@@ -59,11 +59,13 @@
         </template>
       </el-table-column>
       <el-table-column prop="batchNo" label="批号" width="120" />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="240" fixed="right">
         <template #default="{ row }">
-          <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-          <el-button size="small" type="success" @click="openStockDialog(row)">补货</el-button>
-          <el-button size="small" type="danger" @click="handleDeleteInventory(row)">删除</el-button>
+          <div class="action-buttons">
+            <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
+            <el-button size="small" type="success" @click="openStockDialog(row)">补货</el-button>
+            <el-button size="small" type="danger" @click="handleDeleteInventory(row)">删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -374,5 +376,14 @@ onBeforeUnmount(() => {
 .expiring {
   color: #e6a23c;
   font-weight: 600;
+}
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.action-buttons .el-button {
+  flex-shrink: 0;
 }
 </style>
