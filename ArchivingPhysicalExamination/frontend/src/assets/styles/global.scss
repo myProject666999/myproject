@@ -1,0 +1,144 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+.page-container {
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.card-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.status-normal {
+  color: #67c23a;
+}
+
+.status-high {
+  color: #f56c6c;
+}
+
+.status-low {
+  color: #e6a23c;
+}
+
+.warning-level-1 {
+  background-color: #fdf6ec;
+  color: #e6a23c;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.warning-level-2 {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.warning-level-3 {
+  background-color: #f56c6c;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.trend-chart {
+  width: 100%;
+  height: 400px;
+}
+
+.abnormal-tag {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.abnormal-tag.high {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  border: 1px solid #fbc4c4;
+}
+
+.abnormal-tag.low {
+  background-color: #fdf6ec;
+  color: #e6a23c;
+  border: 1px solid #f5dab1;
+}
+
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background: #304156;
+  color: #fff;
+}
+
+.sidebar-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  border-bottom: 1px solid #1f2d3d;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 10px 0;
+}
+
+.sidebar-menu li {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.sidebar-menu li:hover,
+.sidebar-menu li.active {
+  background: #263445;
+}
+
+.sidebar-menu li a {
+  color: #bfcbd9;
+  text-decoration: none;
+  display: block;
+}
+
+.sidebar-menu li.active a {
+  color: #409eff;
+}
+
+.main-content {
+  flex: 1;
+  background: #f0f2f5;
+  overflow: auto;
+}

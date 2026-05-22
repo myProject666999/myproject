@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Today from './views/Today.vue'
-import History from './views/History.vue'
-import Statistics from './views/Statistics.vue'
+import Today from '../views/Today.vue'
+import History from '../views/History.vue'
+import Statistics from '../views/Statistics.vue'
 
 const routes = [
   { path: '/', redirect: '/today' },
