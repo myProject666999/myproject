@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.survey.mapper.SurveyQuestionMapper">
+
+    <resultMap id="BaseResultMap" type="com.survey.entity.SurveyQuestion">
+        <id column="id" property="id"/>
+        <result column="survey_id" property="surveyId"/>
+        <result column="question_type" property="questionType"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="required" property="required"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="config" property="config"/>
+        <result column="logic_config" property="logicConfig"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+</mapper>

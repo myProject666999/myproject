@@ -1,0 +1,39 @@
+Name: shortlink-api
+Host: 0.0.0.0
+Port: 8888
+
+ShortDomain: http://127.0.0.1:8888
+
+Mysql:
+  DataSource: root:123456@tcp(127.0.0.1:3306)/shortlink?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node
+  Pass:
+  DB: 0
+
+Cache:
+  - Host: 127.0.0.1:6379
+    Type: node
+    Pass:
+    DB: 0
+
+Auth:
+  AccessSecret: "shortlink-secret-key-change-me-please"
+  AccessExpire: 86400
+
+Sequence:
+  Step: 1000
+
+Bloom:
+  Key: shortlink:bloom
+  ExpectedInsertions: 10000000
+  FalsePositiveRate: 0.01
+
+MQueue:
+  Stream: shortlink:access:stream
+  Group: access-consumer-group
+  Consumer: consumer-1
+  BatchSize: 50
+  PullIntervalMs: 200

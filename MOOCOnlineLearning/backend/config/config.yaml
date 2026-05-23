@@ -1,0 +1,20 @@
+server:
+  port: 8081
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "123456"
+  dbname: mooc_platform
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: "mooc-platform-secret-key"
+  expire: 24
+  issuer: "mooc-platform"

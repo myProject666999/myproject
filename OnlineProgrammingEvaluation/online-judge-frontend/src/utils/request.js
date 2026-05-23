@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import router from '@/router'
 
 const request = axios.create({
   baseURL: '/api',
@@ -25,21 +26,24 @@ request.interceptors.response.use(
       return res
     } else {
       ElMessage.error(res.message || '请求失败')
-      if (res.code === 401) {
+      if (res.code === 401 || res.code === 403) {
         const userStore = useUserStore()
         userStore.logout()
-        window.location.href = '/login'
+        router.push('/login')
       }
       return Promise.reject(new Error(res.message || 'Error'))
     }
   },
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    if (status === 401 || status === 403) {
       const userStore = useUserStore()
       userStore.logout()
-      window.location.href = '/login'
+      ElMessage.warning('请先登录')
+      router.push('/login')
+    } else {
+      ElMessage.error(error.response?.data?.message || error.message || '网络错误')
     }
-    ElMessage.error(error.response?.data?.message || error.message || '网络错误')
     return Promise.reject(error)
   }
 )

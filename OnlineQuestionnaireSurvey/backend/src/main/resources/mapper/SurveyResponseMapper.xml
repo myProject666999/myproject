@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.survey.mapper.SurveyResponseMapper">
+
+    <resultMap id="BaseResultMap" type="com.survey.entity.SurveyResponse">
+        <id column="id" property="id"/>
+        <result column="survey_id" property="surveyId"/>
+        <result column="user_id" property="userId"/>
+        <result column="ip_address" property="ipAddress"/>
+        <result column="user_agent" property="userAgent"/>
+        <result column="device_id" property="deviceId"/>
+        <result column="submit_time" property="submitTime"/>
+        <result column="duration" property="duration"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="countBySurveyId" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM survey_response
+        WHERE survey_id = #{surveyId} AND status = 1
+    </select>
+
+    <select id="countByIpAndTime" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM survey_response
+        WHERE survey_id = #{surveyId} AND ip_address = #{ipAddress} AND create_time > #{time}
+    </select>
+
+</mapper>

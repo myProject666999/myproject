@@ -1,22 +1,25 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 
 const routes = [
   {
     path: '/',
-    redirect: '/problem/list'
+    name: 'Home',
+    component: () => import('@/views/Home.vue'),
+    meta: { title: '首页' }
   },
   {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/Login.vue'),
-    meta: { title: '登录' }
+    meta: { title: '登录', hideLayout: true }
   },
   {
     path: '/register',
     name: 'Register',
     component: () => import('@/views/Register.vue'),
-    meta: { title: '注册' }
+    meta: { title: '注册', hideLayout: true }
   },
   {
     path: '/problem/list',
@@ -43,6 +46,12 @@ const routes = [
     meta: { title: '提交详情' }
   },
   {
+    path: '/submission/mine',
+    name: 'MySubmissions',
+    component: () => import('@/views/SubmissionList.vue'),
+    meta: { title: '我的提交', requiresAuth: true }
+  },
+  {
     path: '/contest/list',
     name: 'ContestList',
     component: () => import('@/views/ContestList.vue'),
@@ -64,7 +73,7 @@ const routes = [
     path: '/user/profile',
     name: 'UserProfile',
     component: () => import('@/views/UserProfile.vue'),
-    meta: { title: '个人中心' }
+    meta: { title: '个人中心', requiresAuth: true }
   },
   {
     path: '/admin/problem/list',
@@ -131,8 +140,10 @@ router.beforeEach((to, from, next) => {
   document.title = to.meta.title ? `${to.meta.title} - 在线编程评测系统` : '在线编程评测系统'
   const userStore = useUserStore()
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
     next('/login')
   } else if (to.meta.role === 'admin' && !userStore.isAdmin) {
+    ElMessage.error('权限不足')
     next('/')
   } else {
     next()

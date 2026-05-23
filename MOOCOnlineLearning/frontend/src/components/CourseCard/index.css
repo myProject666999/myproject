@@ -1,0 +1,116 @@
+.course-card {
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.course-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.course-cover {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.course-card:hover .cover-img {
+  transform: scale(1.05);
+}
+
+.cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.course-card:hover .cover-overlay {
+  opacity: 1;
+}
+
+.free-tag,
+.hot-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.hot-tag {
+  left: auto;
+  right: 10px;
+}
+
+.course-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  margin-bottom: 8px;
+}
+
+.course-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teacher-info {
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 13px;
+}
+
+.teacher-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+.course-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-count {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}
+
+.course-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.student-count {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}
+
+.course-price {
+  color: #ff4d4f;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.course-price.free {
+  color: #52c41a;
+}
