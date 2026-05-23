@@ -74,8 +74,8 @@ model ScheduleItem {
   id          Int      @id @default(autoincrement())
   weddingId   Int      @map("wedding_id")
   title       String
-  startTime   String?  @map("start_time") @db.Time
-  endTime     String?  @map("end_time") @db.Time
+  startTime   DateTime?  @map("start_time") @db.Time
+  endTime     DateTime?  @map("end_time") @db.Time
   location    String?
   description String?  @db.Text
 
