@@ -1,52 +1,54 @@
 import { useEffect, useRef } from "react";
+import type { RefObject } from "react";
 
 type Options = {
-  target: HTMLElement | null;
-  getSpeed: () => number;
-  getPlaying: () => boolean;
+  speed: number;
+  playing: boolean;
   basePxPerSecond?: number;
 };
 
-/**
- * 通过 transform: translateY 驱动目标元素向上滚动。
- * 速度以「1x = basePxPerSecond 像素/秒」为基准，使用线性插值平滑过渡，
- * 避免变速时的顿挫跳变。
- */
-export function useSmoothScroller({
-  target,
-  getSpeed,
-  getPlaying,
-  basePxPerSecond = 60,
-}: Options) {
+export function useSmoothScroller(
+  targetRef: RefObject<HTMLElement | null>,
+  { speed, playing, basePxPerSecond = 60 }: Options
+) {
   const offsetRef = useRef(0);
   const currentSpeedRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (!target) return;
+  const speedRef = useRef(speed);
+  const playingRef = useRef(playing);
+  speedRef.current = speed;
+  playingRef.current = playing;
 
+  const baseRef = useRef(basePxPerSecond);
+  baseRef.current = basePxPerSecond;
+
+  useEffect(() => {
     const tick = (ts: number) => {
+      const el = targetRef.current;
+
+      if (!el) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
       if (lastTsRef.current == null) lastTsRef.current = ts;
       const dt = (ts - lastTsRef.current) / 1000;
       lastTsRef.current = ts;
 
       const targetSpeed =
-        (getPlaying() ? 1 : 0) * getSpeed() * basePxPerSecond;
-      // 线性插值：每帧将当前速度向目标速度靠近 10%
+        (playingRef.current ? 1 : 0) * speedRef.current * baseRef.current;
       currentSpeedRef.current +=
-        (targetSpeed - currentSpeedRef.current) * 0.1;
+        (targetSpeed - currentSpeedRef.current) * 0.25;
 
       offsetRef.current += currentSpeedRef.current * dt;
 
-      const maxOffset = Math.max(
-        0,
-        target.scrollHeight - target.clientHeight
-      );
+      const maxOffset = Math.max(0, el.scrollHeight);
       if (offsetRef.current > maxOffset) offsetRef.current = maxOffset;
       if (offsetRef.current < 0) offsetRef.current = 0;
 
-      target.style.transform = `translateY(${-offsetRef.current}px)`;
+      el.style.transform = `translateY(${-offsetRef.current}px)`;
 
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -57,32 +59,29 @@ export function useSmoothScroller({
       rafRef.current = null;
       lastTsRef.current = null;
     };
-  }, [target, getSpeed, getPlaying, basePxPerSecond]);
+  }, [targetRef]);
 
   const scrollBy = (delta: number) => {
-    if (!target) return;
-    const maxOffset = Math.max(
-      0,
-      target.scrollHeight - target.clientHeight
-    );
+    const el = targetRef.current;
+    if (!el) return;
+    const maxOffset = Math.max(0, el.scrollHeight);
     offsetRef.current = Math.min(
       maxOffset,
       Math.max(0, offsetRef.current + delta)
     );
-    target.style.transform = `translateY(${-offsetRef.current}px)`;
+    el.style.transform = `translateY(${-offsetRef.current}px)`;
   };
 
   const reset = () => {
     offsetRef.current = 0;
-    if (target) target.style.transform = "translateY(0)";
+    const el = targetRef.current;
+    if (el) el.style.transform = "translateY(0)";
   };
 
   const getProgress = () => {
-    if (!target) return 0;
-    const maxOffset = Math.max(
-      1,
-      target.scrollHeight - target.clientHeight
-    );
+    const el = targetRef.current;
+    if (!el) return 0;
+    const maxOffset = Math.max(1, el.scrollHeight);
     return offsetRef.current / maxOffset;
   };
 

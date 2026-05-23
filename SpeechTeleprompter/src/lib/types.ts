@@ -11,15 +11,3 @@ export type ScriptDetail = {
   createdAt: string;
   updatedAt: string;
 };
-
-type ScriptRow = {
-  id: number;
-  title: string;
-  content: string;
-  created_at: Date;
-  updated_at: Date;
-};
-
-function toIso(d: Date) {
-  return d.toISOString();
-}

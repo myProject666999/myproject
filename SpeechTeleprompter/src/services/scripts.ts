@@ -1,5 +1,6 @@
 import pool from "@/lib/db";
 import type { ScriptDetail, ScriptSummary } from "@/lib/types";
+import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 
 type ScriptRow = {
   id: number;
@@ -7,7 +8,7 @@ type ScriptRow = {
   content: string;
   created_at: Date;
   updated_at: Date;
-};
+} & RowDataPacket;
 
 const toIso = (d: Date) => d.toISOString();
 
@@ -42,11 +43,11 @@ export async function createScript(input: {
   title: string;
   content: string;
 }): Promise<number> {
-  const [result] = await pool.query<{ insertId: number }>(
+  const [result] = await pool.query<ResultSetHeader>(
     "INSERT INTO scripts (title, content) VALUES (?, ?)",
     [input.title || "未命名稿件", input.content || ""]
   );
-  return (result as unknown as { insertId: number }).insertId;
+  return result.insertId;
 }
 
 export async function updateScript(
@@ -65,17 +66,17 @@ export async function updateScript(
   }
   if (sets.length === 0) return false;
   params.push(id);
-  const [result] = await pool.query<{ affectedRows: number }>(
+  const [result] = await pool.query<ResultSetHeader>(
     `UPDATE scripts SET ${sets.join(", ")} WHERE id = ?`,
     params
   );
-  return (result as unknown as { affectedRows: number }).affectedRows > 0;
+  return result.affectedRows > 0;
 }
 
 export async function deleteScript(id: number): Promise<boolean> {
-  const [result] = await pool.query<{ affectedRows: number }>(
+  const [result] = await pool.query<ResultSetHeader>(
     "DELETE FROM scripts WHERE id = ?",
     [id]
   );
-  return (result as unknown as { affectedRows: number }).affectedRows > 0;
+  return result.affectedRows > 0;
 }

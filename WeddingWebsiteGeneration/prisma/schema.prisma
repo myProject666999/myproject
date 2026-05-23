@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Wedding {
+  id          Int       @id @default(autoincrement())
+  brideName   String    @map("bride_name")
+  groomName   String    @map("groom_name")
+  weddingDate DateTime  @map("wedding_date")
+  venue       String?
+  story       String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  rsvps          RSVP[]
+  messages       Message[]
+  timelineEvents TimelineEvent[]
+  scheduleItems  ScheduleItem[]
+  photos         Photo[]
+
+  @@map("weddings")
+}
+
+model RSVP {
+  id          Int      @id @default(autoincrement())
+  weddingId   Int      @map("wedding_id")
+  guestName   String   @map("guest_name")
+  phone       String?
+  attendCount Int      @default(1) @map("attend_count")
+  dietary     String?
+  message     String?  @db.Text
+  isAttending Boolean  @default(true) @map("is_attending")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId])
+  @@map("rsvps")
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  weddingId  Int      @map("wedding_id")
+  authorName String   @map("author_name")
+  content    String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId])
+  @@map("messages")
+}
+
+model TimelineEvent {
+  id          Int      @id @default(autoincrement())
+  weddingId   Int      @map("wedding_id")
+  title       String
+  description String?  @db.Text
+  eventDate   DateTime? @map("event_date") @db.Date
+  image       String?
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId])
+  @@map("timeline_events")
+}
+
+model ScheduleItem {
+  id          Int      @id @default(autoincrement())
+  weddingId   Int      @map("wedding_id")
+  title       String
+  startTime   String?  @map("start_time") @db.Time
+  endTime     String?  @map("end_time") @db.Time
+  location    String?
+  description String?  @db.Text
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId])
+  @@map("schedule_items")
+}
+
+model Photo {
+  id        Int      @id @default(autoincrement())
+  weddingId Int      @map("wedding_id")
+  url       String
+  caption   String?
+  sortOrder Int      @default(0) @map("sort_order")
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId])
+  @@map("photos")
+}

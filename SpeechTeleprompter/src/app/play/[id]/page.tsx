@@ -46,21 +46,17 @@ export default function PlayPage() {
   const toggleMirrorX = usePlayStore((s) => s.toggleMirrorX);
   const toggleMirrorY = usePlayStore((s) => s.toggleMirrorY);
 
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const { scrollBy, reset, getProgress } = useSmoothScroller({
-    target: scrollerRef.current,
-    getSpeed: () => speed,
-    getPlaying: () => playing,
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const { scrollBy, reset, getProgress } = useSmoothScroller(scrollerRef, {
+    speed,
+    playing,
     basePxPerSecond: 80,
   });
 
   const [progress, setProgress] = useState(0);
   useEffect(() => {
     const id = setInterval(() => {
-      const el = scrollerRef.current;
-      if (!el) return;
       setProgress(getProgress());
-      void el;
     }, 200);
     return () => clearInterval(id);
   }, [getProgress]);
@@ -163,19 +159,17 @@ export default function PlayPage() {
         <div className="mx-auto h-px max-w-3xl bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
       </div>
 
-      {/* 滚动内容 */}
-      <div className="relative mx-auto flex min-h-screen max-w-3xl items-start justify-center px-8 pt-[40vh]">
+      {/* 固定视口 + 滚动内容 */}
+      <div className="fixed inset-0 overflow-hidden">
         <div
           style={{
             transform: `scaleX(${mirrorX ? -1 : 1}) scaleY(${mirrorY ? -1 : 1})`,
           }}
-          className="w-full"
         >
           <div
             ref={scrollerRef}
-            className="w-full will-change-transform"
+            className="mx-auto max-w-3xl px-8 will-change-transform"
             style={{
-              transform: "translateY(0)",
               fontSize: `${fontSize}px`,
               lineHeight: 1.9,
               fontWeight: 500,
@@ -183,8 +177,9 @@ export default function PlayPage() {
               whiteSpace: "pre-wrap",
             }}
           >
+            <div style={{ height: "50vh" }} />
             {script.content}
-            <div style={{ height: "60vh" }} />
+            <div style={{ height: "100vh" }} />
           </div>
         </div>
       </div>
