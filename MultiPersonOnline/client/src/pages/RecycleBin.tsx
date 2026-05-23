@@ -103,22 +103,22 @@ export default function RecycleBin() {
     })
   }
 
-  const columns = [
+  const columns: any[] = [
     {
       title: '文档名称',
       dataIndex: 'title',
       key: 'title',
-      render: (text: string, record: Document) => (
+      render: (text: string) => (
         <Space>
           <FileOutlined style={{ color: '#999' }} />
-          <Text delete={record.isDeleted}>{text}</Text>
+          <Text>{text}</Text>
         </Space>
       ),
     },
     {
       title: '删除时间',
-      dataIndex: 'deletedAt',
-      key: 'deletedAt',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 180,
       render: (text: string | null | undefined) =>
         text ? dayjs(text).format('YYYY-MM-DD HH:mm') : '-',
@@ -133,20 +133,20 @@ export default function RecycleBin() {
       title: '操作',
       key: 'action',
       width: 180,
-      render: (_: unknown, record: Document) => (
+      render: (_: unknown, record: RecycleBinItem) => (
         <Space>
           <Button
             type="link"
             size="small"
             icon={<UndoOutlined />}
-            onClick={() => handleRestore(record.id)}
+            onClick={() => handleRestore(String(record.id))}
           >
             恢复
           </Button>
           <Popconfirm
             title="确定永久删除此文档？"
             description="此操作无法撤销"
-            onConfirm={() => handlePermanentlyDelete(record.id)}
+            onConfirm={() => handlePermanentlyDelete(String(record.id))}
             okText="删除"
             okType="danger"
             cancelText="取消"

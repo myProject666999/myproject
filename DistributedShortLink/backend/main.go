@@ -60,7 +60,8 @@ func main() {
 	}
 	db.SetMaxOpenConns(64)
 	db.SetMaxIdleConns(16)
-	db.SetConnMaxLifetime(time.Hour)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(2 * time.Minute)
 
 	rdb := goredis.NewClient(&goredis.Options{
 		Addr:     cfg.Redis.Host,
@@ -156,7 +157,7 @@ func (s *svc) handleAPI(w http.ResponseWriter, r *http.Request) {
 	// endpoints requiring auth
 	uid, ok := middleware.AuthUserID(r, s.cfg.Auth.AccessSecret)
 	if !ok {
-		writeJSON(w, http.StatusUnauthorized, types.Resp{Code: 401, Msg: "unauthorized"})
+		writeJSON(w, http.StatusUnauthorized, types.Resp{Code: 401, Msg: "未登录或登录已过期"})
 		return
 	}
 	switch {
@@ -200,11 +201,11 @@ func (s *svc) handleRedirect(w http.ResponseWriter, r *http.Request, code string
 		return
 	}
 	if sl.Status != 1 {
-		writeJSON(w, http.StatusForbidden, types.Resp{Code: 403, Msg: "link disabled"})
+		writeJSON(w, http.StatusForbidden, types.Resp{Code: 403, Msg: "链接已被禁用"})
 		return
 	}
 	if sl.ExpireAt != nil && sl.ExpireAt.Before(time.Now()) {
-		writeJSON(w, http.StatusGone, types.Resp{Code: 410, Msg: "link expired"})
+		writeJSON(w, http.StatusGone, types.Resp{Code: 410, Msg: "链接已过期"})
 		return
 	}
 	_ = s.rdb.Set(ctx, cacheKey, sl.URL, 24*time.Hour).Err()
@@ -244,11 +245,11 @@ func (s *svc) createShort(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var req types.CreateShortReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "bad request"})
+		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "请求参数格式错误"})
 		return
 	}
 	if _, err := url.ParseRequestURI(req.URL); err != nil {
-		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "invalid url"})
+		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "URL格式不正确，请输入完整的URL（包含http://或https://）"})
 		return
 	}
 
@@ -260,7 +261,7 @@ func (s *svc) createShort(w http.ResponseWriter, r *http.Request) {
 	if req.CustomCode != "" {
 		exists, _ := s.short.GetByCode(ctx, req.CustomCode)
 		if exists != nil {
-			writeJSON(w, http.StatusConflict, types.Resp{Code: 409, Msg: "custom code already taken"})
+			writeJSON(w, http.StatusConflict, types.Resp{Code: 409, Msg: "自定义短码已被占用"})
 			return
 		}
 		sl := &model.ShortLink{
@@ -274,14 +275,14 @@ func (s *svc) createShort(w http.ResponseWriter, r *http.Request) {
 		if req.ExpireAt != "" {
 			t, err := time.Parse(time.RFC3339, req.ExpireAt)
 			if err != nil {
-				writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "invalid expire_at (RFC3339)"})
+				writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "过期时间格式不正确"})
 				return
 			}
 			sl.ExpireAt = &t
 		}
 		if err := s.short.Insert(ctx, sl); err != nil {
 			log.Printf("insert custom: %v", err)
-			writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+			writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 			return
 		}
 		_ = s.bloom.Add(ctx, sl.Code)
@@ -311,7 +312,7 @@ func (s *svc) createShort(w http.ResponseWriter, r *http.Request) {
 	num, err := s.seq.Next(ctx)
 	if err != nil {
 		log.Printf("alloc seq: %v", err)
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "sequence error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	code := codec.Encode(num)
@@ -327,7 +328,7 @@ func (s *svc) createShort(w http.ResponseWriter, r *http.Request) {
 	if req.ExpireAt != "" {
 		t, err := time.Parse(time.RFC3339, req.ExpireAt)
 		if err != nil {
-			writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "invalid expire_at"})
+			writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "过期时间格式不正确"})
 			return
 		}
 		sl.ExpireAt = &t
@@ -337,16 +338,16 @@ func (s *svc) createShort(w http.ResponseWriter, r *http.Request) {
 		if isDuplicate(err) {
 			num2, err2 := s.seq.Next(ctx)
 			if err2 != nil {
-				writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "sequence error"})
+				writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 				return
 			}
 			sl.Code = codec.Encode(num2)
 			if err2 := s.short.Insert(ctx, sl); err2 != nil {
-				writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+				writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 				return
 			}
 		} else {
-			writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+			writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 			return
 		}
 	}
@@ -365,7 +366,7 @@ func (s *svc) listShort(w http.ResponseWriter, r *http.Request, uid uint64) {
 	size, _ := strconv.Atoi(r.URL.Query().Get("size"))
 	list, total, err := s.short.ListByUser(r.Context(), uid, page, size)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	writeJSON(w, http.StatusOK, types.Resp{Code: 0, Data: types.ListResp{List: list, Total: total}})
@@ -374,11 +375,11 @@ func (s *svc) listShort(w http.ResponseWriter, r *http.Request, uid uint64) {
 func (s *svc) setStatus(w http.ResponseWriter, r *http.Request, uid uint64) {
 	var req types.SetStatusReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "bad request"})
+		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "请求参数格式错误"})
 		return
 	}
 	if err := s.short.UpdateStatus(r.Context(), req.ID, uid, req.Status); err != nil {
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	writeJSON(w, http.StatusOK, types.Resp{Code: 0})
@@ -387,11 +388,11 @@ func (s *svc) setStatus(w http.ResponseWriter, r *http.Request, uid uint64) {
 func (s *svc) deleteShort(w http.ResponseWriter, r *http.Request, uid uint64) {
 	var req types.SetStatusReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "bad request"})
+		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "请求参数格式错误"})
 		return
 	}
 	if err := s.short.Delete(r.Context(), req.ID, uid); err != nil {
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	writeJSON(w, http.StatusOK, types.Resp{Code: 0})
@@ -405,7 +406,7 @@ func (s *svc) stats(w http.ResponseWriter, r *http.Request, code string) {
 	}
 	trend, err := s.access.DailyTrend(ctx, code, days)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	sl, _ := s.short.GetByCode(ctx, code)
@@ -431,16 +432,16 @@ func (s *svc) stats(w http.ResponseWriter, r *http.Request, code string) {
 func (s *svc) register(w http.ResponseWriter, r *http.Request) {
 	var req types.LoginReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "bad request"})
+		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "请求参数格式错误"})
 		return
 	}
 	if req.Username == "" || len(req.Password) < 6 {
-		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "username required and password>=6"})
+		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "用户名不能为空且密码至少6位"})
 		return
 	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "bcrypt error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	u := &model.User{
@@ -451,10 +452,10 @@ func (s *svc) register(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := s.user.Insert(r.Context(), u); err != nil {
 		if isDuplicate(err) {
-			writeJSON(w, http.StatusConflict, types.Resp{Code: 409, Msg: "username already taken"})
+			writeJSON(w, http.StatusConflict, types.Resp{Code: 409, Msg: "用户名已被占用"})
 			return
 		}
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	writeJSON(w, http.StatusOK, types.Resp{Code: 0, Data: types.LoginResp{UserID: u.ID, Username: u.Username}})
@@ -463,21 +464,21 @@ func (s *svc) register(w http.ResponseWriter, r *http.Request) {
 func (s *svc) login(w http.ResponseWriter, r *http.Request) {
 	var req types.LoginReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "bad request"})
+		writeJSON(w, http.StatusBadRequest, types.Resp{Code: 400, Msg: "请求参数格式错误"})
 		return
 	}
 	u, err := s.user.GetByUsername(r.Context(), req.Username)
 	if err != nil || u == nil {
-		writeJSON(w, http.StatusUnauthorized, types.Resp{Code: 401, Msg: "invalid credentials"})
+		writeJSON(w, http.StatusUnauthorized, types.Resp{Code: 401, Msg: "用户名或密码错误"})
 		return
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password)); err != nil {
-		writeJSON(w, http.StatusUnauthorized, types.Resp{Code: 401, Msg: "invalid credentials"})
+		writeJSON(w, http.StatusUnauthorized, types.Resp{Code: 401, Msg: "用户名或密码错误"})
 		return
 	}
 	token, err := middleware.SignToken(u.ID, u.Username, s.cfg.Auth.AccessSecret, s.cfg.Auth.AccessExpire)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "token error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	writeJSON(w, http.StatusOK, types.Resp{Code: 0, Data: types.LoginResp{
@@ -490,7 +491,7 @@ func (s *svc) login(w http.ResponseWriter, r *http.Request) {
 func (s *svc) me(w http.ResponseWriter, r *http.Request, uid uint64) {
 	u, err := s.user.GetByID(r.Context(), uid)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "db error"})
+		writeJSON(w, http.StatusInternalServerError, types.Resp{Code: 500, Msg: "服务器内部错误"})
 		return
 	}
 	u.Password = ""

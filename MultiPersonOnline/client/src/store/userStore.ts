@@ -13,7 +13,7 @@ interface UserState {
   register: (data: RegisterRequest) => Promise<void>
   logout: () => void
   fetchProfile: () => Promise<void>
-  updateProfile: (data: Partial<Pick<User, 'nickname' | 'email' | 'avatar'>>) => Promise<void>
+  updateProfile: (data: Partial<Pick<User, 'nickname' | 'email' | 'avatarUrl'>>) => Promise<void>
   setUser: (user: User | null) => void
 }
 

@@ -10,11 +10,11 @@ export const foldersApi = {
     return request.get<Folder>(`/folders/${id}`)
   },
 
-  createFolder(data: { name: string; parentId?: string }) {
+  createFolder(data: { name: string; parentId?: number }) {
     return request.post<Folder>('/folders', data)
   },
 
-  updateFolder(id: string, data: { name?: string; parentId?: string }) {
+  updateFolder(id: string, data: { name?: string; parentId?: number }) {
     return request.put<Folder>(`/folders/${id}`, data)
   },
 

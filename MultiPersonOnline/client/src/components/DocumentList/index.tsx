@@ -37,7 +37,7 @@ export default function DocumentList({ showFolderColumn = false }: DocumentListP
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await deleteDocument(id)
       message.success('文档已移至回收站')

@@ -6,7 +6,7 @@
         <el-input v-model="surveyTitle" placeholder="请输入问卷标题" style="width: 300px; margin-left: 20px" />
       </div>
       <div class="header-right">
-        <el-button @click="handleSave" :icon="DocumentSave">保存</el-button>
+        <el-button @click="handleSave" :icon="Check">保存</el-button>
         <el-button type="primary" @click="handleSaveAndPublish" :icon="Promotion">保存并发布</el-button>
       </div>
     </div>
@@ -101,8 +101,8 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  ArrowLeft, DocumentSave, Promotion, Delete, Plus, Close,
-  ArrowUp, ArrowDown, Selection, List, Edit, Star, DataLine, Calendar
+  ArrowLeft, Check, Promotion, Delete, Plus, Close,
+  ArrowUp, ArrowDown, Select, List, Edit, Star, DataLine, Calendar
 } from '@element-plus/icons-vue'
 import { getSurvey, updateSurvey, getQuestions, saveQuestions } from '@/api/survey'
 
@@ -123,7 +123,7 @@ const selectedQuestionId = ref(null)
 let tempIdCounter = 0
 
 const questionTypes = [
-  { key: 'single', label: '单选题', icon: 'Selection' },
+  { key: 'single', label: '单选题', icon: 'Select' },
   { key: 'multi', label: '多选题', icon: 'List' },
   { key: 'input', label: '填空题', icon: 'Edit' },
   { key: 'score', label: '评分题', icon: 'Star' },

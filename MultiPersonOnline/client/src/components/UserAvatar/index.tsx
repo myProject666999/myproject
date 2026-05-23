@@ -12,10 +12,10 @@ export default function UserAvatar({ user, size = 32, showTooltip = true }: User
   const avatarElement = (
     <Avatar
       size={size}
-      src={user?.avatar}
-      icon={!user?.avatar && <UserOutlined />}
+      src={user?.avatarUrl || undefined}
+      icon={!user?.avatarUrl && <UserOutlined />}
       style={{
-        backgroundColor: user?.avatar ? 'transparent' : '#1677ff',
+        backgroundColor: user?.avatarUrl ? 'transparent' : '#1677ff',
         cursor: 'pointer',
       }}
     />

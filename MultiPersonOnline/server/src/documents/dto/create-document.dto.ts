@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsInt, IsEnum } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class CreateDocumentDto {
   @IsOptional()
@@ -11,6 +11,7 @@ export class CreateDocumentDto {
   content?: string;
 
   @IsOptional()
+  @Transform(({ value }) => value ?? 0)
   @Type(() => Number)
   @IsInt()
   folderId?: number;

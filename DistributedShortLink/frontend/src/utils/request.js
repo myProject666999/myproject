@@ -32,11 +32,29 @@ request.interceptors.response.use(
     return res
   },
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      router.push('/login')
+    let msg = error.message || '网络错误'
+    if (error.response) {
+      if (error.response.data && error.response.data.msg) {
+        msg = error.response.data.msg
+      } else if (error.response.status === 401) {
+        msg = '未登录或登录已过期'
+        localStorage.removeItem('token')
+        localStorage.removeItem('userId')
+        localStorage.removeItem('username')
+        router.push('/login')
+      } else if (error.response.status === 400) {
+        msg = error.response.data?.msg || '请求参数错误'
+      } else if (error.response.status === 403) {
+        msg = '没有访问权限'
+      } else if (error.response.status === 404) {
+        msg = '资源不存在'
+      } else if (error.response.status === 409) {
+        msg = error.response.data?.msg || '资源冲突'
+      } else if (error.response.status >= 500) {
+        msg = '服务器内部错误'
+      }
     }
-    ElMessage.error(error.message || '网络错误')
+    ElMessage.error(msg)
     return Promise.reject(error)
   }
 )

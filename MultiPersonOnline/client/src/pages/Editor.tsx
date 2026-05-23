@@ -37,7 +37,7 @@ export default function Editor() {
 
   useEffect(() => {
     if (id) {
-      fetchDocument(id)
+      fetchDocument(Number(id))
     }
   }, [id, fetchDocument])
 
@@ -107,7 +107,7 @@ export default function Editor() {
     if (!id) return
     setIsSaving(true)
     try {
-      await updateDocument(id, { title, content })
+      await updateDocument(Number(id), { title, content })
       setLastSaved(dayjs().format('HH:mm:ss'))
       message.success('保存成功')
     } catch {
@@ -128,7 +128,7 @@ export default function Editor() {
     setEditingTitle(false)
     if (id && title !== currentDocument?.title) {
       try {
-        await updateDocument(id, { title })
+        await updateDocument(Number(id), { title })
         message.success('标题已更新')
       } catch {
         message.error('标题更新失败')
@@ -185,12 +185,13 @@ export default function Editor() {
                 <UserAvatar
                   key={c.userId}
                   user={{
-                    id: c.userId,
+                    id: Number(c.userId),
                     username: c.username,
-                    avatar: c.avatar,
+                    avatarUrl: c.avatar,
                     email: '',
                     createdAt: '',
                     updatedAt: '',
+                    status: 1,
                   }}
                   size={28}
                 />

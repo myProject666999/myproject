@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
@@ -29,8 +31,11 @@ export class DocumentsController {
   }
 
   @Get('mine')
-  findByOwner(@CurrentUser() user: JwtPayload) {
-    return this.documentsService.findByOwner(user.userId);
+  findByOwner(
+    @CurrentUser() user: JwtPayload,
+    @Query('folderId', new DefaultValuePipe(0), ParseIntPipe) folderId: number,
+  ) {
+    return this.documentsService.findByOwner(user.userId, folderId);
   }
 
   @Public()

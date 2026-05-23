@@ -13,8 +13,8 @@ import type { Folder } from '@/types'
 import { useDocumentStore } from '@/store/documentStore'
 
 interface FolderTreeProps {
-  onSelectFolder?: (folderId: string | null) => void
-  selectedFolderId?: string | null
+  onSelectFolder?: (folderId: number | null) => void
+  selectedFolderId?: number | null
 }
 
 export default function FolderTree({ onSelectFolder, selectedFolderId }: FolderTreeProps) {
@@ -26,7 +26,7 @@ export default function FolderTree({ onSelectFolder, selectedFolderId }: FolderT
 
   const buildTreeData = (folders: Folder[]): any[] => {
     return folders.map((folder) => ({
-      key: folder.id,
+      key: String(folder.id),
       title: folder.name,
       icon: <FolderOutlined />,
       children: folder.children ? buildTreeData(folder.children) : [],
@@ -34,8 +34,8 @@ export default function FolderTree({ onSelectFolder, selectedFolderId }: FolderT
   }
 
   const handleSelect = (selectedKeys: React.Key[]) => {
-    const folderId = selectedKeys.length > 0 ? (selectedKeys[0] as string) : null
-    onSelectFolder?.(folderId === 'root' ? null : folderId)
+    const folderId = selectedKeys.length > 0 ? selectedKeys[0] : null
+    onSelectFolder?.(folderId === 'root' ? null : Number(folderId))
   }
 
   const handleCreate = async () => {
@@ -64,7 +64,7 @@ export default function FolderTree({ onSelectFolder, selectedFolderId }: FolderT
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await deleteFolder(id)
       message.success('文件夹已删除')
@@ -136,7 +136,7 @@ export default function FolderTree({ onSelectFolder, selectedFolderId }: FolderT
         </div>
       )
     }
-    const folder = folderTree.find((f) => f.id === node.key)
+    const folder = folderTree.find((f) => String(f.id) === node.key)
     if (!folder) return <span>{node.title}</span>
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

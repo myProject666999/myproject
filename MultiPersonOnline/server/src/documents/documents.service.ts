@@ -32,9 +32,13 @@ export class DocumentsService {
     return this.documentRepository.save(doc);
   }
 
-  async findByOwner(ownerId: number): Promise<Document[]> {
+  async findByOwner(ownerId: number, folderId: number = 0): Promise<Document[]> {
+    const whereCondition: any = { ownerId, status: 1 };
+    if (folderId > 0) {
+      whereCondition.folderId = folderId;
+    }
     return this.documentRepository.find({
-      where: { ownerId, status: 1 },
+      where: whereCondition,
       order: { updatedAt: 'DESC' },
     });
   }

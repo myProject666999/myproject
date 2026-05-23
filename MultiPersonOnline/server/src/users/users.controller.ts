@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -24,8 +25,8 @@ export class UsersController {
 
   @Get()
   findAll(
-    @Query('page', ParseIntPipe) page = 1,
-    @Query('pageSize', ParseIntPipe) pageSize = 20,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(20), ParseIntPipe) pageSize: number,
   ) {
     return this.usersService.findAll(page, pageSize);
   }

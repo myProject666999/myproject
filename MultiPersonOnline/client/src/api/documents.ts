@@ -2,7 +2,7 @@ import request from './request'
 import type { Document } from '@/types'
 
 export const documentsApi = {
-  getDocuments(params?: { folderId?: string; page?: number; limit?: number }) {
+  getDocuments(params?: { folderId?: number; page?: number; limit?: number }) {
     return request.get<Document[]>('/documents/mine', { params })
   },
 
@@ -10,11 +10,11 @@ export const documentsApi = {
     return request.get<Document>(`/documents/${id}`)
   },
 
-  createDocument(data: { title: string; folderId?: string; content?: string }) {
+  createDocument(data: { title: string; folderId?: number; content?: string }) {
     return request.post<Document>('/documents', data)
   },
 
-  updateDocument(id: string, data: { title?: string; content?: string; folderId?: string }) {
+  updateDocument(id: string, data: { title?: string; content?: string; folderId?: number }) {
     return request.patch<Document>(`/documents/${id}`, data)
   },
 

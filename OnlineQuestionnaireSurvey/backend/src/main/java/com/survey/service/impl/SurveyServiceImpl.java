@@ -133,6 +133,15 @@ public class SurveyServiceImpl implements SurveyService {
         }
 
         survey.setStatus(dto.getStatus() != null ? dto.getStatus() : 1);
+        if (dto.getStartTime() != null) {
+            survey.setStartTime(dto.getStartTime());
+        }
+        if (dto.getEndTime() != null) {
+            survey.setEndTime(dto.getEndTime());
+        }
+        if (dto.getMaxResponses() != null) {
+            survey.setMaxResponses(dto.getMaxResponses());
+        }
         surveyMapper.updateById(survey);
         return survey;
     }

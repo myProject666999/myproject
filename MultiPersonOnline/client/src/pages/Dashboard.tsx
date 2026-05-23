@@ -16,7 +16,7 @@ const { Title } = Typography
 export default function Dashboard() {
   const navigate = useNavigate()
   const { fetchDocuments, fetchFolderTree, fetchFolders, createDocument, loading } = useDocumentStore()
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [form] = Form.useForm()
 

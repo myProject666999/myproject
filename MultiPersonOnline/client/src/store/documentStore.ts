@@ -10,17 +10,17 @@ interface DocumentState {
   currentDocument: Document | null
   loading: boolean
 
-  fetchDocuments: (params?: { folderId?: string }) => Promise<void>
+  fetchDocuments: (params?: { folderId?: number }) => Promise<void>
   fetchFolders: () => Promise<void>
   fetchFolderTree: () => Promise<void>
-  fetchDocument: (id: string) => Promise<void>
-  createDocument: (data: { title: string; folderId?: string; content?: string }) => Promise<Document>
-  updateDocument: (id: string, data: { title?: string; content?: string; folderId?: string }) => Promise<void>
-  deleteDocument: (id: string) => Promise<void>
+  fetchDocument: (id: number) => Promise<void>
+  createDocument: (data: { title: string; folderId?: number; content?: string }) => Promise<Document>
+  updateDocument: (id: number, data: { title?: string; content?: string; folderId?: number }) => Promise<void>
+  deleteDocument: (id: number) => Promise<void>
   setCurrentDocument: (doc: Document | null) => void
-  createFolder: (data: { name: string; parentId?: string }) => Promise<Folder>
-  updateFolder: (id: string, data: { name?: string; parentId?: string }) => Promise<void>
-  deleteFolder: (id: string) => Promise<void>
+  createFolder: (data: { name: string; parentId?: number }) => Promise<Folder>
+  updateFolder: (id: number, data: { name?: string; parentId?: number }) => Promise<void>
+  deleteFolder: (id: number) => Promise<void>
 }
 
 export const useDocumentStore = create<DocumentState>((set) => ({
@@ -60,10 +60,10 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     }
   },
 
-  fetchDocument: async (id: string) => {
+  fetchDocument: async (id: number) => {
     set({ loading: true })
     try {
-      const doc = await documentsApi.getDocument(id) as unknown as Document
+      const doc = await documentsApi.getDocument(String(id)) as unknown as Document
       set({ currentDocument: doc })
     } finally {
       set({ loading: false })
@@ -77,7 +77,7 @@ export const useDocumentStore = create<DocumentState>((set) => ({
   },
 
   updateDocument: async (id, data) => {
-    const doc = await documentsApi.updateDocument(id, data) as unknown as Document
+    const doc = await documentsApi.updateDocument(String(id), data) as unknown as Document
     set((state) => ({
       documents: state.documents.map((d) => (d.id === id ? doc : d)),
       currentDocument: state.currentDocument?.id === id ? doc : state.currentDocument,
@@ -85,7 +85,7 @@ export const useDocumentStore = create<DocumentState>((set) => ({
   },
 
   deleteDocument: async (id) => {
-    await documentsApi.deleteDocument(id)
+    await documentsApi.deleteDocument(String(id))
     set((state) => ({
       documents: state.documents.filter((d) => d.id !== id),
       currentDocument: state.currentDocument?.id === id ? null : state.currentDocument,
@@ -103,14 +103,14 @@ export const useDocumentStore = create<DocumentState>((set) => ({
   },
 
   updateFolder: async (id, data) => {
-    const folder = await foldersApi.updateFolder(id, data) as unknown as Folder
+    const folder = await foldersApi.updateFolder(String(id), data) as unknown as Folder
     set((state) => ({
       folders: state.folders.map((f) => (f.id === id ? folder : f)),
     }))
   },
 
   deleteFolder: async (id) => {
-    await foldersApi.deleteFolder(id)
+    await foldersApi.deleteFolder(String(id))
     set((state) => ({
       folders: state.folders.filter((f) => f.id !== id),
     }))

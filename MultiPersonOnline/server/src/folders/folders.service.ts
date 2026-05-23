@@ -64,4 +64,20 @@ export class FoldersService {
     }
     await this.folderRepository.softDelete(id);
   }
+
+  async getFolderTree(ownerId: number): Promise<Folder[]> {
+    const allFolders = await this.folderRepository.find({
+      where: { ownerId },
+      order: { sortOrder: 'ASC', createdAt: 'DESC' },
+    });
+    return this.buildTree(allFolders, 0);
+  }
+
+  private buildTree(folders: Folder[], parentId: number): Folder[] {
+    const children = folders.filter((f) => f.parentId === parentId);
+    return children.map((folder) => ({
+      ...folder,
+      children: this.buildTree(folders, folder.id),
+    }));
+  }
 }

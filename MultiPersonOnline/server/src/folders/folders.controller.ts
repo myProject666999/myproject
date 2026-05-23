@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { FoldersService } from './folders.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
@@ -30,9 +31,14 @@ export class FoldersController {
   @Get()
   findByOwner(
     @CurrentUser() user: JwtPayload,
-    @Query('parentId', ParseIntPipe) parentId: number = 0,
+    @Query('parentId', new DefaultValuePipe(0), ParseIntPipe) parentId: number,
   ) {
     return this.foldersService.findByOwner(user.userId, parentId);
+  }
+
+  @Get('tree')
+  getFolderTree(@CurrentUser() user: JwtPayload) {
+    return this.foldersService.getFolderTree(user.userId);
   }
 
   @Get(':id')
