@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>歌单分享 · SongList Sharing</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="navbar">
+      <div class="nav-inner">
+        <router-link to="/" class="brand">🎵 歌单分享</router-link>
+        <nav class="nav-links">
+          <router-link to="/" exact>广场</router-link>
+          <router-link v-if="isLoggedIn" to="/my/playlists">我的歌单</router-link>
+          <router-link v-if="isLoggedIn" to="/create">+ 创建歌单</router-link>
+        </nav>
+        <div class="nav-user">
+          <template v-if="isLoggedIn">
+            <span class="user-nick">👤 {{ currentUser.nickname || currentUser.username }}</span>
+            <a href="#" @click.prevent="logout">退出</a>
+          </template>
+          <template v-else>
+            <router-link to="/login">登录</router-link>
+            <router-link to="/register">注册</router-link>
+          </template>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <router-view></router-view>
+    </main>
+
+    <audio-player ref="audioPlayer"></audio-player>
+
+    <footer class="footer">
+      <p>© 2024 SongList Sharing · Express + Vue + MySQL</p>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/components/AudioPlayer.js"></script>
+  <script src="/js/pages/Login.js"></script>
+  <script src="/js/pages/Register.js"></script>
+  <script src="/js/pages/Square.js"></script>
+  <script src="/js/pages/PlaylistDetail.js"></script>
+  <script src="/js/pages/CreatePlaylist.js"></script>
+  <script src="/js/pages/MyPlaylists.js"></script>
+  <script src="/js/pages/UserProfile.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

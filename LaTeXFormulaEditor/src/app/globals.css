@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "katex/dist/katex.min.css";
+
+@layer base {
+  :root {
+    --background: 248 250 252;
+    --foreground: 15 23 42;
+  }
+
+  html,
+  body {
+    @apply bg-ink-50 text-ink-900 antialiased;
+    font-family: "Lato", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  ::selection {
+    background: #06b6d4;
+    color: #0b1020;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-accent-500/60 focus:ring-offset-1;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 shadow-soft;
+  }
+  .btn-ghost {
+    @apply btn bg-white/70 text-ink-800 border border-ink-200 hover:bg-white;
+  }
+  .btn-accent {
+    @apply btn bg-accent-500 text-white hover:bg-accent-600 shadow-soft;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white px-3 py-1 text-xs text-ink-700;
+  }
+  .card {
+    @apply rounded-2xl border border-ink-200 bg-white p-4 shadow-sm;
+  }
+}
+
+/* MathJax / KaTeX preview fine-tuning */
+.mjx-chtml,
+.katex {
+  font-size: 1.15rem !important;
+}
+
+.preview-area {
+  min-height: 180px;
+}
+
+/* Formula list hover highlight */
+.formula-item {
+  @apply rounded-xl border border-transparent px-3 py-3 hover:border-accent-400/40 hover:bg-accent-500/5 transition-colors;
+}

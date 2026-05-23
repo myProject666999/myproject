@@ -76,6 +76,7 @@ buildSrc/build
 /src/asciidoc/build
 target/
 .claude/
+.trae/
 
 # OS / IDE
 .DS_Store

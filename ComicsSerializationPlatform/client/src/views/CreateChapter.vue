@@ -14,7 +14,7 @@
 
       <el-card>
         <el-form 
-          ref="chapterForm" 
+          ref="chapterFormRef" 
           :model="chapterForm" 
           :rules="rules"
           label-width="100px"

@@ -150,6 +150,10 @@ async function handleLogin() {
   margin-bottom: 24px;
 }
 
+.auth-form :deep(.el-input__prefix .el-icon) {
+  font-size: 16px;
+}
+
 .submit-btn {
   width: 100%;
   margin-top: 8px;
