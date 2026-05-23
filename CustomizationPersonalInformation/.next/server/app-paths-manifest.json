@@ -1,6 +1,8 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
+  "/read-later/page": "app/read-later/page.js",
+  "/sources/page": "app/sources/page.js",
   "/api/feed/route": "app/api/feed/route.js",
-  "/api/sources/route": "app/api/sources/route.js"
+  "/api/sources/route": "app/api/sources/route.js",
+  "/api/sources/[id]/route": "app/api/sources/[id]/route.js"
 }

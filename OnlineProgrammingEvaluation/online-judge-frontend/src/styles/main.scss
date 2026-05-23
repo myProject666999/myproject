@@ -1,0 +1,135 @@
+$primary-color: #409eff;
+$success-color: #67c23a;
+$warning-color: #e6a23c;
+$danger-color: #f56c6c;
+$info-color: #909399;
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f5f7fa;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.page-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    color: #303133;
+  }
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.status-accepted {
+  color: $success-color;
+  font-weight: bold;
+}
+
+.status-wrong-answer {
+  color: $danger-color;
+  font-weight: bold;
+}
+
+.status-pending {
+  color: $warning-color;
+}
+
+.status-judging {
+  color: $warning-color;
+}
+
+.status-error {
+  color: $danger-color;
+}
+
+.difficulty-easy {
+  color: $success-color;
+}
+
+.difficulty-medium {
+  color: $warning-color;
+}
+
+.difficulty-hard {
+  color: $danger-color;
+}
+
+.code-editor {
+  height: 500px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+}
+
+.problem-description {
+  line-height: 1.8;
+  color: #606266;
+
+  pre {
+    background: #f5f7fa;
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+}
+
+.table-container {
+  width: 100%;
+}
+
+.rank-gold {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.rank-silver {
+  color: #c0c0c0;
+  font-weight: bold;
+}
+
+.rank-bronze {
+  color: #cd7f32;
+  font-weight: bold;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  .login-card {
+    width: 400px;
+    padding: 40px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #303133;
+    }
+  }
+}
