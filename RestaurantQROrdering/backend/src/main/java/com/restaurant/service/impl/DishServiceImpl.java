@@ -19,7 +19,10 @@ public class DishServiceImpl implements DishService {
     private final CategoryRepository categoryRepository;
     
     @Override
-    public List<Category> getAllCategories() {
+    public List<Category> getAllCategories(boolean all) {
+        if (all) {
+            return categoryRepository.findAll();
+        }
         return categoryRepository.findByStatusOrderBySortOrderAsc(1);
     }
     

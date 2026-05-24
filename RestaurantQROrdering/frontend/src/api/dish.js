@@ -1,6 +1,6 @@
 import request from './request'
 
-export const getCategories = () => request.get('/dishes/categories')
+export const getCategories = (all = false) => request.get('/dishes/categories', { params: { all } })
 
 export const getDishesByCategory = (categoryId) => request.get(`/dishes/category/${categoryId}`)
 

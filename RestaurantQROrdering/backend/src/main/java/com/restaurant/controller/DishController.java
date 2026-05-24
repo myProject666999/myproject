@@ -17,8 +17,8 @@ public class DishController {
     private final DishService dishService;
     
     @GetMapping("/categories")
-    public Result<List<Category>> getAllCategories() {
-        return Result.success(dishService.getAllCategories());
+    public Result<List<Category>> getAllCategories(@RequestParam(required = false, defaultValue = "false") boolean all) {
+        return Result.success(dishService.getAllCategories(all));
     }
     
     @GetMapping("/category/{categoryId}")

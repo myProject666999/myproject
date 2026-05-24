@@ -4,20 +4,26 @@ import com.restaurant.entity.DiningTable;
 import com.restaurant.repository.TableRepository;
 import com.restaurant.service.TableService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TableServiceImpl implements TableService {
     
     private final TableRepository tableRepository;
     private final StringRedisTemplate redisTemplate;
+    
+    private final Map<String, Long> fallbackTableStore = new ConcurrentHashMap<>();
     
     @Value("${app.table.session-prefix}")
     private String sessionPrefix;
@@ -72,22 +78,47 @@ public class TableServiceImpl implements TableService {
     public void bindTable(String tableNo, String sessionId) {
         DiningTable table = getTableByNo(tableNo);
         String key = sessionPrefix + sessionId;
-        redisTemplate.opsForValue().set(key, table.getId().toString(), expireHours, TimeUnit.HOURS);
+        try {
+            redisTemplate.opsForValue().set(key, table.getId().toString(), expireHours, TimeUnit.HOURS);
+        } catch (Exception e) {
+            log.warn("Redis保存桌台失败，使用内存缓存: {}", e.getMessage());
+        }
+        fallbackTableStore.put(key, table.getId());
     }
     
     @Override
     public void unbindTable(String sessionId) {
         String key = sessionPrefix + sessionId;
-        redisTemplate.delete(key);
+        try {
+            redisTemplate.delete(key);
+        } catch (Exception e) {
+            log.warn("Redis删除桌台失败，使用内存缓存: {}", e.getMessage());
+        }
+        fallbackTableStore.remove(key);
     }
     
     @Override
     public DiningTable getCurrentTable(String sessionId) {
         String key = sessionPrefix + sessionId;
-        String tableIdStr = redisTemplate.opsForValue().get(key);
-        if (tableIdStr == null) {
+        Long tableId = null;
+        
+        try {
+            String tableIdStr = redisTemplate.opsForValue().get(key);
+            if (tableIdStr != null) {
+                tableId = Long.parseLong(tableIdStr);
+            }
+        } catch (Exception e) {
+            log.warn("Redis读取桌台失败，使用内存缓存: {}", e.getMessage());
+            tableId = fallbackTableStore.get(key);
+        }
+        
+        if (tableId == null) {
+            tableId = fallbackTableStore.get(key);
+        }
+        
+        if (tableId == null) {
             return null;
         }
-        return getTableById(Long.parseLong(tableIdStr));
+        return getTableById(tableId);
     }
 }

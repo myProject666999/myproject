@@ -1,12 +1,13 @@
 <template>
   <div class="menu-view">
     <div class="header">
-      <span class="table-info" v-if="tableStore.currentTable">
+      <div class="table-info" v-if="tableStore.currentTable" @click="showTableDialog = true">
         📍 {{ tableStore.tableNo }}号桌
-      </span>
-      <span class="table-info" v-else>
-        请扫码绑定桌台
-      </span>
+        <span class="change-btn">切换</span>
+      </div>
+      <div class="table-info bind-btn" v-else @click="showTableDialog = true">
+        📱 点击绑定桌台
+      </div>
     </div>
     
     <div class="main-content">
@@ -59,15 +60,43 @@
         <span class="badge" v-if="cartStore.totalCount > 0">{{ cartStore.totalCount }}</span>
       </div>
       <div class="cart-info">
-        <span class="total">¥{{ cartStore.totalAmount }}</span>
+        <span class="total">¥{{ cartStore.totalAmount.toFixed(2) }}</span>
       </div>
       <button class="checkout-btn" :disabled="cartStore.totalCount === 0">去结算</button>
+    </div>
+    
+    <div v-if="showTableDialog" class="dialog-overlay" @click.self="showTableDialog = false">
+      <div class="dialog">
+        <h3>绑定桌台</h3>
+        <p class="dialog-tip">请输入桌台号，或扫描桌台二维码</p>
+        <div class="form-item">
+          <label>桌台号</label>
+          <input v-model="tableNoInput" type="text" placeholder="例如: A01" @keyup.enter="bindTable" />
+        </div>
+        <div class="dialog-actions">
+          <button class="btn-cancel" @click="showTableDialog = false">取消</button>
+          <button class="btn-confirm" @click="bindTable" :disabled="!tableNoInput.trim()">确定绑定</button>
+        </div>
+        <div class="quick-tables">
+          <p class="quick-title">快速选择：</p>
+          <div class="table-grid">
+            <span 
+              v-for="t in quickTables" 
+              :key="t" 
+              class="table-chip"
+              @click="tableNoInput = t"
+            >
+              {{ t }}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from 'vant'
 import { getCategories, getDishesByCategory } from '../api/dish'
@@ -81,6 +110,9 @@ const tableStore = useTableStore()
 const categories = ref([])
 const dishes = ref([])
 const currentCategoryId = ref(null)
+const showTableDialog = ref(false)
+const tableNoInput = ref('')
+const quickTables = ['A01', 'A02', 'A03', 'A04', 'B01', 'B02', 'B03', 'C01', 'C02']
 
 const getCartCount = (dishId) => {
   const item = cartStore.items.find(i => i.dishId === dishId)
@@ -94,10 +126,15 @@ const selectCategory = async (categoryId) => {
 
 const increaseQuantity = async (dish) => {
   if (!tableStore.currentTable) {
-    showToast('请先扫码绑定桌台')
+    showTableDialog.value = true
+    showToast('请先绑定桌台')
     return
   }
-  await cartStore.addItem(dish.id, 1)
+  try {
+    await cartStore.addItem(dish.id, 1)
+  } catch (e) {
+    console.error('添加购物车失败', e)
+  }
 }
 
 const decreaseQuantity = async (dish) => {
@@ -106,6 +143,21 @@ const decreaseQuantity = async (dish) => {
     await cartStore.updateItem(dish.id, currentQty - 1)
   } else {
     await cartStore.removeItem(dish.id)
+  }
+}
+
+const bindTable = async () => {
+  if (!tableNoInput.value.trim()) {
+    showToast('请输入桌台号')
+    return
+  }
+  try {
+    await tableStore.bind(tableNoInput.value.trim().toUpperCase())
+    showTableDialog.value = false
+    showToast('绑定成功')
+    tableNoInput.value = ''
+  } catch (e) {
+    console.error('绑定失败', e)
   }
 }
 
@@ -145,6 +197,24 @@ onMounted(async () => {
 .table-info {
   font-size: 18px;
   font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-info.bind-btn {
+  background: rgba(255,255,255,0.2);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 16px;
+}
+
+.change-btn {
+  font-size: 12px;
+  background: rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
 .main-content {
@@ -351,5 +421,124 @@ onMounted(async () => {
 .checkout-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: white;
+  border-radius: 12px;
+  width: 320px;
+  max-width: 90%;
+  padding: 20px;
+}
+
+.dialog h3 {
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.dialog-tip {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+.form-item {
+  margin-bottom: 16px;
+}
+
+.form-item label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.form-item input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.form-item input:focus {
+  border-color: #ff6b6b;
+  outline: none;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.btn-cancel, .btn-confirm {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-confirm {
+  background: #ff6b6b;
+  color: white;
+}
+
+.btn-confirm:disabled {
+  opacity: 0.5;
+}
+
+.quick-tables {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f5f5f5;
+}
+
+.quick-title {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 12px;
+}
+
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.table-chip {
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.table-chip:hover {
+  background: #fff5f5;
+  color: #ff6b6b;
 }
 </style>

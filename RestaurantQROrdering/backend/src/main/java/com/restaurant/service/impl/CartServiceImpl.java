@@ -7,6 +7,7 @@ import com.restaurant.service.CartService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
@@ -23,6 +26,8 @@ public class CartServiceImpl implements CartService {
     private final StringRedisTemplate redisTemplate;
     private final DishRepository dishRepository;
     private final ObjectMapper objectMapper;
+    
+    private final Map<String, List<CartItem>> fallbackCartStore = new ConcurrentHashMap<>();
     
     @Value("${app.cart.prefix}")
     private String cartPrefix;
@@ -41,7 +46,7 @@ public class CartServiceImpl implements CartService {
         }
         
         String key = cartPrefix + sessionId;
-        List<CartItem> cart = getCartFromRedis(key);
+        List<CartItem> cart = getCartFromStorage(key);
         
         Optional<CartItem> existingItem = cart.stream()
                 .filter(item -> item.getDishId().equals(dishId))
@@ -59,14 +64,15 @@ public class CartServiceImpl implements CartService {
             cart.add(item);
         }
         
-        saveCartToRedis(key, cart);
+        saveCartToStorage(key, cart);
+        log.debug("添加购物车成功: sessionId={}, dishId={}, quantity={}", sessionId, dishId, quantity);
     }
     
     @Override
     @Transactional
     public void updateQuantity(String sessionId, Long dishId, Integer quantity) {
         String key = cartPrefix + sessionId;
-        List<CartItem> cart = getCartFromRedis(key);
+        List<CartItem> cart = getCartFromStorage(key);
         
         cart.stream()
                 .filter(item -> item.getDishId().equals(dishId))
@@ -75,29 +81,34 @@ public class CartServiceImpl implements CartService {
         
         cart.removeIf(item -> item.getQuantity() <= 0);
         
-        saveCartToRedis(key, cart);
+        saveCartToStorage(key, cart);
     }
     
     @Override
     @Transactional
     public void removeFromCart(String sessionId, Long dishId) {
         String key = cartPrefix + sessionId;
-        List<CartItem> cart = getCartFromRedis(key);
+        List<CartItem> cart = getCartFromStorage(key);
         cart.removeIf(item -> item.getDishId().equals(dishId));
-        saveCartToRedis(key, cart);
+        saveCartToStorage(key, cart);
     }
     
     @Override
     @Transactional
     public void clearCart(String sessionId) {
         String key = cartPrefix + sessionId;
-        redisTemplate.delete(key);
+        try {
+            redisTemplate.delete(key);
+        } catch (Exception e) {
+            log.warn("Redis删除失败，使用内存缓存: {}", e.getMessage());
+        }
+        fallbackCartStore.remove(key);
     }
     
     @Override
     public List<CartItem> getCart(String sessionId) {
         String key = cartPrefix + sessionId;
-        return getCartFromRedis(key);
+        return getCartFromStorage(key);
     }
     
     @Override
@@ -118,24 +129,26 @@ public class CartServiceImpl implements CartService {
         return summary;
     }
     
-    private List<CartItem> getCartFromRedis(String key) {
-        String json = redisTemplate.opsForValue().get(key);
-        if (json == null) {
-            return new ArrayList<>();
-        }
+    private List<CartItem> getCartFromStorage(String key) {
         try {
+            String json = redisTemplate.opsForValue().get(key);
+            if (json == null) {
+                return fallbackCartStore.getOrDefault(key, new ArrayList<>());
+            }
             return objectMapper.readValue(json, new TypeReference<List<CartItem>>() {});
         } catch (Exception e) {
-            return new ArrayList<>();
+            log.warn("Redis读取失败，使用内存缓存: {}", e.getMessage());
+            return fallbackCartStore.getOrDefault(key, new ArrayList<>());
         }
     }
     
-    private void saveCartToRedis(String key, List<CartItem> cart) {
+    private void saveCartToStorage(String key, List<CartItem> cart) {
         try {
             String json = objectMapper.writeValueAsString(cart);
             redisTemplate.opsForValue().set(key, json, expireHours, TimeUnit.HOURS);
         } catch (Exception e) {
-            throw new RuntimeException("保存购物车失败", e);
+            log.warn("Redis保存失败，使用内存缓存: {}", e.getMessage());
         }
+        fallbackCartStore.put(key, cart);
     }
 }

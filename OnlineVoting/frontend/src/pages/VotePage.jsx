@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { activityApi, voteApi, captchaApi } from '../api'
 import dayjs from 'dayjs'
@@ -8,7 +8,7 @@ export default function VotePage() {
   const navigate = useNavigate()
   const [activity, setActivity] = useState(null)
   const [selected, setSelected] = useState([])
-  const [captcha, setCaptcha] = useState({ id: '', image: '' })
+  const [captcha, setCaptcha] = useState({ id: '', image: '', error: '' })
   const [captchaCode, setCaptchaCode] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [msg, setMsg] = useState('')
@@ -23,12 +23,21 @@ export default function VotePage() {
     }
   }
 
-  const loadCaptcha = async () => {
-    const res = await captchaApi.get()
-    if (res.code === 0) setCaptcha(res.data)
-  }
+  const loadCaptcha = useCallback(async () => {
+    try {
+      const res = await captchaApi.get()
+      if (res.code === 0 && res.data && res.data.image) {
+        setCaptcha({ id: res.data.id, image: res.data.image, error: '' })
+      } else {
+        setCaptcha({ id: '', image: '', error: res.message || '验证码加载失败' })
+      }
+    } catch (e) {
+      console.error('captcha load error:', e)
+      setCaptcha({ id: '', image: '', error: '网络错误，点击重试' })
+    }
+  }, [])
 
-  useEffect(() => { loadActivity(); loadCaptcha() }, [id])
+  useEffect(() => { loadActivity(); loadCaptcha() }, [id, loadCaptcha])
 
   const toggleOption = (optId) => {
     if (activity?.status === 0) return
@@ -114,8 +123,37 @@ export default function VotePage() {
             <label className="form-label">验证码</label>
             <div className="captcha-wrap">
               <input className="form-input" value={captchaCode} onChange={e => setCaptchaCode(e.target.value)} placeholder="请输入验证码" />
-              {captcha.image && (
-                <img className="captcha-img" src={`data:image/png;base64,${captcha.image}`} alt="captcha" onClick={loadCaptcha} title="点击刷新" />
+              {captcha.image ? (
+                <img
+                  className="captcha-img"
+                  src={`data:image/png;base64,${captcha.image}`}
+                  alt="点击刷新验证码"
+                  onClick={loadCaptcha}
+                  onError={() => setCaptcha(prev => ({ ...prev, error: '图片加载失败，点击重试' }))}
+                  title="点击刷新验证码"
+                  style={{ cursor: 'pointer' }}
+                />
+              ) : (
+                <div
+                  className="captcha-img"
+                  onClick={loadCaptcha}
+                  title="点击刷新"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: captcha.error ? '#fef2f2' : '#f3f4f6',
+                    color: captcha.error ? '#ef4444' : '#6b7280',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    padding: '0 6px',
+                    lineHeight: 1.2,
+                    border: '1px dashed #d1d5db'
+                  }}
+                >
+                  {captcha.error || '加载中...'}
+                </div>
               )}
             </div>
           </div>

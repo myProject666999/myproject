@@ -12,8 +12,8 @@ import (
 var captchaStore = base64Captcha.DefaultMemStore
 
 type CaptchaResp struct {
-	CaptchaID string `json:"captcha_id"`
-	Image     string `json:"image"`
+	ID    string `json:"id"`
+	Image string `json:"image"`
 }
 
 func GetCaptcha(c *fiber.Ctx) error {
@@ -23,7 +23,11 @@ func GetCaptcha(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"code": 500, "message": "生成验证码失败"})
 	}
-	return c.JSON(fiber.Map{"code": 0, "message": "success", "data": CaptchaResp{CaptchaID: id, Image: b64s}})
+	prefix := "data:image/png;base64,"
+	if len(b64s) > len(prefix) && b64s[:len(prefix)] == prefix {
+		b64s = b64s[len(prefix):]
+	}
+	return c.JSON(fiber.Map{"code": 0, "message": "success", "data": CaptchaResp{ID: id, Image: b64s}})
 }
 
 func VerifyCaptcha(id, answer string) bool {

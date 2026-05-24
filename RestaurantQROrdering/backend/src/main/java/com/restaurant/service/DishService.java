@@ -5,7 +5,7 @@ import com.restaurant.entity.Dish;
 import java.util.List;
 
 public interface DishService {
-    List<Category> getAllCategories();
+    List<Category> getAllCategories(boolean all);
     List<Dish> getDishesByCategory(Long categoryId);
     List<Dish> getAllDishes();
     Dish getDishById(Long id);
