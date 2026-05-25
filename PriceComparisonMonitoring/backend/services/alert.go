@@ -125,7 +125,7 @@ func (s *AlertService) createAlertLog(product *models.Product, alert *models.Ale
 
 	channels := s.getNotifyChannels(alert)
 
-	log := models.AlertLog{
+	alertLog := models.AlertLog{
 		UserID:         product.UserID,
 		ProductID:      product.ID,
 		AlertType:      alert.AlertType,
@@ -138,7 +138,7 @@ func (s *AlertService) createAlertLog(product *models.Product, alert *models.Ale
 		IsRead:         0,
 	}
 
-	if err := database.DB.Create(&log).Error; err != nil {
+	if err := database.DB.Create(&alertLog).Error; err != nil {
 		log.Printf("Failed to create alert log: %v", err)
 		return
 	}

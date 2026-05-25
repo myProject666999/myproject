@@ -14,7 +14,8 @@ import {
   Input,
   List,
   Empty,
-  Modal
+  Modal,
+  Result
 } from 'antd'
 import {
   LikeOutlined,
@@ -206,6 +207,45 @@ const View = () => {
     return <Empty description="文档不存在" style={{ marginTop: 100 }} />
   }
 
+  if (doc.status === 0) {
+    return (
+      <div className="container page-container">
+        <Card style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <Spin size="large" tip="文档正在转换中，请稍候..." style={{ marginBottom: 20 }} />
+          <Title level={4}>文档转换中</Title>
+          <Paragraph type="secondary">
+            您的文档正在转换为可在线浏览的格式，此过程可能需要几分钟时间。
+          </Paragraph>
+          <Paragraph type="secondary">
+            转换完成后，页面会自动更新。您可以刷新页面或稍后再来查看。
+          </Paragraph>
+        </Card>
+      </div>
+    )
+  }
+
+  if (doc.status === 2) {
+    return (
+      <div className="container page-container">
+        <Card style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <Result
+            status="error"
+            title="文档转换失败"
+            subTitle="很抱歉，文档转换过程中出现了错误，请尝试重新上传或联系管理员。"
+            extra={[
+              <Button type="primary" key="back" onClick={() => navigate('/')}>
+                返回首页
+              </Button>,
+              <Button key="retry" onClick={() => navigate('/upload')}>
+                重新上传
+              </Button>
+            ]}
+          />
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="container page-container">
       {isFullscreen ? (
@@ -225,11 +265,18 @@ const View = () => {
           onClick={() => setIsFullscreen(false)}
         >
           {currentSlide && (
-            <img
-              src={currentSlide.image_url}
-              alt={`Slide ${currentPage}`}
-              style={{ maxWidth: '90%', maxHeight: '90%' }}
-            />
+            doc.file_type === 'pdf' ? (
+              <iframe
+                src={currentSlide.image_url}
+                style={{ width: '90%', height: '90%', border: 'none' }}
+              />
+            ) : (
+              <img
+                src={currentSlide.image_url}
+                alt={`Slide ${currentPage}`}
+                style={{ maxWidth: '90%', maxHeight: '90%' }}
+              />
+            )
           )}
           <div
             style={{
@@ -253,16 +300,23 @@ const View = () => {
                 borderRadius: 8,
                 overflow: 'hidden',
                 marginBottom: 16,
-                minHeight: 400
+                minHeight: 500
               }}
             >
               {currentSlide ? (
-                <img
-                  src={currentSlide.image_url}
-                  alt={`Slide ${currentPage}`}
-                  className="slide-image"
-                  style={{ width: '100%' }}
-                />
+                doc.file_type === 'pdf' ? (
+                  <iframe
+                    src={currentSlide.image_url}
+                    style={{ width: '100%', height: '500px', border: 'none' }}
+                  />
+                ) : (
+                  <img
+                    src={currentSlide.image_url}
+                    alt={`Slide ${currentPage}`}
+                    className="slide-image"
+                    style={{ width: '100%' }}
+                  />
+                )
               ) : (
                 <div
                   style={{
@@ -339,11 +393,27 @@ const View = () => {
                       overflow: 'hidden'
                     }}
                   >
-                    <img
-                      src={slide.image_url}
-                      alt={`Thumbnail ${index + 1}`}
-                      style={{ width: '100%', display: 'block' }}
-                    />
+                    {doc.file_type === 'pdf' ? (
+                      <div
+                        style={{
+                          height: 75,
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#fff',
+                          fontSize: 24
+                        }}
+                      >
+                        📄
+                      </div>
+                    ) : (
+                      <img
+                        src={slide.image_url}
+                        alt={`Thumbnail ${index + 1}`}
+                        style={{ width: '100%', display: 'block' }}
+                      />
+                    )}
                     <div
                       style={{
                         textAlign: 'center',

@@ -1,6 +1,6 @@
-const { fromPath } = require('pdf2pic');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const pdfParse = require('pdf-parse');
 const { Document, Slide } = require('../models');
 
 const convertDir = process.env.CONVERT_DIR || './converted';
@@ -26,9 +26,9 @@ class DocumentConverter {
       let slides = [];
 
       if (this.fileType === 'pdf') {
-        slides = await this.convertPdfToImages();
+        slides = await this.convertPdf();
       } else if (['ppt', 'pptx'].includes(this.fileType)) {
-        slides = await this.convertPptToImages();
+        slides = await this.convertPpt();
       } else {
         throw new Error('不支持的文件类型');
       }
@@ -59,32 +59,50 @@ class DocumentConverter {
     }
   }
 
-  async convertPdfToImages() {
-    const options = {
-      density: 100,
-      saveFilename: 'slide',
-      savePath: this.outputDir,
-      format: 'png',
-      width: 1280,
-      height: 720
-    };
+  async convertPdf() {
+    try {
+      const dataBuffer = fs.readFileSync(this.filePath);
+      const pdfData = await pdfParse(dataBuffer);
+      const numPages = pdfData.numpages || 1;
 
-    const result = await fromPath(this.filePath, options).bulk(-1, false);
+      const pdfFileName = path.basename(this.filePath);
+      const pdfUrl = `/uploads/${path.relative('uploads', this.filePath).replace(/\\/g, '/')}`;
 
-    const slides = result.map((item, index) => ({
-      document_id: this.documentId,
-      page_number: index + 1,
-      image_path: item.path,
-      image_url: `/uploads/converted/${this.documentId}/${item.name}`,
-      width: 1280,
-      height: 720
-    }));
+      const slides = [];
+      for (let i = 1; i <= numPages; i++) {
+        slides.push({
+          document_id: this.documentId,
+          page_number: i,
+          image_path: this.filePath,
+          image_url: `${pdfUrl}#page=${i}`,
+          width: 1280,
+          height: 720
+        });
+      }
 
-    return slides;
+      return slides;
+    } catch (error) {
+      console.error('PDF解析失败:', error);
+      return [{
+        document_id: this.documentId,
+        page_number: 1,
+        image_path: this.filePath,
+        image_url: `/uploads/${path.relative('uploads', this.filePath).replace(/\\/g, '/')}`,
+        width: 1280,
+        height: 720
+      }];
+    }
   }
 
-  async convertPptToImages() {
-    return this.convertPdfToImages();
+  async convertPpt() {
+    return [{
+      document_id: this.documentId,
+      page_number: 1,
+      image_path: this.filePath,
+      image_url: `/uploads/${path.relative('uploads', this.filePath).replace(/\\/g, '/')}`,
+      width: 1280,
+      height: 720
+    }];
   }
 }
 

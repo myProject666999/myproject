@@ -1,10 +1,7 @@
 package handler
 
 import (
-	"crypto/md5"
 	"database/sql"
-	"encoding/hex"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,8 +9,17 @@ import (
 	"smart-customer-service/internal/svc"
 	"smart-customer-service/internal/types"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"golang.org/x/crypto/bcrypt"
 )
+
+type CustomClaims struct {
+	UserId   int64  `json:"userId"`
+	Username string `json:"username"`
+	Role     int    `json:"role"`
+	jwt.RegisteredClaims
+}
 
 func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +30,8 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}
 
 		var id int64
-		var username, password, realName, email, phone, avatar string
+		var username, password string
+		var realName, email, phone, avatar sql.NullString
 		var role int
 		var department, skillTags sql.NullString
 		var onlineStatus int
@@ -38,7 +45,7 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		if password != req.Password {
+		if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(req.Password)); err != nil {
 			httpx.OkJsonCtx(r.Context(), w, Fail("用户名或密码错误"))
 			return
 		}
@@ -46,7 +53,7 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		now := time.Now()
 		svcCtx.DB.Exec(`UPDATE user SET online_status = 1, last_online_at = ? WHERE id = ?`, now, id)
 
-		token := generateJWTToken(svcCtx.Config.Auth.AccessSecret, id, username, role)
+		token := generateJWTToken(svcCtx.Config.Auth.AccessSecret, svcCtx.Config.Auth.AccessExpire, id, username, role)
 
 		resp := types.LoginResp{
 			AccessToken: token,
@@ -54,13 +61,13 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			UserInfo: types.UserInfo{
 				Id:           id,
 				Username:     username,
-				RealName:   realName,
-				Email:      email,
-				Phone:      phone,
-				Avatar:     avatar,
-				Role:       role,
-				Department: nullString(department),
-				SkillTags:   nullString(skillTags),
+				RealName:     nullString(realName),
+				Email:        nullString(email),
+				Phone:        nullString(phone),
+				Avatar:       nullString(avatar),
+				Role:         role,
+				Department:   nullString(department),
+				SkillTags:    nullString(skillTags),
 				OnlineStatus: onlineStatus,
 			},
 		}
@@ -69,12 +76,21 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	}
 }
 
-func generateJWTToken(secret string, userId int64, username string, role int) string {
-	now := time.Now().Unix()
-	raw := fmt.Sprintf("%s:%d:%s:%d:%d", secret, userId, username, role, now)
-	h := md5.New()
-	h.Write([]byte(raw))
-	return hex.EncodeToString(h.Sum(nil))
+func generateJWTToken(secret string, expire int64, userId int64, username string, role int) string {
+	claims := CustomClaims{
+		UserId:   userId,
+		Username: username,
+		Role:     role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expire) * time.Second)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    "smart-customer-service",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, _ := token.SignedString([]byte(secret))
+	return tokenString
 }
 
 func GetUserInfoHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
@@ -161,11 +177,17 @@ func CreateUserHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			httpx.OkJsonCtx(r.Context(), w, Fail("密码加密失败"))
+			return
+		}
+
 		now := time.Now()
 		result, err := svcCtx.DB.Exec(`
 			INSERT INTO user (username, password, real_name, email, phone, role, department, skill_tags, status, created_at, updated_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
-		`, req.Username, req.Password, req.RealName, req.Email, req.Phone, req.Role, req.Department, req.SkillTags, now, now)
+		`, req.Username, string(hashedPassword), req.RealName, req.Email, req.Phone, req.Role, req.Department, req.SkillTags, now, now)
 		if err != nil {
 			httpx.OkJsonCtx(r.Context(), w, Fail("创建用户失败"))
 			return

@@ -49,7 +49,7 @@
     <div class="weight-records">
       <h2>体重记录</h2>
       <div class="add-weight">
-        <input v-model.number="newWeight.weight" type="number" step="0.1" placeholder="体重 (kg)" />
+        <input v-model="newWeight.weight" type="number" step="0.1" placeholder="体重 (kg)" @keyup.enter="addWeight" />
         <input v-model="newWeight.date" type="date" />
         <input v-model="newWeight.note" type="text" placeholder="备注(可选)" />
         <button @click="addWeight">添加</button>
@@ -115,7 +115,7 @@ const endDate = ref(new Date().toISOString().split('T')[0])
 const dailyStats = ref([])
 const weightRecords = ref([])
 const newWeight = ref({
-  weight: null,
+  weight: '',
   date: new Date().toISOString().split('T')[0],
   note: ''
 })
@@ -199,8 +199,16 @@ const loadData = async () => {
 }
 
 const addWeight = async () => {
-  const weightValue = parseFloat(newWeight.value.weight)
-  if (!weightValue || weightValue <= 0) {
+  console.log('addWeight called, weight value:', newWeight.value.weight, typeof newWeight.value.weight)
+  
+  const weightStr = String(newWeight.value.weight).trim()
+  if (!weightStr) {
+    alert('请输入体重')
+    return
+  }
+  
+  const weightValue = parseFloat(weightStr)
+  if (isNaN(weightValue) || weightValue <= 0) {
     alert('请输入有效的体重值')
     return
   }
@@ -211,11 +219,13 @@ const addWeight = async () => {
       record_date: newWeight.value.date,
       note: newWeight.value.note
     })
-    newWeight.value.weight = null
+    alert('体重记录添加成功！')
+    newWeight.value.weight = ''
     newWeight.value.note = ''
     loadData()
   } catch (e) {
-    alert('添加失败: ' + e.message)
+    console.error('添加体重失败:', e)
+    alert('添加失败: ' + (e.message || '网络错误'))
   }
 }
 

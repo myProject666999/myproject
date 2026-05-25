@@ -13,7 +13,11 @@
     <el-row :gutter="20">
       <el-col :span="4">
         <div class="card-container" style="padding: 12px;">
-          <div class="group-item active" @click="currentGroup = null">
+          <div
+            class="group-item"
+            :class="{ active: currentGroup === null && !filterFavorite }"
+            @click="handleSelectAll"
+          >
             <span class="group-icon">📦</span>
             <span class="group-name">全部商品</span>
             <span class="group-count">{{ totalCount }}</span>
@@ -24,7 +28,7 @@
             :key="group.id"
             class="group-item"
             :class="{ active: currentGroup === group.id }"
-            @click="currentGroup = group.id"
+            @click="handleSelectGroup(group.id)"
           >
             <span class="group-icon">{{ group.icon || '📁' }}</span>
             <span class="group-name">{{ group.name }}</span>
@@ -36,7 +40,7 @@
           <div
             class="group-item"
             :class="{ active: filterFavorite }"
-            @click="filterFavorite = !filterFavorite"
+            @click="handleToggleFavorite"
           >
             <span class="group-icon">⭐</span>
             <span class="group-name">我的收藏</span>
@@ -128,7 +132,7 @@
                 </div>
               </div>
             </el-col>
-          </div>
+          </el-row>
           
           <div v-if="total > pageSize" style="text-align: center; margin-top: 20px;">
             <el-pagination
@@ -212,6 +216,27 @@ const toggleFavorite = async (product) => {
   } catch (e) {
     console.error(e)
   }
+}
+
+const handleSelectAll = () => {
+  currentGroup.value = null
+  filterFavorite.value = false
+  page.value = 1
+  loadProducts()
+}
+
+const handleSelectGroup = (groupId) => {
+  currentGroup.value = groupId
+  filterFavorite.value = false
+  page.value = 1
+  loadProducts()
+}
+
+const handleToggleFavorite = () => {
+  filterFavorite.value = !filterFavorite.value
+  currentGroup.value = null
+  page.value = 1
+  loadProducts()
 }
 </script>
 

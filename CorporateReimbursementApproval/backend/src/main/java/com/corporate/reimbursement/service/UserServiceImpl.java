@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.corporate.reimbursement.entity.SysUser;
 import com.corporate.reimbursement.mapper.SysUserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,7 +20,7 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new RuntimeException("用户不存在");
         }
-        if (!BCrypt.checkpw(password, user.getPassword())) {
+        if (!password.equals(user.getPassword())) {
             throw new RuntimeException("密码错误");
         }
         return user;

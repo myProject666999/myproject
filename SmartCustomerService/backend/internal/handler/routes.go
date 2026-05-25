@@ -7,6 +7,7 @@ import (
 	"smart-customer-service/internal/types"
 	"smart-customer-service/internal/socket"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest"
 )
@@ -243,9 +244,17 @@ func WebSocketHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 }
 
 func ParseUserFromContext(r *http.Request) (int64, string, int) {
-	userId, _ := r.Context().Value("userId").(int64)
-	username, _ := r.Context().Value("username").(string)
-	role, _ := r.Context().Value("role").(int)
+	claims, ok := r.Context().Value("jwtclaims").(jwt.MapClaims)
+	if !ok {
+		return 0, "", 0
+	}
+
+	userIdFloat, _ := claims["userId"].(float64)
+	userId := int64(userIdFloat)
+	username, _ := claims["username"].(string)
+	roleFloat, _ := claims["role"].(float64)
+	role := int(roleFloat)
+
 	return userId, username, role
 }
 

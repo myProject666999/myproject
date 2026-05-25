@@ -35,6 +35,12 @@ func (h *ParkingSpotHandler) Create(c *gin.Context) {
 		return
 	}
 
+	var existing models.ParkingSpot
+	if h.DB.Where("spot_number = ?", req.SpotNumber).First(&existing).Error == nil {
+		utils.Fail(c, http.StatusConflict, "车位号已存在")
+		return
+	}
+
 	spot := models.ParkingSpot{
 		SpotNumber: req.SpotNumber,
 		SpotType:   req.SpotType,

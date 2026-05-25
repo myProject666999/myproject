@@ -3,11 +3,8 @@ package com.corporate.reimbursement.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.corporate.reimbursement.common.Result;
-import com.corporate.reimbursement.entity.InvoiceAttachment;
-import com.corporate.reimbursement.entity.Reimbursement;
-import com.corporate.reimbursement.entity.ReimbursementItem;
-import com.corporate.reimbursement.mapper.InvoiceAttachmentMapper;
-import com.corporate.reimbursement.mapper.ReimbursementItemMapper;
+import com.corporate.reimbursement.entity.*;
+import com.corporate.reimbursement.mapper.*;
 import com.corporate.reimbursement.service.ReimbursementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/reimbursement")
@@ -33,6 +27,12 @@ public class ReimbursementController {
     @Autowired
     private InvoiceAttachmentMapper invoiceAttachmentMapper;
 
+    @Autowired
+    private ReimbursementTypeMapper reimbursementTypeMapper;
+
+    @Autowired
+    private SysUserMapper sysUserMapper;
+
     private Long getCurrentUserId(HttpServletRequest request) {
         String userIdStr = request.getHeader("X-User-Id");
         return userIdStr != null ? Long.parseLong(userIdStr) : 1L;
@@ -42,42 +42,56 @@ public class ReimbursementController {
     public Result<Reimbursement> create(@RequestBody Map<String, Object> params, HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
 
-        Map<String, Object> reimbData = (Map<String, Object>) params.get("reimbursement");
-        List<Map<String, Object>> itemsData = (List<Map<String, Object>>) params.get("items");
-        List<Map<String, Object>> attachmentsData = (List<Map<String, Object>>) params.get("attachments");
+        String title = (String) params.get("title");
+        String typeCode = (String) params.get("type");
+        String reason = (String) params.get("reason");
+
+        Long typeId = null;
+        if (typeCode != null && !typeCode.isEmpty()) {
+            ReimbursementType type = reimbursementTypeMapper.selectOne(
+                    Wrappers.<ReimbursementType>lambdaQuery().eq(ReimbursementType::getTypeCode, typeCode));
+            if (type != null) {
+                typeId = type.getId();
+            }
+        }
+
+        SysUser user = sysUserMapper.selectById(userId);
 
         Reimbursement reimbursement = new Reimbursement();
-        reimbursement.setTitle((String) reimbData.get("title"));
-        reimbursement.setTypeId(reimbData.get("typeId") != null ? Long.valueOf(reimbData.get("typeId").toString()) : null);
+        reimbursement.setTitle(title);
+        reimbursement.setTypeId(typeId);
         reimbursement.setApplicantId(userId);
-        reimbursement.setDeptId(reimbData.get("deptId") != null ? Long.valueOf(reimbData.get("deptId").toString()) : null);
-        reimbursement.setTotalAmount(reimbData.get("totalAmount") != null ? new BigDecimal(reimbData.get("totalAmount").toString()) : BigDecimal.ZERO);
-        reimbursement.setReason((String) reimbData.get("reason"));
-        reimbursement.setStatus(0);
+        reimbursement.setDeptId(user != null ? user.getDeptId() : null);
+        reimbursement.setReason(reason);
 
+        List<Map<String, Object>> itemsData = (List<Map<String, Object>>) params.get("items");
         List<ReimbursementItem> items = new ArrayList<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
         if (itemsData != null) {
             for (Map<String, Object> itemData : itemsData) {
                 ReimbursementItem item = new ReimbursementItem();
-                item.setItemName((String) itemData.get("itemName"));
+                item.setItemName((String) itemData.get("name"));
                 item.setItemType((String) itemData.get("itemType"));
                 item.setAmount(itemData.get("amount") != null ? new BigDecimal(itemData.get("amount").toString()) : BigDecimal.ZERO);
                 item.setQuantity(itemData.get("quantity") != null ? Integer.valueOf(itemData.get("quantity").toString()) : 1);
                 item.setUnitPrice(itemData.get("unitPrice") != null ? new BigDecimal(itemData.get("unitPrice").toString()) : BigDecimal.ZERO);
-                if (itemData.get("expenseDate") != null) {
+                if (itemData.get("expenseDate") != null && !itemData.get("expenseDate").toString().isEmpty()) {
                     item.setExpenseDate(LocalDate.parse(itemData.get("expenseDate").toString()));
                 }
                 item.setDescription((String) itemData.get("description"));
+                totalAmount = totalAmount.add(item.getAmount());
                 items.add(item);
             }
         }
+        reimbursement.setTotalAmount(totalAmount);
 
+        List<Map<String, Object>> attachmentsData = (List<Map<String, Object>>) params.get("attachments");
         List<InvoiceAttachment> attachments = new ArrayList<>();
         if (attachmentsData != null) {
             for (Map<String, Object> attData : attachmentsData) {
                 InvoiceAttachment attachment = new InvoiceAttachment();
                 attachment.setFileName((String) attData.get("fileName"));
-                attachment.setFilePath((String) attData.get("filePath"));
+                attachment.setFilePath((String) attData.get("fileUrl"));
                 attachment.setFileType((String) attData.get("fileType"));
                 attachment.setFileSize(attData.get("fileSize") != null ? Long.valueOf(attData.get("fileSize").toString()) : 0L);
                 attachment.setInvoiceNo((String) attData.get("invoiceNo"));
@@ -87,44 +101,62 @@ public class ReimbursementController {
             }
         }
 
+        String status = (String) params.get("status");
+        if (status == null || status.isEmpty()) {
+            status = "DRAFT";
+        }
+        reimbursement.setStatus(status);
+
         Reimbursement result = reimbursementService.createReimbursement(reimbursement, items, attachments);
         return Result.success("创建成功", result);
     }
 
     @PutMapping("/update/{id}")
     public Result<Reimbursement> update(@PathVariable Long id, @RequestBody Map<String, Object> params) {
-        Map<String, Object> reimbData = (Map<String, Object>) params.get("reimbursement");
-        List<Map<String, Object>> itemsData = (List<Map<String, Object>>) params.get("items");
-        List<Map<String, Object>> attachmentsData = (List<Map<String, Object>>) params.get("attachments");
+        String title = (String) params.get("title");
+        String typeCode = (String) params.get("type");
+        String reason = (String) params.get("reason");
+
+        Long typeId = null;
+        if (typeCode != null && !typeCode.isEmpty()) {
+            ReimbursementType type = reimbursementTypeMapper.selectOne(
+                    Wrappers.<ReimbursementType>lambdaQuery().eq(ReimbursementType::getTypeCode, typeCode));
+            if (type != null) {
+                typeId = type.getId();
+            }
+        }
 
         Reimbursement reimbursement = new Reimbursement();
         reimbursement.setId(id);
-        reimbursement.setTitle((String) reimbData.get("title"));
-        reimbursement.setTypeId(reimbData.get("typeId") != null ? Long.valueOf(reimbData.get("typeId").toString()) : null);
-        reimbursement.setDeptId(reimbData.get("deptId") != null ? Long.valueOf(reimbData.get("deptId").toString()) : null);
-        reimbursement.setTotalAmount(reimbData.get("totalAmount") != null ? new BigDecimal(reimbData.get("totalAmount").toString()) : BigDecimal.ZERO);
-        reimbursement.setReason((String) reimbData.get("reason"));
+        reimbursement.setTitle(title);
+        reimbursement.setTypeId(typeId);
+        reimbursement.setReason(reason);
 
+        List<Map<String, Object>> itemsData = (List<Map<String, Object>>) params.get("items");
         List<ReimbursementItem> items = new ArrayList<>();
+        BigDecimal totalAmount = BigDecimal.ZERO;
         if (itemsData != null) {
             for (Map<String, Object> itemData : itemsData) {
                 ReimbursementItem item = new ReimbursementItem();
                 if (itemData.get("id") != null) {
                     item.setId(Long.valueOf(itemData.get("id").toString()));
                 }
-                item.setItemName((String) itemData.get("itemName"));
+                item.setItemName((String) itemData.get("name"));
                 item.setItemType((String) itemData.get("itemType"));
                 item.setAmount(itemData.get("amount") != null ? new BigDecimal(itemData.get("amount").toString()) : BigDecimal.ZERO);
                 item.setQuantity(itemData.get("quantity") != null ? Integer.valueOf(itemData.get("quantity").toString()) : 1);
                 item.setUnitPrice(itemData.get("unitPrice") != null ? new BigDecimal(itemData.get("unitPrice").toString()) : BigDecimal.ZERO);
-                if (itemData.get("expenseDate") != null) {
+                if (itemData.get("expenseDate") != null && !itemData.get("expenseDate").toString().isEmpty()) {
                     item.setExpenseDate(LocalDate.parse(itemData.get("expenseDate").toString()));
                 }
                 item.setDescription((String) itemData.get("description"));
+                totalAmount = totalAmount.add(item.getAmount());
                 items.add(item);
             }
         }
+        reimbursement.setTotalAmount(totalAmount);
 
+        List<Map<String, Object>> attachmentsData = (List<Map<String, Object>>) params.get("attachments");
         List<InvoiceAttachment> attachments = new ArrayList<>();
         if (attachmentsData != null) {
             for (Map<String, Object> attData : attachmentsData) {
@@ -133,7 +165,7 @@ public class ReimbursementController {
                     attachment.setId(Long.valueOf(attData.get("id").toString()));
                 }
                 attachment.setFileName((String) attData.get("fileName"));
-                attachment.setFilePath((String) attData.get("filePath"));
+                attachment.setFilePath((String) attData.get("fileUrl"));
                 attachment.setFileType((String) attData.get("fileType"));
                 attachment.setFileSize(attData.get("fileSize") != null ? Long.valueOf(attData.get("fileSize").toString()) : 0L);
                 attachment.setInvoiceNo((String) attData.get("invoiceNo"));
@@ -160,13 +192,21 @@ public class ReimbursementController {
     }
 
     @GetMapping("/my")
-    public Result<IPage<Reimbursement>> myReimbursements(
+    public Result<IPage<Map<String, Object>>> myReimbursements(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
         Long userId = getCurrentUserId(request);
         IPage<Reimbursement> result = reimbursementService.getMyReimbursements(userId, page, size);
-        return Result.success(result);
+
+        List<Map<String, Object>> records = new ArrayList<>();
+        for (Reimbursement r : result.getRecords()) {
+            records.add(convertToMap(r));
+        }
+
+        IPage<Map<String, Object>> pageResult = new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+        pageResult.setRecords(records);
+        return Result.success(pageResult);
     }
 
     @GetMapping("/detail/{id}")
@@ -181,10 +221,53 @@ public class ReimbursementController {
         List<InvoiceAttachment> attachments = invoiceAttachmentMapper.selectList(
                 Wrappers.<InvoiceAttachment>lambdaQuery().eq(InvoiceAttachment::getReimbursementId, id));
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("reimbursement", reimbursement);
+        Map<String, Object> data = convertToMap(reimbursement);
         data.put("items", items);
         data.put("attachments", attachments);
         return Result.success(data);
+    }
+
+    private Map<String, Object> convertToMap(Reimbursement r) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", r.getId());
+        map.put("reimburseNo", r.getReimbursementNo());
+        map.put("title", r.getTitle());
+        map.put("typeId", r.getTypeId());
+        map.put("applicantId", r.getApplicantId());
+        map.put("deptId", r.getDeptId());
+        map.put("totalAmount", r.getTotalAmount());
+        map.put("reason", r.getReason());
+        map.put("status", r.getStatus());
+        map.put("currentApproverId", r.getCurrentApproverId());
+        map.put("currentApprovalLevel", r.getCurrentApprovalLevel());
+        map.put("submitTime", r.getSubmitTime());
+        map.put("approvalTime", r.getApprovalTime());
+        map.put("paymentTime", r.getPaymentTime());
+        map.put("createTime", r.getCreateTime());
+
+        if (r.getTypeId() != null) {
+            ReimbursementType type = reimbursementTypeMapper.selectById(r.getTypeId());
+            if (type != null) {
+                map.put("typeCode", type.getTypeCode());
+                map.put("typeName", type.getTypeName());
+            }
+        }
+
+        if (r.getApplicantId() != null) {
+            SysUser user = sysUserMapper.selectById(r.getApplicantId());
+            if (user != null) {
+                map.put("applicantName", user.getRealName());
+                map.put("applicantEmployeeNo", user.getEmployeeNo());
+            }
+        }
+
+        if (r.getCurrentApproverId() != null) {
+            SysUser approver = sysUserMapper.selectById(r.getCurrentApproverId());
+            if (approver != null) {
+                map.put("currentApproverName", approver.getRealName());
+            }
+        }
+
+        return map;
     }
 }

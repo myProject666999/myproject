@@ -392,10 +392,10 @@ CREATE TABLE `notification` (
 
 -- 初始化用户 (密码: 123456, bcrypt hash)
 INSERT INTO `user` (`username`, `password`, `real_name`, `email`, `role`, `status`, `department`, `skill_tags`) VALUES
-('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '系统管理员', 'admin@example.com', 3, 1, '技术部', '系统管理'),
-('agent001', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '客服小王', 'agent001@example.com', 2, 1, '客服部', '技术咨询,产品问题'),
-('agent002', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '客服小李', 'agent002@example.com', 2, 1, '客服部', '账户问题,计费问题'),
-('customer001', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '客户张三', 'customer001@example.com', 1, 1, NULL, NULL);
+('admin', '$2a$10$1Y97HJaZhzNdlJCWaSLycuNEnKHpj3dh3ClSyRsOwWk483Q4UoRKi', '系统管理员', 'admin@example.com', 3, 1, '技术部', '系统管理'),
+('agent001', '$2a$10$1Y97HJaZhzNdlJCWaSLycuNEnKHpj3dh3ClSyRsOwWk483Q4UoRKi', '客服小王', 'agent001@example.com', 2, 1, '客服部', '技术咨询,产品问题'),
+('agent002', '$2a$10$1Y97HJaZhzNdlJCWaSLycuNEnKHpj3dh3ClSyRsOwWk483Q4UoRKi', '客服小李', 'agent002@example.com', 2, 1, '客服部', '账户问题,计费问题'),
+('customer001', '$2a$10$1Y97HJaZhzNdlJCWaSLycuNEnKHpj3dh3ClSyRsOwWk483Q4UoRKi', '客户张三', 'customer001@example.com', 1, 1, NULL, NULL);
 
 -- 初始化工单分类
 INSERT INTO `ticket_category` (`name`, `parent_id`, `description`, `sort`) VALUES

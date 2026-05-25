@@ -49,7 +49,7 @@
       </el-table-column>
       <el-table-column label="月卡到期" width="120">
         <template #default="{ row }">
-          {{ row.card_expire_time ? formatDate(row.card_expire_time) : '-' }}
+          {{ row.card_expire_time ? formatDateDisplay(row.card_expire_time) : '-' }}
         </template>
       </el-table-column>
       <el-table-column label="状态" width="80">
@@ -185,8 +185,20 @@ const rules = {
 }
 
 const formatDate = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return ''
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const formatDateDisplay = (date) => {
   if (!date) return '-'
-  return new Date(date).toLocaleDateString('zh-CN')
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return '-'
+  return d.toLocaleDateString('zh-CN')
 }
 
 const fetchList = async () => {

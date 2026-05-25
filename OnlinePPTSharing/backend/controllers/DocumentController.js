@@ -59,11 +59,13 @@ class DocumentController {
         return res.status(404).json({ code: 404, message: '文档不存在' });
       }
 
-      if (document.status !== 1) {
-        return res.status(400).json({ code: 400, message: '文档正在处理中或已删除' });
+      if (document.status === 3) {
+        return res.status(404).json({ code: 404, message: '文档已删除' });
       }
 
-      await document.increment('view_count');
+      if (document.status === 1) {
+        await document.increment('view_count');
+      }
 
       const slides = await Slide.findAll({
         where: { document_id: id },

@@ -43,7 +43,7 @@ public class Reimbursement {
     private String reason;
 
     @Column(name = "status")
-    private Integer status;
+    private String status;
 
     @Column(name = "current_approver_id")
     private Long currentApproverId;

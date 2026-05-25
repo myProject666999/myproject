@@ -9,11 +9,15 @@ import com.corporate.reimbursement.entity.InvoiceAttachment;
 import com.corporate.reimbursement.entity.Reimbursement;
 import com.corporate.reimbursement.entity.ReimbursementItem;
 import com.corporate.reimbursement.entity.ReimbursementType;
+import com.corporate.reimbursement.entity.SysUser;
+import com.corporate.reimbursement.entity.SysUserRole;
 import com.corporate.reimbursement.mapper.ApprovalFlowConfigMapper;
 import com.corporate.reimbursement.mapper.InvoiceAttachmentMapper;
 import com.corporate.reimbursement.mapper.ReimbursementItemMapper;
 import com.corporate.reimbursement.mapper.ReimbursementMapper;
 import com.corporate.reimbursement.mapper.ReimbursementTypeMapper;
+import com.corporate.reimbursement.mapper.SysUserMapper;
+import com.corporate.reimbursement.mapper.SysUserRoleMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +46,12 @@ public class ReimbursementServiceImpl implements ReimbursementService {
     @Autowired
     private ReimbursementTypeMapper reimbursementTypeMapper;
 
+    @Autowired
+    private SysUserMapper sysUserMapper;
+
+    @Autowired
+    private SysUserRoleMapper sysUserRoleMapper;
+
     @Override
     @Transactional
     public Reimbursement createReimbursement(Reimbursement reimbursement, List<ReimbursementItem> items, List<InvoiceAttachment> attachments) {
@@ -53,7 +63,9 @@ public class ReimbursementServiceImpl implements ReimbursementService {
 
         validateAmount(reimbursement.getTypeId(), totalAmount);
 
-        reimbursement.setStatus(ReimbursementStatus.DRAFT.getCode());
+        if (reimbursement.getStatus() == null || reimbursement.getStatus().isEmpty()) {
+            reimbursement.setStatus(ReimbursementStatus.DRAFT.getCode());
+        }
         reimbursement.setCreateTime(LocalDateTime.now());
         reimbursement.setUpdateTime(LocalDateTime.now());
 
@@ -91,7 +103,7 @@ public class ReimbursementServiceImpl implements ReimbursementService {
 
         QueryWrapper<ApprovalFlowConfig> flowWrapper = new QueryWrapper<>();
         flowWrapper.eq("type_id", reimbursement.getTypeId())
-                .eq("dept_id", reimbursement.getDeptId())
+                .and(w -> w.isNull("dept_id").or().eq("dept_id", reimbursement.getDeptId()))
                 .le("min_amount", reimbursement.getTotalAmount())
                 .ge("max_amount", reimbursement.getTotalAmount())
                 .eq("status", 1)
@@ -103,7 +115,12 @@ public class ReimbursementServiceImpl implements ReimbursementService {
         }
 
         ApprovalFlowConfig firstConfig = flowConfigs.get(0);
-        reimbursement.setCurrentApproverId(firstConfig.getApproverUserId());
+        Long approverId = firstConfig.getApproverUserId();
+        if (approverId == null) {
+            approverId = findApproverByRole(firstConfig.getApproverRoleId());
+        }
+
+        reimbursement.setCurrentApproverId(approverId);
         reimbursement.setCurrentApprovalLevel(firstConfig.getApprovalLevel());
         reimbursement.setStatus(ReimbursementStatus.PENDING.getCode());
         reimbursement.setSubmitTime(LocalDateTime.now());
@@ -111,6 +128,16 @@ public class ReimbursementServiceImpl implements ReimbursementService {
 
         reimbursementMapper.updateById(reimbursement);
         return reimbursement;
+    }
+
+    private Long findApproverByRole(Long roleId) {
+        QueryWrapper<SysUserRole> roleWrapper = new QueryWrapper<>();
+        roleWrapper.eq("role_id", roleId);
+        List<SysUserRole> userRoles = sysUserRoleMapper.selectList(roleWrapper);
+        if (!userRoles.isEmpty()) {
+            return userRoles.get(0).getUserId();
+        }
+        throw new RuntimeException("未找到对应角色的审批人");
     }
 
     @Override

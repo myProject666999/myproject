@@ -40,11 +40,11 @@
         <el-tabs v-model="activeTab">
           <el-tab-pane label="基本信息" name="info">
             <div class="card-container">
-              <el-form :model="profileForm" label-width="100px" style="max-width: 500px;">
-                <el-form-item label="邮箱">
+              <el-form :model="profileForm" :rules="profileRules" ref="profileFormRef" label-width="100px" style="max-width: 500px;">
+                <el-form-item label="邮箱" prop="email">
                   <el-input v-model="profileForm.email" placeholder="请输入邮箱" />
                 </el-form-item>
-                <el-form-item label="手机号">
+                <el-form-item label="手机号" prop="phone">
                   <el-input v-model="profileForm.phone" placeholder="请输入手机号" />
                 </el-form-item>
                 <el-form-item>
@@ -101,11 +101,49 @@ const user = ref(null)
 const activeTab = ref('info')
 const saving = ref(false)
 const changingPassword = ref(false)
+const profileFormRef = ref(null)
 
 const profileForm = ref({
   email: '',
   phone: ''
 })
+
+const profileRules = {
+  email: [
+    {
+      validator: (rule, value, callback) => {
+        if (!value) {
+          callback()
+          return
+        }
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        if (!emailRegex.test(value)) {
+          callback(new Error('请输入正确的邮箱格式'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  phone: [
+    {
+      validator: (rule, value, callback) => {
+        if (!value) {
+          callback()
+          return
+        }
+        const phoneRegex = /^1[3-9]\d{9}$/
+        if (!phoneRegex.test(value)) {
+          callback(new Error('请输入正确的手机号格式'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+}
 
 const passwordForm = ref({
   old_password: '',
@@ -132,16 +170,22 @@ const formatDate = (date) => {
 }
 
 const handleSaveProfile = async () => {
-  saving.value = true
-  try {
-    await userApi.updateProfile(profileForm.value)
-    ElMessage.success('保存成功')
-    loadProfile()
-  } catch (e) {
-    console.error(e)
-  } finally {
-    saving.value = false
-  }
+  if (!profileFormRef.value) return
+  
+  await profileFormRef.value.validate(async (valid) => {
+    if (valid) {
+      saving.value = true
+      try {
+        await userApi.updateProfile(profileForm.value)
+        ElMessage.success('保存成功')
+        loadProfile()
+      } catch (e) {
+        console.error(e)
+      } finally {
+        saving.value = false
+      }
+    }
+  })
 }
 
 const handleChangePassword = async () => {
