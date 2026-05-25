@@ -98,43 +98,43 @@ function AgentWorkbench() {
         <h1 className="page-title">客服工作台</h1>
       </div>
 
-      <Row gutter={16} className="workbench-stats">
-        <Col xs={12} sm={6}>
+      <Row gutter={[16, 16]} className="workbench-stats">
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="待处理"
               value={stats.pending}
-              prefix={<ClockCircleOutlined style={{ color: '#fa8c16' }} />}
+              prefix={<ClockCircleOutlined style={{ color: '#fa8c16', fontSize: 20 }} />}
               valueStyle={{ color: '#fa8c16' }}
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="处理中"
               value={stats.processing}
-              prefix={<ExclamationCircleOutlined style={{ color: '#722ed1' }} />}
+              prefix={<ExclamationCircleOutlined style={{ color: '#722ed1', fontSize: 20 }} />}
               valueStyle={{ color: '#722ed1' }}
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="SLA预警"
               value={stats.warning}
-              prefix={<WarningOutlined style={{ color: '#faad14' }} />}
+              prefix={<WarningOutlined style={{ color: '#faad14', fontSize: 20 }} />}
               valueStyle={{ color: '#faad14' }}
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="已超时"
               value={stats.overdue}
-              prefix={<CheckCircleOutlined style={{ color: '#ff4d4f' }} />}
+              prefix={<CheckCircleOutlined style={{ color: '#ff4d4f', fontSize: 20 }} />}
               valueStyle={{ color: '#ff4d4f' }}
             />
           </Card>

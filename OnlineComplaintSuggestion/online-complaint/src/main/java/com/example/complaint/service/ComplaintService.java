@@ -62,7 +62,7 @@ public class ComplaintService {
         progressRepository.save(progress);
 
         if (files != null && !files.isEmpty()) {
-            Path uploadPath = Paths.get(uploadDir);
+            Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }

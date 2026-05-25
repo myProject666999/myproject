@@ -7,6 +7,7 @@ import com.logistics.mapper.StatusNotificationMapper;
 import com.logistics.service.StatusNotificationService;
 import com.logistics.service.WaybillService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 public class StatusNotificationServiceImpl extends ServiceImpl<StatusNotificationMapper, StatusNotification> implements StatusNotificationService {
 
     @Autowired
+    @Lazy
     private WaybillService waybillService;
 
     @Override

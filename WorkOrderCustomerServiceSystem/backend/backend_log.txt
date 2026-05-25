@@ -1,0 +1,518 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.workorder:work-order-system >-------------------
+[INFO] Building work-order-system 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.0:run (default-cli) > test-compile @ work-order-system >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ work-order-system ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ work-order-system ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ work-order-system ---
+[INFO] skip non existing resourceDirectory D:\Workspace\myproject\WorkOrderCustomerServiceSystem\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ work-order-system ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] <<< spring-boot:3.2.0:run (default-cli) < test-compile @ work-order-system <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.0:run (default-cli) @ work-order-system ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.0)
+
+2026-05-24T13:41:14.482+08:00  INFO 6340 --- [           main] com.workorder.WorkOrderApplication       : Starting WorkOrderApplication using Java 21.0.10 with PID 6340 (D:\Workspace\myproject\WorkOrderCustomerServiceSystem\backend\target\classes started by admin in D:\Workspace\myproject\WorkOrderCustomerServiceSystem\backend)
+2026-05-24T13:41:14.482+08:00 DEBUG 6340 --- [           main] com.workorder.WorkOrderApplication       : Running with Spring Boot v3.2.0, Spring v6.1.1
+2026-05-24T13:41:14.485+08:00  INFO 6340 --- [           main] com.workorder.WorkOrderApplication       : No active profile set, falling back to 1 default profile: "default"
+2026-05-24T13:41:15.136+08:00  INFO 6340 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-05-24T13:41:15.143+08:00  INFO 6340 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-05-24T13:41:15.175+08:00  INFO 6340 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 15 ms. Found 0 Redis repository interfaces.
+2026-05-24T13:41:15.780+08:00  INFO 6340 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-24T13:41:15.797+08:00  INFO 6340 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-24T13:41:15.797+08:00  INFO 6340 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.16]
+2026-05-24T13:41:15.866+08:00  INFO 6340 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-24T13:41:15.867+08:00  INFO 6340 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1338 ms
+Logging initialized using 'class org.apache.ibatis.logging.stdout.StdOutImpl' adapter.
+Initialization Sequence datacenterId:13 workerId:27
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.5 
+2026-05-24T13:41:17.151+08:00  INFO 6340 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-05-24T13:41:17.161+08:00  INFO 6340 --- [           main] com.workorder.WorkOrderApplication       : Started WorkOrderApplication in 3.072 seconds (process running for 3.452)
+=============================================
+  ¹¤µ¥/¿Í·þÏµÍ³ Æô¶¯³É¹¦£¡
+  ·ÃÎÊµØÖ·: http://localhost:8080
+=============================================
+2026-05-24T13:41:17.171+08:00  INFO 6340 --- [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-24T13:41:17.316+08:00  INFO 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@4a5bedb4
+2026-05-24T13:41:17.318+08:00  INFO 6340 --- [   scheduling-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-24T13:41:17.324+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAé¢„è­¦...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+JDBC Connection [HikariProxyConnection@1680379398 wrapping com.mysql.cj.jdbc.ConnectionImpl@4a5bedb4] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: HIGH(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 3, HIGH, 2.00, 8.00, 1.00, ?????2??????8?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: URGENT(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 4, URGENT, 0.50, 2.00, 0.25, ??????30??????2?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: LOW(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 1, LOW, 24.00, 72.00, 12.00, ?????24??????72?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec] from current transaction
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: MEDIUM(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 2, MEDIUM, 8.00, 24.00, 4.00, ?????8??????24?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2c2f08ec]
+2026-05-24T13:41:17.479+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAè¶…æ—¶...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@651ca002]
+JDBC Connection [HikariProxyConnection@1651154929 wrapping com.mysql.cj.jdbc.ConnectionImpl@4a5bedb4] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@651ca002]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@651ca002]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@651ca002]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@651ca002]
+2026-05-24T13:41:31.841+08:00  INFO 6340 --- [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-24T13:41:31.849+08:00  INFO 6340 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-24T13:41:31.851+08:00  INFO 6340 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@36a54013] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1677185748 wrapping com.mysql.cj.jdbc.ConnectionImpl@4a5bedb4] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM ticket
+==> Parameters: 
+<==    Columns: total
+<==        Row: 6
+<==      Total: 1
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket ORDER BY created_at DESC LIMIT ?
+==> Parameters: 3(Long)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==      Total: 3
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@36a54013]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@11bb7b15] was not registered for synchronization because synchronization is not active
+2026-05-24T13:44:03.286+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@4a5bedb4 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.290+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@55cf4658 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.294+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@45276019 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.297+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@6d207e2a (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.300+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@b371ae8 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.303+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@24e56050 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.305+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@5abceb7d (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.308+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@34031f2e (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.310+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@750a31c (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:44:03.313+08:00  WARN 6340 --- [nio-8080-exec-5] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@8b8b446 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+JDBC Connection [HikariProxyConnection@904020271 wrapping com.mysql.cj.jdbc.ConnectionImpl@1934d2d2] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM ticket
+==> Parameters: 
+<==    Columns: total
+<==        Row: 6
+<==      Total: 1
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket ORDER BY created_at DESC LIMIT ?
+==> Parameters: 10(Long)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 4, T20240101004, ??????, <<BLOB>>, 7, MEDIUM, RESOLVED, 5, 3, 2026-05-25 10:04:50, NORMAL, null, null, 2026-05-24 00:04:50, 2026-05-24 10:04:50
+<==      Total: 6
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@11bb7b15]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@72e9eca5] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2247024 wrapping com.mysql.cj.jdbc.ConnectionImpl@1934d2d2] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM ticket
+==> Parameters: 
+<==    Columns: total
+<==        Row: 6
+<==      Total: 1
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket ORDER BY created_at DESC LIMIT ?
+==> Parameters: 10(Long)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 4, T20240101004, ??????, <<BLOB>>, 7, MEDIUM, RESOLVED, 5, 3, 2026-05-25 10:04:50, NORMAL, null, null, 2026-05-24 00:04:50, 2026-05-24 10:04:50
+<==      Total: 6
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@72e9eca5]
+2026-05-24T13:46:17.171+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@1934d2d2 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.184+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@769a2d8 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.184+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@31ca30d3 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.184+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@6444f2a4 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.184+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@540b49bb (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.184+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@1ebe4e80 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.189+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@7e12a92c (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.189+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@3d00b598 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.189+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@33c86512 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.192+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@5feef7a5 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:46:17.192+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAé¢„è­¦...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+JDBC Connection [HikariProxyConnection@2086315429 wrapping com.mysql.cj.jdbc.ConnectionImpl@54213654] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: HIGH(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 3, HIGH, 2.00, 8.00, 1.00, ?????2??????8?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: URGENT(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 4, URGENT, 0.50, 2.00, 0.25, ??????30??????2?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: LOW(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 1, LOW, 24.00, 72.00, 12.00, ?????24??????72?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd] from current transaction
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: MEDIUM(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 2, MEDIUM, 8.00, 24.00, 4.00, ?????8??????24?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34de6ebd]
+2026-05-24T13:46:17.222+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAè¶…æ—¶...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1be26777]
+JDBC Connection [HikariProxyConnection@671839834 wrapping com.mysql.cj.jdbc.ConnectionImpl@54213654] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1be26777]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1be26777]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1be26777]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1be26777]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54d10146] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1202456197 wrapping com.mysql.cj.jdbc.ConnectionImpl@54213654] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM ticket
+==> Parameters: 
+<==    Columns: total
+<==        Row: 6
+<==      Total: 1
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket ORDER BY created_at DESC LIMIT ?
+==> Parameters: 3(Long)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==      Total: 3
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@54d10146]
+2026-05-24T13:51:17.161+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@54213654 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.171+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@a1b71f5 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.174+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@3ef2bb35 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.177+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@29746369 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.179+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@3227c124 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.182+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@63628a4c (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.183+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@48e2ae06 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.187+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@4287e358 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.187+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@4ea524cd (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.192+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@3962f7bf (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:51:17.194+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAé¢„è­¦...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+JDBC Connection [HikariProxyConnection@2125042253 wrapping com.mysql.cj.jdbc.ConnectionImpl@50d85d28] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: HIGH(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 3, HIGH, 2.00, 8.00, 1.00, ?????2??????8?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: URGENT(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 4, URGENT, 0.50, 2.00, 0.25, ??????30??????2?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: LOW(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 1, LOW, 24.00, 72.00, 12.00, ?????24??????72?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b] from current transaction
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: MEDIUM(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 2, MEDIUM, 8.00, 24.00, 4.00, ?????8??????24?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@64adec0b]
+2026-05-24T13:51:17.275+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAè¶…æ—¶...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3132a6c0]
+JDBC Connection [HikariProxyConnection@987872282 wrapping com.mysql.cj.jdbc.ConnectionImpl@50d85d28] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3132a6c0]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3132a6c0]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3132a6c0]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3132a6c0]
+2026-05-24T13:56:17.173+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@50d85d28 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.176+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@667e48d6 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.176+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@5148296f (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.178+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@44215dc7 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.179+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@70ab5d25 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.179+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@6407931e (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.180+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@7414dda0 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.180+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@3a156980 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.180+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@107d5992 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.181+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@483aa7e0 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T13:56:17.181+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAé¢„è­¦...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+JDBC Connection [HikariProxyConnection@1897054225 wrapping com.mysql.cj.jdbc.ConnectionImpl@6c0a7c74] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: HIGH(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 3, HIGH, 2.00, 8.00, 1.00, ?????2??????8?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: URGENT(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 4, URGENT, 0.50, 2.00, 0.25, ??????30??????2?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: LOW(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 1, LOW, 24.00, 72.00, 12.00, ?????24??????72?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a] from current transaction
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: MEDIUM(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 2, MEDIUM, 8.00, 24.00, 4.00, ?????8??????24?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a919a9a]
+2026-05-24T13:56:17.197+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAè¶…æ—¶...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@13fb73ff]
+JDBC Connection [HikariProxyConnection@492160077 wrapping com.mysql.cj.jdbc.ConnectionImpl@6c0a7c74] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@13fb73ff]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@13fb73ff]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@13fb73ff]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@13fb73ff]
+2026-05-24T14:01:17.170+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@6c0a7c74 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.178+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@2826fde4 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.180+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@1b623301 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.181+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@45b7f0af (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.181+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@34f8ceae (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.181+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@2baecc08 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.181+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@21de0847 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.183+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@5b96a65b (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.184+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@29698e39 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.185+08:00  WARN 6340 --- [   scheduling-1] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@74fad990 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.
+2026-05-24T14:01:17.186+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAé¢„è­¦...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+JDBC Connection [HikariProxyConnection@771810043 wrapping com.mysql.cj.jdbc.ConnectionImpl@c1488f2] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: HIGH(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 3, HIGH, 2.00, 8.00, 1.00, ?????2??????8?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: URGENT(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 4, URGENT, 0.50, 2.00, 0.25, ??????30??????2?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: LOW(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 1, LOW, 24.00, 72.00, 12.00, ?????24??????72?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78] from current transaction
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78] from current transaction
+==>  Preparing: SELECT id,priority,response_hours,resolve_hours,warning_hours,description,created_at,updated_at FROM sla_config WHERE (priority = ?)
+==> Parameters: MEDIUM(String)
+<==    Columns: id, priority, response_hours, resolve_hours, warning_hours, description, created_at, updated_at
+<==        Row: 2, MEDIUM, 8.00, 24.00, 4.00, ?????8??????24?????, 2026-05-24 10:04:50, 2026-05-24 10:04:50
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25376b78]
+2026-05-24T14:01:17.209+08:00  INFO 6340 --- [   scheduling-1] c.workorder.service.impl.SlaServiceImpl  : å¼€å§‹æ£€æŸ¥SLAè¶…æ—¶...
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@364ee354]
+JDBC Connection [HikariProxyConnection@1149625801 wrapping com.mysql.cj.jdbc.ConnectionImpl@c1488f2] will be managed by Spring
+==>  Preparing: SELECT id,ticket_no,title,description,category_id,priority,status,customer_id,agent_id,sla_deadline,sla_status,resolved_at,closed_at,created_at,updated_at FROM ticket WHERE (status IN (?,?,?) AND sla_deadline IS NOT NULL)
+==> Parameters: PENDING(String), ASSIGNED(String), PROCESSING(String)
+<==    Columns: id, ticket_no, title, description, category_id, priority, status, customer_id, agent_id, sla_deadline, sla_status, resolved_at, closed_at, created_at, updated_at
+<==        Row: 1, T20240101001, ??????, <<BLOB>>, 5, HIGH, PROCESSING, 4, 2, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 08:04:50, 2026-05-24 10:04:50
+<==        Row: 2, T20240101002, ??????, <<BLOB>>, 8, URGENT, ASSIGNED, 5, 2, 2026-05-24 12:04:50, OVERDUE, null, null, 2026-05-24 09:04:50, 2026-05-24 10:04:50
+<==        Row: 3, T20240101003, ????????, <<BLOB>>, 4, LOW, PENDING, 4, null, 2026-05-27 10:04:50, NORMAL, null, null, 2026-05-24 05:04:50, 2026-05-24 10:04:50
+<==        Row: 5, T20240101005, ??????, <<BLOB>>, 10, HIGH, PROCESSING, 4, null, 2026-05-24 18:04:50, NORMAL, null, null, 2026-05-24 09:34:50, 2026-05-24 10:04:50
+<==        Row: 6, T202605240001, ²âÊÔ¹¤µ¥, <<BLOB>>, 1, MEDIUM, PENDING, 4, null, 2026-05-25 13:23:02, NORMAL, null, null, 2026-05-24 13:23:03, 2026-05-24 13:23:03
+<==      Total: 5
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@364ee354]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@364ee354]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@364ee354]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@364ee354]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  20:59 min
+[INFO] Finished at: 2026-05-24T14:02:10+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.0:run (default-cli) on project work-order-system: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

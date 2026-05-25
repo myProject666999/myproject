@@ -9,6 +9,7 @@ import com.logistics.service.TrackingNodeService;
 import com.logistics.service.WaybillService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.List;
 public class TrackingNodeServiceImpl extends ServiceImpl<TrackingNodeMapper, TrackingNode> implements TrackingNodeService {
 
     @Autowired
+    @Lazy
     private WaybillService waybillService;
 
     @Override

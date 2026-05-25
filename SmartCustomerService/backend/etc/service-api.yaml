@@ -1,0 +1,21 @@
+Name: service-api
+Host: 0.0.0.0
+Port: 8888
+
+Mysql:
+  DataSource: root:123456@tcp(127.0.0.1:3306)/smart_customer_service?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node
+  Pass: ""
+
+Auth:
+  AccessSecret: smart-customer-service-secret-key-2024
+  AccessExpire: 86400
+
+Log:
+  Mode: file
+  Path: ./logs
+  Level: info
+  KeepDays: 7

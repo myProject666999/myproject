@@ -26,4 +26,4 @@ spring:
       mode: never
 
 file:
-  upload-dir: ./uploads
+  upload-dir: ${user.dir}/uploads

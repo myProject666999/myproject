@@ -40,7 +40,7 @@
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="category" label="分类" width="110" />
+        <el-table-column prop="categoryName" label="分类" width="110" />
         <el-table-column prop="area" label="区域" width="140" show-overflow-tooltip />
         <el-table-column label="状态" width="110">
           <template #default="{ row }">
@@ -50,10 +50,17 @@
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="170" />
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
+              link
+              @click.stop="goDetail(row)"
+            >
+              详情
+            </el-button>
+            <el-button
+              type="success"
               link
               @click.stop="openHandle(row)"
             >

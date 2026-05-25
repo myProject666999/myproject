@@ -141,42 +141,42 @@ function Statistics() {
         <h1 className="page-title">统计报表</h1>
       </div>
 
-      <Row gutter={16} className="workbench-stats">
-        <Col xs={12} sm={6}>
+      <Row gutter={[16, 16]} className="workbench-stats">
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="工单总数"
               value={totalTickets}
-              prefix={<FileTextOutlined />}
+              prefix={<FileTextOutlined style={{ fontSize: 20 }} />}
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="已解决"
               value={resolvedCount}
-              prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+              prefix={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: 20 }} />}
               valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="待处理"
               value={pendingCount}
-              prefix={<ClockCircleOutlined style={{ color: '#fa8c16' }} />}
+              prefix={<ClockCircleOutlined style={{ color: '#fa8c16', fontSize: 20 }} />}
               valueStyle={{ color: '#fa8c16' }}
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6}>
+        <Col xs={12} sm={12} md={6} lg={6} xl={6}>
           <Card className="stat-card">
             <Statistic
               title="客服数量"
               value={stats.agent.length}
-              prefix={<WarningOutlined style={{ color: '#722ed1' }} />}
+              prefix={<WarningOutlined style={{ color: '#722ed1', fontSize: 20 }} />}
               valueStyle={{ color: '#722ed1' }}
             />
           </Card>
@@ -184,36 +184,44 @@ function Statistics() {
       </Row>
 
       <Spin spinning={loading}>
-        <Row gutter={16}>
+        <Row gutter={[16, 16]}>
           <Col xs={24} lg={12}>
             <Card title="工单状态分布" style={{ marginBottom: 16 }}>
               {stats.status.length > 0 ? (
-                <ReactECharts option={getStatusChartOption()} style={{ height: 300 }} />
-              ) : <Empty />}
+                <div className="chart-container">
+                  <ReactECharts option={getStatusChartOption()} style={{ height: '100%', width: '100%' }} />
+                </div>
+              ) : <Empty style={{ padding: '40px 0' }} />}
             </Card>
           </Col>
           <Col xs={24} lg={12}>
             <Card title="工单优先级分布" style={{ marginBottom: 16 }}>
               {stats.priority.length > 0 ? (
-                <ReactECharts option={getPriorityChartOption()} style={{ height: 300 }} />
-              ) : <Empty />}
+                <div className="chart-container">
+                  <ReactECharts option={getPriorityChartOption()} style={{ height: '100%', width: '100%' }} />
+                </div>
+              ) : <Empty style={{ padding: '40px 0' }} />}
             </Card>
           </Col>
         </Row>
 
-        <Row gutter={16}>
+        <Row gutter={[16, 16]}>
           <Col xs={24} lg={12}>
             <Card title="近30天工单趋势" style={{ marginBottom: 16 }}>
               {stats.date.length > 0 ? (
-                <ReactECharts option={getDateChartOption()} style={{ height: 300 }} />
-              ) : <Empty />}
+                <div className="chart-container">
+                  <ReactECharts option={getDateChartOption()} style={{ height: '100%', width: '100%' }} />
+                </div>
+              ) : <Empty style={{ padding: '40px 0' }} />}
             </Card>
           </Col>
           <Col xs={24} lg={12}>
             <Card title="客服工单统计" style={{ marginBottom: 16 }}>
               {stats.agent.length > 0 ? (
-                <ReactECharts option={getAgentChartOption()} style={{ height: 300 }} />
-              ) : <Empty />}
+                <div className="chart-container">
+                  <ReactECharts option={getAgentChartOption()} style={{ height: '100%', width: '100%' }} />
+                </div>
+              ) : <Empty style={{ padding: '40px 0' }} />}
             </Card>
           </Col>
         </Row>

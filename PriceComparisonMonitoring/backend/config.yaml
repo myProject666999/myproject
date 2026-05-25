@@ -1,0 +1,24 @@
+server:
+  port: 8080
+  mode: debug
+
+database:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "123456"
+  dbname: price_monitor
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: price-monitor-secret-key-2024
+  expire_hour: 24
+
+crawl:
+  concurrency: 5
+  max_retry: 3

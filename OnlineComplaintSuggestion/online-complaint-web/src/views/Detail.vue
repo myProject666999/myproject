@@ -18,10 +18,10 @@
         </template>
 
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="分类">{{ detail.category }}</el-descriptions-item>
+          <el-descriptions-item label="分类">{{ detail.categoryName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="区域">{{ detail.area || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="联系人">{{ detail.contact || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="联系电话">{{ detail.phone || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="联系人">{{ detail.contactName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{ detail.contactPhone || '-' }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ detail.createTime }}</el-descriptions-item>
           <el-descriptions-item label="ID">#{{ detail.id }}</el-descriptions-item>
           <el-descriptions-item label="内容" :span="2">
@@ -37,11 +37,11 @@
             <span>处理进度</span>
           </div>
         </template>
-        <el-timeline v-if="timeline.length">
+        <el-timeline v-if="progressList.length">
           <el-timeline-item
-            v-for="(item, idx) in timeline"
+            v-for="(item, idx) in progressList"
             :key="idx"
-            :timestamp="item.time"
+            :timestamp="item.createTime"
             placement="top"
             :type="timelineType(item.status)"
           >
@@ -58,7 +58,7 @@
       </el-card>
 
       <el-card
-        v-if="attachments.length"
+        v-if="fileList.length"
         class="section-card"
         shadow="never"
         style="margin-top: 16px"
@@ -70,10 +70,10 @@
           </div>
         </template>
         <div class="attachment-list">
-          <template v-for="file in attachments" :key="file.id || file.url">
+          <template v-for="file in fileList" :key="file.id">
             <el-image
               v-if="isImage(file)"
-              :src="file.url"
+              :src="fileUrl(file)"
               :preview-src-list="imageList"
               fit="cover"
               style="width: 120px; height: 120px; border-radius: 4px"
@@ -81,13 +81,13 @@
             />
             <el-link
               v-else
-              :href="file.url"
+              :href="fileUrl(file)"
               target="_blank"
               type="primary"
               class="file-link"
             >
               <el-icon><Document /></el-icon>
-              {{ file.name || '下载附件' }}
+              {{ file.fileName || '下载附件' }}
             </el-link>
           </template>
         </div>
@@ -106,11 +106,11 @@
           </div>
         </template>
 
-        <div v-if="detail.evaluated && detail.evaluation">
+        <div v-if="detail.rating != null">
           <div class="eval-display">
-            <el-rate :model-value="detail.evaluation.rating" disabled show-score text-color="#ff9900" />
-            <div v-if="detail.evaluation.feedback" class="eval-feedback">
-              {{ detail.evaluation.feedback }}
+            <el-rate :model-value="detail.rating" disabled show-score text-color="#ff9900" />
+            <div v-if="detail.feedback" class="eval-feedback">
+              {{ detail.feedback }}
             </div>
           </div>
         </div>
@@ -157,37 +157,35 @@ const evalForm = reactive({
   feedback: ''
 })
 
-const timeline = computed(() => {
+const progressList = computed(() => {
   if (!detail.value) return []
-  return detail.value.timeline || []
+  return detail.value.progressList || []
 })
 
-const attachments = computed(() => {
+const fileList = computed(() => {
   if (!detail.value) return []
-  const list = detail.value.attachments || []
-  return list.map((f) => ({
-    ...f,
-    url: f.url || (f.fileId ? downloadFile(f.fileId) : f.url)
-  }))
+  return detail.value.fileList || []
 })
+
+const fileUrl = (file) => {
+  return downloadFile(file.id)
+}
 
 const imageList = computed(() =>
-  attachments.value.filter((f) => isImage(f)).map((f) => f.url)
+  fileList.value.filter((f) => isImage(f)).map((f) => fileUrl(f))
 )
 
 const isImage = (file) => {
-  const name = (file.name || file.url || '').toLowerCase()
-  return /\.(png|jpe?g|gif|bmp|webp|svg)(\?.*)?$/i.test(name)
+  const name = (file.fileName || '').toLowerCase()
+  return /\.(png|jpe?g|gif|bmp|webp|svg)$/i.test(name)
 }
 
 const timelineType = (s) => {
   const map = {
     PENDING: 'info',
-    ACCEPTED: 'primary',
     PROCESSING: 'warning',
     REPLIED: 'primary',
-    COMPLETED: 'success',
-    REJECTED: 'danger'
+    COMPLETED: 'success'
   }
   return map[s] || 'primary'
 }
@@ -195,11 +193,9 @@ const timelineType = (s) => {
 const statusType = (s) => {
   const map = {
     PENDING: 'info',
-    ACCEPTED: '',
     PROCESSING: 'warning',
     REPLIED: 'primary',
-    COMPLETED: 'success',
-    REJECTED: 'danger'
+    COMPLETED: 'success'
   }
   return map[s] || 'info'
 }
@@ -207,11 +203,9 @@ const statusType = (s) => {
 const statusText = (s) => {
   const map = {
     PENDING: '待受理',
-    ACCEPTED: '已受理',
     PROCESSING: '处理中',
     REPLIED: '已回复',
-    COMPLETED: '已完成',
-    REJECTED: '已驳回'
+    COMPLETED: '已完成'
   }
   return map[s] || s
 }

@@ -1,0 +1,47 @@
+CREATE DATABASE IF NOT EXISTS online_form_collection
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE online_form_collection;
+
+CREATE TABLE IF NOT EXISTS forms (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  status VARCHAR(20) DEFAULT 'draft',
+  max_submissions INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS form_fields (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  form_id INTEGER NOT NULL,
+  field_type VARCHAR(50) NOT NULL,
+  label VARCHAR(255) NOT NULL,
+  placeholder VARCHAR(255) DEFAULT '',
+  required TINYINT(1) DEFAULT 0,
+  options TEXT,
+  validation TEXT,
+  sort_order INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS submissions (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  form_id INTEGER NOT NULL,
+  data LONGTEXT NOT NULL,
+  submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS settings (
+  id INTEGER PRIMARY KEY AUTO_INCREMENT,
+  setting_key VARCHAR(100) UNIQUE NOT NULL,
+  setting_value TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO settings (setting_key, setting_value)
+VALUES ('site_name', '在线表单收集工具')
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);

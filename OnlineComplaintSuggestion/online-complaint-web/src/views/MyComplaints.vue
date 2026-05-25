@@ -41,7 +41,7 @@
         empty-text="暂无数据"
       >
         <el-table-column prop="title" label="标题" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="category" label="分类" width="110" />
+        <el-table-column prop="categoryName" label="分类" width="110" />
         <el-table-column prop="area" label="区域" width="140" show-overflow-tooltip />
         <el-table-column label="状态" width="110">
           <template #default="{ row }">
