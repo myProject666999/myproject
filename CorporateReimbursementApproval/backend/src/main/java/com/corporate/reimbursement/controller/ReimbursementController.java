@@ -222,23 +222,53 @@ public class ReimbursementController {
                 Wrappers.<InvoiceAttachment>lambdaQuery().eq(InvoiceAttachment::getReimbursementId, id));
 
         Map<String, Object> data = convertToMap(reimbursement);
-        data.put("items", items);
-        data.put("attachments", attachments);
+
+        List<Map<String, Object>> itemMaps = new ArrayList<>();
+        for (ReimbursementItem item : items) {
+            Map<String, Object> itemMap = new HashMap<>();
+            itemMap.put("id", String.valueOf(item.getId()));
+            itemMap.put("reimbursementId", String.valueOf(item.getReimbursementId()));
+            itemMap.put("itemName", item.getItemName());
+            itemMap.put("itemType", item.getItemType());
+            itemMap.put("amount", item.getAmount());
+            itemMap.put("quantity", item.getQuantity());
+            itemMap.put("unitPrice", item.getUnitPrice());
+            itemMap.put("expenseDate", item.getExpenseDate());
+            itemMap.put("description", item.getDescription());
+            itemMap.put("createTime", item.getCreateTime());
+            itemMaps.add(itemMap);
+        }
+        data.put("items", itemMaps);
+
+        List<Map<String, Object>> attachmentMaps = new ArrayList<>();
+        for (InvoiceAttachment att : attachments) {
+            Map<String, Object> attMap = new HashMap<>();
+            attMap.put("id", String.valueOf(att.getId()));
+            attMap.put("reimbursementId", String.valueOf(att.getReimbursementId()));
+            attMap.put("fileName", att.getFileName());
+            attMap.put("fileUrl", att.getFilePath());
+            attMap.put("fileSize", att.getFileSize());
+            attMap.put("fileType", att.getFileType());
+            attMap.put("createTime", att.getCreateTime());
+            attachmentMaps.add(attMap);
+        }
+        data.put("attachments", attachmentMaps);
+
         return Result.success(data);
     }
 
     private Map<String, Object> convertToMap(Reimbursement r) {
         Map<String, Object> map = new HashMap<>();
-        map.put("id", r.getId());
+        map.put("id", String.valueOf(r.getId()));
         map.put("reimburseNo", r.getReimbursementNo());
         map.put("title", r.getTitle());
-        map.put("typeId", r.getTypeId());
-        map.put("applicantId", r.getApplicantId());
+        map.put("typeId", r.getTypeId() != null ? String.valueOf(r.getTypeId()) : null);
+        map.put("applicantId", r.getApplicantId() != null ? String.valueOf(r.getApplicantId()) : null);
         map.put("deptId", r.getDeptId());
         map.put("totalAmount", r.getTotalAmount());
         map.put("reason", r.getReason());
         map.put("status", r.getStatus());
-        map.put("currentApproverId", r.getCurrentApproverId());
+        map.put("currentApproverId", r.getCurrentApproverId() != null ? String.valueOf(r.getCurrentApproverId()) : null);
         map.put("currentApprovalLevel", r.getCurrentApprovalLevel());
         map.put("submitTime", r.getSubmitTime());
         map.put("approvalTime", r.getApprovalTime());

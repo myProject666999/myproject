@@ -31,6 +31,14 @@ export function getRecords(id) {
   })
 }
 
+export function getMyRecords(params) {
+  return request({
+    url: '/approval/my-records',
+    method: 'get',
+    params
+  })
+}
+
 export function getStats() {
   return request({
     url: '/approval/stats',

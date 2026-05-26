@@ -1,7 +1,9 @@
 package com.corporate.reimbursement.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.corporate.reimbursement.common.Result;
 import com.corporate.reimbursement.entity.*;
 import com.corporate.reimbursement.mapper.*;
@@ -28,6 +30,9 @@ public class ApprovalController {
 
     @Autowired
     private SysUserMapper sysUserMapper;
+
+    @Autowired
+    private ApprovalRecordMapper approvalRecordMapper;
 
     private Long getCurrentUserId(HttpServletRequest request) {
         String userIdStr = request.getHeader("X-User-Id");
@@ -81,18 +86,48 @@ public class ApprovalController {
         return Result.success(data);
     }
 
+    @GetMapping("/my-records")
+    public Result<IPage<Map<String, Object>>> myRecords(
+            HttpServletRequest request,
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        Long userId = getCurrentUserId(request);
+
+        QueryWrapper<ApprovalRecord> recordWrapper = new QueryWrapper<>();
+        recordWrapper.eq("approver_id", userId)
+                .orderByDesc("approval_time");
+
+        IPage<ApprovalRecord> recordPage = approvalRecordMapper.selectPage(new Page<>(pageNum, pageSize), recordWrapper);
+
+        List<Map<String, Object>> records = new ArrayList<>();
+        for (ApprovalRecord record : recordPage.getRecords()) {
+            Reimbursement r = reimbursementService.getDetail(record.getReimbursementId());
+            if (r != null) {
+                Map<String, Object> map = convertToMap(r);
+                map.put("myAction", record.getApprovalAction());
+                map.put("myOpinion", record.getOpinion());
+                map.put("approvalTime", record.getApprovalTime());
+                records.add(map);
+            }
+        }
+
+        IPage<Map<String, Object>> pageResult = new Page<>(recordPage.getCurrent(), recordPage.getSize(), recordPage.getTotal());
+        pageResult.setRecords(records);
+        return Result.success(pageResult);
+    }
+
     private Map<String, Object> convertToMap(Reimbursement r) {
         Map<String, Object> map = new HashMap<>();
-        map.put("id", r.getId());
+        map.put("id", String.valueOf(r.getId()));
         map.put("reimburseNo", r.getReimbursementNo());
         map.put("title", r.getTitle());
-        map.put("typeId", r.getTypeId());
-        map.put("applicantId", r.getApplicantId());
+        map.put("typeId", r.getTypeId() != null ? String.valueOf(r.getTypeId()) : null);
+        map.put("applicantId", r.getApplicantId() != null ? String.valueOf(r.getApplicantId()) : null);
         map.put("deptId", r.getDeptId());
         map.put("totalAmount", r.getTotalAmount());
         map.put("reason", r.getReason());
         map.put("status", r.getStatus());
-        map.put("currentApproverId", r.getCurrentApproverId());
+        map.put("currentApproverId", r.getCurrentApproverId() != null ? String.valueOf(r.getCurrentApproverId()) : null);
         map.put("currentApprovalLevel", r.getCurrentApprovalLevel());
         map.put("submitTime", r.getSubmitTime());
         map.put("approvalTime", r.getApprovalTime());

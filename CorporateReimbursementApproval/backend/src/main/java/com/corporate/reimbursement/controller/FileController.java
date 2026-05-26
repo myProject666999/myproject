@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,22 +47,15 @@ public class FileController {
             Path filePath = Paths.get(UPLOAD_DIR, newFilename);
             Files.copy(file.getInputStream(), filePath);
 
-            InvoiceAttachment attachment = new InvoiceAttachment();
-            attachment.setFileName(originalFilename);
-            attachment.setFilePath(filePath.toString());
-            attachment.setFileType(file.getContentType());
-            attachment.setFileSize(file.getSize());
-            attachment.setCreateTime(LocalDateTime.now());
-            invoiceAttachmentMapper.insert(attachment);
-
             Map<String, Object> data = new HashMap<>();
-            data.put("id", attachment.getId());
             data.put("fileName", originalFilename);
-            data.put("filePath", filePath.toString());
+            data.put("filePath", filePath.toAbsolutePath().toString());
+            data.put("fileUrl", "/uploads/invoices/" + newFilename);
             data.put("fileType", file.getContentType());
             data.put("fileSize", file.getSize());
             return Result.success("上传成功", data);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
             return Result.error("文件上传失败: " + e.getMessage());
         }
     }

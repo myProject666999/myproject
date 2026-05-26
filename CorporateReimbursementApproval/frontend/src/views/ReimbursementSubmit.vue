@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <el-icon :size="20" color="#409EFF"><DocumentAdd /></el-icon>
-          <span class="card-title">新建报销单</span>
+          <span class="card-title">{{ isEdit ? '编辑报销单' : '新建报销单' }}</span>
         </div>
       </template>
 
@@ -223,7 +223,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   DocumentAdd,
@@ -234,11 +234,15 @@ import {
   Check
 } from '@element-plus/icons-vue'
 import { getReimbursementTypes, uploadFile } from '@/api/common'
-import { createReimbursement, submitReimbursement } from '@/api/reimbursement'
+import { createReimbursement, submitReimbursement, getDetail, updateReimbursement } from '@/api/reimbursement'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
+
+const editId = ref(null)
+const isEdit = computed(() => !!editId.value)
 
 const formRef = ref(null)
 const typeLoading = ref(false)
@@ -247,9 +251,7 @@ const savingDraft = ref(false)
 const submitting = ref(false)
 
 const fileList = ref([])
-const uploadAction = import.meta.env.VITE_API_BASE_URL
-  ? `${import.meta.env.VITE_API_BASE_URL}/common/upload`
-  : '/common/upload'
+const uploadAction = '/api/file/upload'
 const uploadHeaders = computed(() => ({
   Authorization: userStore.token ? `Bearer ${userStore.token}` : ''
 }))
@@ -360,7 +362,7 @@ const handleUploadSuccess = (response, uploadFile, uploadList) => {
     if (!existing) {
       form.attachments.push({
         fileName: data.fileName || uploadFile.name,
-        fileUrl: data.fileUrl || data.url || '',
+        fileUrl: data.fileUrl || data.filePath || data.url || '',
         originalName: data.originalName || uploadFile.name
       })
     }
@@ -430,10 +432,10 @@ const handleSaveDraft = async () => {
     await formRef.value.validate()
     if (!validateItems()) return
     savingDraft.value = true
-    const res = await createReimbursement({
-      ...buildPayload(),
-      status: 'DRAFT'
-    })
+    const payload = { ...buildPayload(), status: 'DRAFT' }
+    const res = isEdit.value
+      ? await updateReimbursement(editId.value, payload)
+      : await createReimbursement(payload)
     if (res.code === 200) {
       ElMessage.success('草稿已保存')
       router.push('/my')
@@ -459,23 +461,31 @@ const handleSubmit = async () => {
       { confirmButtonText: '确认提交', cancelButtonText: '取消', type: 'warning' }
     )
     submitting.value = true
-    const res = await createReimbursement({
-      ...buildPayload(),
-      status: 'DRAFT'
-    })
-    if (res.code === 200) {
-      const id = res.data?.id
-      if (id) {
-        try {
-          await submitReimbursement(id)
-        } catch (_) {
-        }
+    const payload = { ...buildPayload(), status: 'DRAFT' }
+    let id
+    if (isEdit.value) {
+      const res = await updateReimbursement(editId.value, payload)
+      if (res.code !== 200) {
+        ElMessage.error(res.message || '保存失败')
+        return
       }
-      ElMessage.success('提交成功，已进入审批流程')
-      router.push('/my')
+      id = editId.value
     } else {
-      ElMessage.error(res.message || '提交失败')
+      const res = await createReimbursement(payload)
+      if (res.code !== 200) {
+        ElMessage.error(res.message || '提交失败')
+        return
+      }
+      id = res.data?.id
     }
+    if (id) {
+      try {
+        await submitReimbursement(id)
+      } catch (_) {
+      }
+    }
+    ElMessage.success('提交成功，已进入审批流程')
+    router.push('/my')
   } catch (e) {
     if (e === 'cancel') return
     if (e && e.code !== 200) {
@@ -486,8 +496,47 @@ const handleSubmit = async () => {
   }
 }
 
+const loadDetail = async (id) => {
+  try {
+    const res = await getDetail(id)
+    if (res.code === 200) {
+      const data = res.data || {}
+      form.title = data.title || ''
+      form.type = data.typeCode || ''
+      form.reason = data.reason || ''
+      form.items = (data.items || []).map(item => ({
+        name: item.itemName || item.name || '',
+        itemType: item.itemType || '',
+        quantity: item.quantity || 1,
+        unitPrice: item.unitPrice || 0,
+        amount: item.amount || 0,
+        expenseDate: item.expenseDate || '',
+        description: item.description || ''
+      }))
+      form.attachments = (data.attachments || []).map(att => ({
+        fileName: att.fileName || '',
+        fileUrl: att.fileUrl || att.filePath || '',
+        originalName: att.fileName || ''
+      }))
+      fileList.value = form.attachments.map((att, idx) => ({
+        uid: idx,
+        name: att.fileName,
+        url: att.fileUrl,
+        status: 'success'
+      }))
+    }
+  } catch (e) {
+    ElMessage.error('加载报销单失败')
+  }
+}
+
 onMounted(() => {
   fetchTypes()
+  const id = route.query.id
+  if (id) {
+    editId.value = id
+    loadDetail(id)
+  }
 })
 </script>
 

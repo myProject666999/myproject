@@ -212,6 +212,7 @@ import { Stamp, View, Check, Close } from '@element-plus/icons-vue'
 import {
   getPendingApprovals,
   getRecords,
+  getMyRecords,
   approve,
   reject
 } from '@/api/approval'
@@ -299,7 +300,7 @@ const fetchApprovedList = async () => {
       pageNum: approvedPagination.pageNum,
       pageSize: approvedPagination.pageSize
     }
-    const res = await getRecords(params)
+    const res = await getMyRecords(params)
     if (res.code === 200) {
       const data = res.data || {}
       const list = data.records || data.list || data.approvedList || []
