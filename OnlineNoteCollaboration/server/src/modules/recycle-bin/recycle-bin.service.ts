@@ -36,7 +36,7 @@ export class RecycleBinService {
       throw new BadRequestException('Document is already in recycle bin');
     }
 
-    await this.documentsService.deleteDocument(documentId, deletedBy);
+    await this.documentsService.deleteDocument(documentId, deletedBy, true);
 
     const expireAt = new Date();
     expireAt.setDate(expireAt.getDate() + 30);

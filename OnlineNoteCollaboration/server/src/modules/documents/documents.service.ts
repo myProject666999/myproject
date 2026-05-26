@@ -7,12 +7,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Document } from './document.entity';
 import { SpacesService } from '../spaces/spaces.service';
+import { RecycleBin } from '../recycle-bin/recycle-bin.entity';
 
 @Injectable()
 export class DocumentsService {
   constructor(
     @InjectRepository(Document)
     private readonly documentRepository: Repository<Document>,
+    @InjectRepository(RecycleBin)
+    private readonly recycleBinRepository: Repository<RecycleBin>,
     private readonly spacesService: SpacesService,
   ) {}
 
@@ -83,7 +86,7 @@ export class DocumentsService {
     return this.documentRepository.save(document);
   }
 
-  async deleteDocument(docId: number, userId: number): Promise<void> {
+  async deleteDocument(docId: number, userId: number, skipRecycleBin = false): Promise<void> {
     const document = await this.getDocumentById(docId);
     await this.ensureWritable(document.space_id, userId);
 
@@ -91,6 +94,25 @@ export class DocumentsService {
     document.deleted_at = new Date();
     document.updated_by = userId;
     await this.documentRepository.save(document);
+
+    if (!skipRecycleBin) {
+      const existing = await this.recycleBinRepository.findOne({
+        where: { document_id: docId },
+      });
+      if (!existing) {
+        const expireAt = new Date();
+        expireAt.setDate(expireAt.getDate() + 30);
+        const record = this.recycleBinRepository.create({
+          document_id: docId,
+          space_id: document.space_id,
+          original_title: document.title,
+          original_content: document.content,
+          deleted_by: userId,
+          expire_at: expireAt,
+        });
+        await this.recycleBinRepository.save(record);
+      }
+    }
   }
 
   async restoreDocument(docId: number): Promise<void> {

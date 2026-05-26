@@ -1,30 +1,24 @@
 import request from '@/utils/request'
 
-export const createPayment = (orderId, paymentMethod) => {
+export const createPayment = (data) => {
   return request({
-    url: '/payment/create',
+    url: '/payments',
     method: 'post',
-    data: { orderId, paymentMethod }
+    data
   })
 }
 
 export const processPayment = (paymentId) => {
   return request({
-    url: `/payment/${paymentId}/process`,
-    method: 'post'
+    url: '/payments/process',
+    method: 'post',
+    data: { paymentId }
   })
 }
 
-export const getPaymentStatus = (paymentId) => {
+export const getPaymentStatus = (id) => {
   return request({
-    url: `/payment/${paymentId}/status`,
-    method: 'get'
-  })
-}
-
-export const getOrderPayment = (orderId) => {
-  return request({
-    url: `/payment/order/${orderId}`,
+    url: `/payments/${id}`,
     method: 'get'
   })
 }

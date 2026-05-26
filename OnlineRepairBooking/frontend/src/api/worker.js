@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export const getWorkerList = (params) => {
   return request({
-    url: '/worker/list',
+    url: '/workers',
     method: 'get',
     params
   })
@@ -10,22 +10,30 @@ export const getWorkerList = (params) => {
 
 export const getWorkerDetail = (id) => {
   return request({
-    url: `/worker/${id}`,
+    url: `/workers/${id}`,
     method: 'get'
   })
 }
 
 export const getWorkerReviews = (workerId, params) => {
   return request({
-    url: `/worker/${workerId}/reviews`,
+    url: `/workers/${workerId}/reviews`,
     method: 'get',
     params
   })
 }
 
-export const getWorkerStats = (workerId) => {
+export const workerRegister = (data) => {
   return request({
-    url: `/worker/${workerId}/stats`,
+    url: '/workers/register',
+    method: 'post',
+    data
+  })
+}
+
+export const getWorkerStats = () => {
+  return request({
+    url: '/worker/stats',
     method: 'get'
   })
 }

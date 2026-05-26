@@ -69,6 +69,7 @@ type Alert struct {
 	StartTime     time.Time `json:"start_time" gorm:"not null"`
 	EndTime       *time.Time `json:"end_time,omitempty"`
 	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 
 	City City `json:"city,omitempty" gorm:"foreignKey:CityID;constraint:OnDelete:CASCADE"`
 }

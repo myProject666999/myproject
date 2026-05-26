@@ -2,14 +2,14 @@ import request from '@/utils/request'
 
 export const getCategories = () => {
   return request({
-    url: '/service/categories',
+    url: '/services/categories',
     method: 'get'
   })
 }
 
 export const getServices = (params) => {
   return request({
-    url: '/service/list',
+    url: '/services',
     method: 'get',
     params
   })
@@ -17,15 +17,15 @@ export const getServices = (params) => {
 
 export const getServiceDetail = (id) => {
   return request({
-    url: `/service/${id}`,
+    url: `/services/${id}`,
     method: 'get'
   })
 }
 
-export const getTimeSlots = (serviceId, date) => {
+export const getTimeSlots = (params) => {
   return request({
-    url: `/service/${serviceId}/time-slots`,
+    url: '/services/time-slots',
     method: 'get',
-    params: { date }
+    params
   })
 }

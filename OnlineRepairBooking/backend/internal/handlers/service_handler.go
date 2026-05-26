@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"strconv"
+	"strings"
 	"time"
 
 	"online-repair-booking/internal/models"
@@ -55,20 +56,25 @@ func (h *ServiceHandler) GetCategoryList(c echo.Context) error {
 
 	for rows.Next() {
 		var id, parentID uint64
-		var name, icon, description string
+		var name string
+		var icon, description sql.NullString
 		var sort int
 		err := rows.Scan(&id, &name, &icon, &description, &parentID, &sort)
 		if err != nil {
-			return response.InternalServerError(c, "解析分类数据失败")
+			return response.InternalServerError(c, "解析分类数据失败: "+err.Error())
 		}
 
 		category := &ServiceCategoryWithChildren{
 			ID:          id,
 			Name:        name,
-			Icon:        icon,
-			Description: description,
 			Sort:        sort,
 			Children:    make([]*ServiceCategoryWithChildren, 0),
+		}
+		if icon.Valid {
+			category.Icon = icon.String
+		}
+		if description.Valid {
+			category.Description = description.String
 		}
 		categoryMap[id] = category
 
@@ -86,16 +92,15 @@ func (h *ServiceHandler) GetCategoryList(c echo.Context) error {
 
 func (h *ServiceHandler) GetServiceList(c echo.Context) error {
 	categoryIDStr := c.QueryParam("category_id")
+	categoryIDStr2 := c.QueryParam("categoryId")
+	if categoryIDStr == "" && categoryIDStr2 != "" {
+		categoryIDStr = categoryIDStr2
+	}
 	pageStr := c.QueryParam("page")
 	pageSizeStr := c.QueryParam("page_size")
-
-	if categoryIDStr == "" {
-		return response.BadRequest(c, "分类ID不能为空")
-	}
-
-	categoryID, err := strconv.ParseUint(categoryIDStr, 10, 64)
-	if err != nil {
-		return response.BadRequest(c, "分类ID格式错误")
+	pageSizeStr2 := c.QueryParam("pageSize")
+	if pageSizeStr == "" && pageSizeStr2 != "" {
+		pageSizeStr = pageSizeStr2
 	}
 
 	page := 1
@@ -114,18 +119,33 @@ func (h *ServiceHandler) GetServiceList(c echo.Context) error {
 		pageSize = 10
 	}
 
+	whereConditions := make([]string, 0)
+	args := make([]interface{}, 0)
+	whereConditions = append(whereConditions, "s.status = 1")
+
+	if categoryIDStr != "" {
+		categoryID, err := strconv.ParseUint(categoryIDStr, 10, 64)
+		if err == nil {
+			whereConditions = append(whereConditions, "s.category_id = ?")
+			args = append(args, categoryID)
+		}
+	}
+
+	whereClause := " WHERE " + strings.Join(whereConditions, " AND ")
+
 	var total int64
-	countQuery := `SELECT COUNT(*) FROM services WHERE category_id = ? AND status = 1`
-	err = database.MySQL.QueryRow(countQuery, categoryID).Scan(&total)
+	countQuery := `SELECT COUNT(*) FROM services s` + whereClause
+	err := database.MySQL.QueryRow(countQuery, args...).Scan(&total)
 	if err != nil {
 		return response.InternalServerError(c, "获取服务总数失败")
 	}
 
 	offset := (page - 1) * pageSize
-	query := `SELECT id, category_id, name, description, price, price_unit, image, duration, sort 
-	          FROM services WHERE category_id = ? AND status = 1 
-	          ORDER BY sort ASC, id DESC LIMIT ? OFFSET ?`
-	rows, err := database.MySQL.Query(query, categoryID, pageSize, offset)
+	query := `SELECT s.id, s.category_id, s.name, s.description, s.price, s.price_unit, s.image, s.duration, s.sort 
+	          FROM services s` + whereClause + `
+	          ORDER BY s.sort ASC, s.id DESC LIMIT ? OFFSET ?`
+	args = append(args, pageSize, offset)
+	rows, err := database.MySQL.Query(query, args...)
 	if err != nil {
 		return response.InternalServerError(c, "获取服务列表失败")
 	}

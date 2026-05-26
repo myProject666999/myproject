@@ -20,9 +20,17 @@ func NewWorkerHandler(db *sql.DB) *WorkerHandler {
 
 func (h *WorkerHandler) GetWorkerList(c echo.Context) error {
 	categoryIDStr := c.QueryParam("category_id")
+	categoryIDStr2 := c.QueryParam("categoryId")
+	if categoryIDStr == "" && categoryIDStr2 != "" {
+		categoryIDStr = categoryIDStr2
+	}
 	city := c.QueryParam("city")
 	pageStr := c.QueryParam("page")
 	pageSizeStr := c.QueryParam("page_size")
+	pageSizeStr2 := c.QueryParam("pageSize")
+	if pageSizeStr == "" && pageSizeStr2 != "" {
+		pageSizeStr = pageSizeStr2
+	}
 
 	page := 1
 	if pageStr != "" {
@@ -115,12 +123,25 @@ func (h *WorkerHandler) GetWorkerList(c echo.Context) error {
 	workers := make([]*WorkerItem, 0)
 	for rows.Next() {
 		worker := &WorkerItem{}
-		err := rows.Scan(&worker.ID, &worker.RealName, &worker.Avatar, &worker.Phone,
-			&worker.Province, &worker.City, &worker.District, &worker.Introduction,
-			&worker.Skills, &worker.YearsOfExperience, &worker.Rating, &worker.OrderCount,
+		var avatar, district, introduction, skills sql.NullString
+		err := rows.Scan(&worker.ID, &worker.RealName, &avatar, &worker.Phone,
+			&worker.Province, &worker.City, &district, &introduction,
+			&skills, &worker.YearsOfExperience, &worker.Rating, &worker.OrderCount,
 			&worker.Level, &worker.IsCertified)
 		if err != nil {
-			return response.InternalServerError(c, "解析师傅数据失败")
+			return response.InternalServerError(c, "解析师傅数据失败: "+err.Error())
+		}
+		if avatar.Valid {
+			worker.Avatar = avatar.String
+		}
+		if district.Valid {
+			worker.District = district.String
+		}
+		if introduction.Valid {
+			worker.Introduction = introduction.String
+		}
+		if skills.Valid {
+			worker.Skills = skills.String
 		}
 		workers = append(workers, worker)
 	}

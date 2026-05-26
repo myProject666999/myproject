@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS alerts (
   start_time DATETIME NOT NULL,
   end_time DATETIME,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE CASCADE,
   INDEX idx_city_alert (city_id, created_at),
   INDEX idx_is_resolved (is_resolved)

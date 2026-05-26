@@ -9,19 +9,19 @@ import (
 )
 
 type Config struct {
-	AppPort     string
-	AppEnv      string
-	MySQLHost   string
-	MySQLPort   string
-	MySQLUser   string
-	MySQLPass   string
-	MySQLDB     string
-	RedisHost   string
-	RedisPort   string
-	RedisPass   string
-	RedisDB     int
-	JWTSecret   string
-	JWTExpire   int
+	AppPort   string
+	AppEnv    string
+	MySQLHost string
+	MySQLPort string
+	MySQLUser string
+	MySQLPass string
+	MySQLDB   string
+	RedisHost string
+	RedisPort string
+	RedisPass string
+	RedisDB   int
+	JWTSecret string
+	JWTExpire int
 }
 
 var AppConfig *Config
@@ -36,19 +36,19 @@ func Load() {
 	jwtExpire, _ := strconv.Atoi(getEnv("JWT_EXPIRE_HOURS", "24"))
 
 	AppConfig = &Config{
-		AppPort:     getEnv("APP_PORT", "8080"),
-		AppEnv:      getEnv("APP_ENV", "development"),
-		MySQLHost:   getEnv("MYSQL_HOST", "127.0.0.1"),
-		MySQLPort:   getEnv("MYSQL_PORT", "3306"),
-		MySQLUser:   getEnv("MYSQL_USER", "root"),
-		MySQLPass:   getEnv("MYSQL_PASSWORD", ""),
-		MySQLDB:     getEnv("MYSQL_DATABASE", "online_repair_booking"),
-		RedisHost:   getEnv("REDIS_HOST", "127.0.0.1"),
-		RedisPort:   getEnv("REDIS_PORT", "6379"),
-		RedisPass:   getEnv("REDIS_PASSWORD", ""),
-		RedisDB:     redisDB,
-		JWTSecret:   getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
-		JWTExpire:   jwtExpire,
+		AppPort:   getEnv("APP_PORT", "8080"),
+		AppEnv:    getEnv("APP_ENV", "development"),
+		MySQLHost: getEnv("MYSQL_HOST", "127.0.0.1"),
+		MySQLPort: getEnv("MYSQL_PORT", "3306"),
+		MySQLUser: getEnv("MYSQL_USER", "root"),
+		MySQLPass: getEnv("MYSQL_PASSWORD", "123456"),
+		MySQLDB:   getEnv("MYSQL_DATABASE", "online_repair_booking"),
+		RedisHost: getEnv("REDIS_HOST", "127.0.0.1"),
+		RedisPort: getEnv("REDIS_PORT", "6379"),
+		RedisPass: getEnv("REDIS_PASSWORD", ""),
+		RedisDB:   redisDB,
+		JWTSecret: getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
+		JWTExpire: jwtExpire,
 	}
 }
 

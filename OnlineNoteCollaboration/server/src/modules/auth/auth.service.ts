@@ -32,7 +32,12 @@ export class AuthService {
       email: user.email,
     };
     const access_token = this.jwtService.sign(payload);
-    return { access_token };
+    return {
+      access_token,
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+    };
   }
 
   async register(registerDto: RegisterDto) {
@@ -57,6 +62,11 @@ export class AuthService {
       email: user.email,
     };
     const access_token = this.jwtService.sign(payload);
-    return { access_token };
+    return {
+      access_token,
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+    };
   }
 }

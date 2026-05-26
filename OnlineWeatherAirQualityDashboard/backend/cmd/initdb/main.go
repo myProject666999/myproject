@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -26,7 +27,8 @@ func main() {
 
 	fmt.Println("Database connected successfully")
 
-	sqlFile, err := ioutil.ReadFile("sql/init.sql")
+	sqlPath := filepath.Join("sql", "init.sql")
+	sqlFile, err := os.ReadFile(sqlPath)
 	if err != nil {
 		log.Fatalf("Failed to read SQL file: %v", err)
 	}
@@ -40,7 +42,7 @@ func main() {
 		}
 
 		if err := db.Exec(stmt).Error; err != nil {
-			log.Printf("Warning: Failed to execute statement: %v", err)
+			log.Printf("Warning: Failed to execute statement: %v\nError: %v", stmt[:50], err)
 		}
 	}
 

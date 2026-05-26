@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export const createOrder = (data) => {
   return request({
-    url: '/order/create',
+    url: '/orders',
     method: 'post',
     data
   })
@@ -10,7 +10,7 @@ export const createOrder = (data) => {
 
 export const getOrderList = (params) => {
   return request({
-    url: '/order/list',
+    url: '/orders',
     method: 'get',
     params
   })
@@ -18,51 +18,50 @@ export const getOrderList = (params) => {
 
 export const getOrderDetail = (id) => {
   return request({
-    url: `/order/${id}`,
+    url: `/orders/${id}`,
     method: 'get'
   })
 }
 
-export const cancelOrder = (id, reason) => {
+export const cancelOrder = (id, cancelReason) => {
   return request({
-    url: `/order/${id}/cancel`,
+    url: `/orders/${id}/cancel`,
     method: 'post',
-    data: { reason }
+    data: { cancelReason }
   })
 }
 
 export const grabOrder = (id) => {
   return request({
-    url: `/order/${id}/grab`,
+    url: `/worker/orders/${id}/grab`,
     method: 'post'
   })
 }
 
 export const acceptOrder = (id) => {
   return request({
-    url: `/order/${id}/accept`,
+    url: `/worker/orders/${id}/accept`,
     method: 'post'
   })
 }
 
 export const startService = (id) => {
   return request({
-    url: `/order/${id}/start`,
+    url: `/worker/orders/${id}/start`,
     method: 'post'
   })
 }
 
-export const completeService = (id, data) => {
+export const completeService = (id) => {
   return request({
-    url: `/order/${id}/complete`,
-    method: 'post',
-    data
+    url: `/worker/orders/${id}/complete`,
+    method: 'post'
   })
 }
 
 export const getPendingOrders = (params) => {
   return request({
-    url: '/order/pending',
+    url: '/worker/orders/pending',
     method: 'get',
     params
   })
@@ -70,7 +69,7 @@ export const getPendingOrders = (params) => {
 
 export const getWorkerOrders = (params) => {
   return request({
-    url: '/order/worker',
+    url: '/worker/orders',
     method: 'get',
     params
   })

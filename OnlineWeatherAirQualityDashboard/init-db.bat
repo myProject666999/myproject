@@ -11,7 +11,7 @@ go mod download
 
 echo.
 echo [2/3] 初始化数据库...
-go run init_db.go
+go run ./cmd/initdb
 
 echo.
 echo [3/3] 数据库初始化完成！

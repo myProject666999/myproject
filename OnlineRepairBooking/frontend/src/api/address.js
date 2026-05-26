@@ -2,14 +2,14 @@ import request from '@/utils/request'
 
 export const getAddressList = () => {
   return request({
-    url: '/address/list',
+    url: '/user/addresses',
     method: 'get'
   })
 }
 
 export const createAddress = (data) => {
   return request({
-    url: '/address/create',
+    url: '/user/addresses',
     method: 'post',
     data
   })
@@ -17,7 +17,7 @@ export const createAddress = (data) => {
 
 export const updateAddress = (id, data) => {
   return request({
-    url: `/address/${id}`,
+    url: `/user/addresses/${id}`,
     method: 'put',
     data
   })
@@ -25,21 +25,14 @@ export const updateAddress = (id, data) => {
 
 export const deleteAddress = (id) => {
   return request({
-    url: `/address/${id}`,
+    url: `/user/addresses/${id}`,
     method: 'delete'
   })
 }
 
 export const setDefaultAddress = (id) => {
   return request({
-    url: `/address/${id}/default`,
+    url: `/user/addresses/${id}/default`,
     method: 'post'
-  })
-}
-
-export const getDefaultAddress = () => {
-  return request({
-    url: '/address/default',
-    method: 'get'
   })
 }

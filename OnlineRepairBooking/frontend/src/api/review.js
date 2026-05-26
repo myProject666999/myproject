@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export const createReview = (data) => {
   return request({
-    url: '/review/create',
+    url: '/reviews',
     method: 'post',
     data
   })
@@ -10,23 +10,24 @@ export const createReview = (data) => {
 
 export const getReviewList = (params) => {
   return request({
-    url: '/review/list',
+    url: '/reviews',
     method: 'get',
     params
   })
 }
 
-export const replyReview = (reviewId, reply) => {
+export const getMyReviews = (params) => {
   return request({
-    url: `/review/${reviewId}/reply`,
-    method: 'post',
-    data: { reply }
+    url: '/reviews/my',
+    method: 'get',
+    params
   })
 }
 
-export const getOrderReview = (orderId) => {
+export const replyReview = (reviewId, replyContent) => {
   return request({
-    url: `/review/order/${orderId}`,
-    method: 'get'
+    url: `/reviews/${reviewId}/reply`,
+    method: 'post',
+    data: { replyContent }
   })
 }

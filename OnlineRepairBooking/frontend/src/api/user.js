@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export const login = (data) => {
   return request({
-    url: '/user/login',
+    url: '/auth/login',
     method: 'post',
     data
   })
@@ -10,7 +10,7 @@ export const login = (data) => {
 
 export const register = (data) => {
   return request({
-    url: '/user/register',
+    url: '/auth/register',
     method: 'post',
     data
   })
@@ -33,7 +33,7 @@ export const updateProfile = (data) => {
 
 export const logout = () => {
   return request({
-    url: '/user/logout',
+    url: '/auth/logout',
     method: 'post'
   })
 }

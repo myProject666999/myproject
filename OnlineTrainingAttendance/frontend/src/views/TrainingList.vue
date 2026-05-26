@@ -140,7 +140,7 @@ const goCheckin = (item) => {
 }
 
 const viewDetail = (item) => {
-  console.log('详情', item)
+  router.push(`/home/training/${item.id}/detail`)
 }
 
 onMounted(loadList)
