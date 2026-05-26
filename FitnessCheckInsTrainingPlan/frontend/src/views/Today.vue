@@ -25,7 +25,7 @@
           </div>
 
           <button
-            @click="showCustomExercise = true"
+            @click="openCustomExercise"
             class="btn-secondary w-full mt-4"
           >
             自定义训练
@@ -216,6 +216,7 @@ const startTraining = (plan) => {
     weight: ex.weight,
     completed: false
   }))
+  todayCheckIn.value = {}
 }
 
 const addExercise = (ex) => {
@@ -230,6 +231,12 @@ const addExercise = (ex) => {
 
 const removeExercise = (index) => {
   todayExercises.value.splice(index, 1)
+}
+
+const openCustomExercise = () => {
+  todayExercises.value = []
+  todayCheckIn.value = {}
+  showCustomExercise.value = true
 }
 
 const confirmCustomTraining = () => {
