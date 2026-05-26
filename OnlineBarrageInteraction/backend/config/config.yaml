@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+database:
+  host: 127.0.0.1
+  port: 3306
+  username: root
+  password: 123456
+  dbname: barrage_db
+  charset: utf8mb4
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+  channel: barrage_channel
+
+limiter:
+  max_requests: 10
+  duration: 60
+
+sensitive_words:
+  - 敏感词1
+  - 敏感词2
+  - 测试敏感词

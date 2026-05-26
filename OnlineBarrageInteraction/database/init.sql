@@ -1,0 +1,65 @@
+CREATE DATABASE IF NOT EXISTS barrage_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE barrage_db;
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nickname VARCHAR(50) NOT NULL COMMENT '用户昵称',
+    avatar VARCHAR(255) DEFAULT '' COMMENT '头像',
+    ip VARCHAR(50) DEFAULT '' COMMENT 'IP地址',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_nickname (nickname)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
+CREATE TABLE IF NOT EXISTS messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    content TEXT NOT NULL COMMENT '消息内容',
+    status TINYINT DEFAULT 0 COMMENT '状态: 0-待审核, 1-已通过, 2-已拒绝',
+    is_sensitive TINYINT DEFAULT 0 COMMENT '是否包含敏感词: 0-否, 1-是',
+    likes INT DEFAULT 0 COMMENT '点赞数',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at),
+    INDEX idx_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息表';
+
+CREATE TABLE IF NOT EXISTS likes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    message_id BIGINT NOT NULL COMMENT '消息ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_msg_user (message_id, user_id),
+    INDEX idx_message_id (message_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='点赞表';
+
+CREATE TABLE IF NOT EXISTS lottery (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    activity_name VARCHAR(100) NOT NULL COMMENT '活动名称',
+    prize_name VARCHAR(100) NOT NULL COMMENT '奖品名称',
+    winner_count INT DEFAULT 1 COMMENT '中奖人数',
+    status TINYINT DEFAULT 0 COMMENT '状态: 0-未开始, 1-进行中, 2-已结束',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖活动表';
+
+CREATE TABLE IF NOT EXISTS lottery_winners (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    lottery_id BIGINT NOT NULL COMMENT '抽奖活动ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    nickname VARCHAR(50) NOT NULL COMMENT '用户昵称',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_lottery_id (lottery_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='中奖记录表';
+
+CREATE TABLE IF NOT EXISTS admin_users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
+    password VARCHAR(255) NOT NULL COMMENT '密码',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员表';
+
+INSERT INTO admin_users (username, password) VALUES ('admin', 'admin123');
