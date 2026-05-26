@@ -40,6 +40,11 @@ const routes = [
         name: 'Admin',
         component: () => import('@/views/Admin.vue'),
         meta: { requiresAdmin: true }
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/Profile.vue')
       }
     ]
   }

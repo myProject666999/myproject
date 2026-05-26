@@ -20,7 +20,7 @@ public class CheckinSession {
     @Column(name = "session_token", nullable = false, unique = true, length = 100)
     private String sessionToken;
 
-    @Column(name = "qr_code_content", length = 500)
+    @Column(name = "qr_code_content", columnDefinition = "TEXT")
     private String qrCodeContent;
 
     @Column(name = "expire_time", nullable = false)

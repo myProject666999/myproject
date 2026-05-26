@@ -13,6 +13,7 @@ type DailyInventory struct {
 	Version            int       `gorm:"column:version;default:0" json:"version"`
 	CreatedAt          time.Time `gorm:"column:created_at;autoCreateTime" json:"created_at"`
 	UpdatedAt          time.Time `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`
+	Product            *Product  `gorm:"foreignKey:ProductID" json:"product,omitempty"`
 }
 
 func (DailyInventory) TableName() string {

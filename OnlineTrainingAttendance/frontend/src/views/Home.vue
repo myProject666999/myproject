@@ -124,7 +124,7 @@ const handleCommand = (cmd) => {
       router.push('/login')
     }).catch(() => {})
   } else if (cmd === 'profile') {
-    ElMessage.info('个人中心开发中')
+    router.push('/home/profile')
   }
 }
 </script>

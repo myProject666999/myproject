@@ -40,7 +40,7 @@ public class Training {
     @Column(name = "status")
     private Integer status;
 
-    @Column(name = "qr_code", length = 500)
+    @Column(name = "qr_code", columnDefinition = "TEXT")
     private String qrCode;
 
     @Column(name = "created_by")

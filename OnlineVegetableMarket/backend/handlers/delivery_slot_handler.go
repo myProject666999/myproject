@@ -21,15 +21,10 @@ func NewDeliverySlotHandler() *DeliverySlotHandler {
 func (h *DeliverySlotHandler) GetSlots(c *fiber.Ctx) error {
 	date := c.Query("date", time.Now().Format("2006-01-02"))
 
-	slotDate, err := time.Parse("2006-01-02", date)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid date format"})
-	}
-
 	ctx := context.Background()
 
 	var slots []models.DeliverySlot
-	if err := config.Cfg.DB.Where("slot_date = ? AND status != ?", slotDate, "disabled").
+	if err := config.Cfg.DB.Where("DATE(slot_date) = ? AND status != ?", date, "disabled").
 		Order("start_time ASC").Find(&slots).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch delivery slots"})
 	}
@@ -48,15 +43,10 @@ func (h *DeliverySlotHandler) GetSlots(c *fiber.Ctx) error {
 func (h *DeliverySlotHandler) GetAvailableSlots(c *fiber.Ctx) error {
 	date := c.Query("date", time.Now().Format("2006-01-02"))
 
-	slotDate, err := time.Parse("2006-01-02", date)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid date format"})
-	}
-
 	ctx := context.Background()
 
 	var slots []models.DeliverySlot
-	if err := config.Cfg.DB.Where("slot_date = ? AND status = ? AND current_orders < max_orders", slotDate, "available").
+	if err := config.Cfg.DB.Where("DATE(slot_date) = ? AND status = ? AND current_orders < max_orders", date, "available").
 		Order("start_time ASC").Find(&slots).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch delivery slots"})
 	}
