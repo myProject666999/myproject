@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"math/rand"
 	"net/http"
 	"time"
@@ -111,13 +112,31 @@ func DrawWinners(c *gin.Context) {
 		})
 	}
 
-	if err := models.DB.Create(&lotteryWinners).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save winners"})
+	tx := models.DB.Begin()
+	if tx.Error != nil {
+		log.Printf("Begin transaction error: %v", tx.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}
 
+	for _, winner := range lotteryWinners {
+		if err := tx.Create(&winner).Error; err != nil {
+			tx.Rollback()
+			log.Printf("Save winner error: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save winners"})
+			return
+		}
+	}
+
 	lottery.Status = 2
-	models.DB.Save(&lottery)
+	if err := tx.Save(&lottery).Error; err != nil {
+		tx.Rollback()
+		log.Printf("Update lottery status error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update lottery"})
+		return
+	}
+
+	tx.Commit()
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Winners drawn successfully",

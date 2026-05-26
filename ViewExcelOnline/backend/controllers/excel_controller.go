@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -57,8 +58,9 @@ func UploadExcel(c *gin.Context) {
 	}
 
 	if err := models.CreateExcelFile(excelFile); err != nil {
+		log.Printf("Failed to save file info: %v", err)
 		os.Remove(filePath)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file info"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file info: " + err.Error()})
 		return
 	}
 

@@ -2,12 +2,19 @@ package main
 
 import (
 	"excel-viewer/config"
+	"excel-viewer/models"
 	"excel-viewer/routes"
 	"log"
 )
 
 func main() {
-	config.InitDB()
+	db := config.InitDB()
+
+	err := db.AutoMigrate(&models.ExcelFile{})
+	if err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+	log.Println("Database migration completed")
 
 	r := routes.SetupRouter()
 

@@ -1,41 +1,55 @@
 import { BaseRepository } from './BaseRepository.js';
-import { VisitLog } from '../entities/VisitLog.js';
-import dayjs from 'dayjs';
+import { db } from '../config/database.js';
+
+interface VisitLog {
+  id: number;
+  articleId?: number;
+  ipAddress?: string;
+  userAgent?: string;
+  referer?: string;
+  createdAt: Date;
+}
 
 export class VisitLogRepository extends BaseRepository<VisitLog> {
   constructor() {
-    super(VisitLog);
+    super('visit_logs');
+  }
+
+  protected rowToEntity(row: Record<string, unknown>): VisitLog {
+    return {
+      id: row.id as number,
+      articleId: row.article_id as number | undefined,
+      ipAddress: row.ip_address as string | undefined,
+      userAgent: row.user_agent as string | undefined,
+      referer: row.referer as string | undefined,
+      createdAt: new Date(row.created_at as string),
+    };
   }
 
   async countToday(): Promise<number> {
-    const startOfDay = dayjs().startOf('day').toDate();
-    return this.repository
-      .createQueryBuilder('visit_log')
-      .where('visit_log.created_at >= :startOfDay', { startOfDay })
-      .getCount();
+    const row = db
+      .prepare(`SELECT COUNT(*) as cnt FROM ${this.tableName} WHERE created_at >= datetime('now','start of day')`)
+      .get() as { cnt: number };
+    return row?.cnt || 0;
   }
 
   async getTrend(days = 7): Promise<{ date: string; count: number }[]> {
-    const startDate = dayjs().subtract(days - 1, 'day').startOf('day').toDate();
-
-    const result = await this.repository
-      .createQueryBuilder('visit_log')
-      .select("DATE(visit_log.created_at) as date")
-      .addSelect('COUNT(*) as count')
-      .where('visit_log.created_at >= :startDate', { startDate })
-      .groupBy('date')
-      .orderBy('date', 'ASC')
-      .getRawMany();
+    const modifier = `-${days - 1} days`;
+    const sql = `SELECT DATE(created_at) as date, COUNT(*) as count FROM ${this.tableName} WHERE created_at >= datetime('now', ?) GROUP BY date ORDER BY date ASC`;
+    const rows = db.prepare(sql).all(modifier) as { date: string; count: number }[];
 
     const dataMap = new Map<string, number>();
-    result.forEach((r) => dataMap.set(r.date, r.count));
+    rows.forEach((r) => dataMap.set(r.date, r.count));
 
     const trend: { date: string; count: number }[] = [];
-    for (let i = 0; i < days; i++) {
-      const date = dayjs().subtract(days - 1 - i, 'day').format('YYYY-MM-DD');
+    const today = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
       trend.push({
-        date,
-        count: dataMap.get(date) || 0,
+        date: dateStr,
+        count: dataMap.get(dateStr) || 0,
       });
     }
 

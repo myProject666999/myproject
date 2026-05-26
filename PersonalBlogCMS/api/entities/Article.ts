@@ -3,7 +3,7 @@ import { Base } from './Base.js';
 import { Category } from './Category.js';
 import { Tag } from './Tag.js';
 import { User } from './User.js';
-import type { ArticleStatus } from '../../../shared/types';
+import type { ArticleStatus } from '../../../shared/types.js';
 
 @Entity('articles')
 export class Article extends Base {

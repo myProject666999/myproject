@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Base } from './Base.js';
 import { Article } from './Article.js';
-import type { CommentStatus } from '../../../shared/types';
+import type { CommentStatus } from '../../../shared/types.js';
 
 @Entity('comments')
 export class Comment extends Base {

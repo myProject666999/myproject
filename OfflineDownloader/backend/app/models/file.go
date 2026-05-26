@@ -8,7 +8,7 @@ import (
 
 type File struct {
 	ID             uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
-	TaskID         uint64    `gorm:"index" json:"task_id"`
+	TaskID         *uint64   `gorm:"index" json:"task_id"`
 	Name           string    `gorm:"size:255;not null" json:"name"`
 	Path           string    `gorm:"size:500;not null;index" json:"path"`
 	Size           uint64    `gorm:"default:0" json:"size"`
@@ -23,7 +23,7 @@ type File struct {
 	CreatedAt      time.Time `gorm:"autoCreateTime;index" json:"created_at"`
 	UpdatedAt      time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	Task *DownloadTask `gorm:"foreignKey:TaskID;references:ID" json:"task,omitempty"`
+	Task *DownloadTask `gorm:"foreignKey:TaskID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"task,omitempty"`
 }
 
 func (File) TableName() string {

@@ -14,6 +14,7 @@ const (
 
 	TaskTypeHTTP   = 1
 	TaskTypeMagnet = 2
+	TaskTypeED2K   = 3
 )
 
 type DownloadTask struct {
@@ -68,6 +69,8 @@ func (t *DownloadTask) GetTypeText() string {
 		return "HTTP"
 	case TaskTypeMagnet:
 		return "磁力链"
+	case TaskTypeED2K:
+		return "ED2K"
 	default:
 		return "未知"
 	}

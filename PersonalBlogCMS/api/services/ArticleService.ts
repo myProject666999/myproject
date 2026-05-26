@@ -1,8 +1,8 @@
-import { ArticleRepository } from '../repositories/ArticleRepository';
-import { TagRepository } from '../repositories/TagRepository';
-import { CategoryRepository } from '../repositories/CategoryRepository';
-import { markdownToHtml } from '../utils/markdown';
-import { redis, cacheKeys } from '../config/redis';
+import { ArticleRepository } from '../repositories/ArticleRepository.js';
+import { TagRepository } from '../repositories/TagRepository.js';
+import { CategoryRepository } from '../repositories/CategoryRepository.js';
+import { markdownToHtml } from '../utils/markdown.js';
+import { redis, cacheKeys } from '../config/redis.js';
 import type {
   Article,
   ArticleListQuery,
@@ -10,7 +10,7 @@ import type {
   CreateArticleRequest,
   UpdateArticleRequest,
   ArticleStatus,
-} from '../../shared/types';
+} from '../../shared/types.js';
 
 export class ArticleService {
   private articleRepository: ArticleRepository;
@@ -73,17 +73,21 @@ export class ArticleService {
     return { article, prev, next };
   }
 
+  async getAdminArticleDetail(id: number): Promise<Article | null> {
+    return this.articleRepository.findDetailById(id, true);
+  }
+
   async incrementViewCount(id: number, ip: string, userAgent: string, referer?: string): Promise<void> {
     const cacheKey = cacheKeys.articleView(id);
     const current = await redis.incr(cacheKey);
 
     if (current % 10 === 0) {
-      await this.articleRepository.incrementViewCount(id);
+      this.articleRepository.incrementViewCount(id);
     }
 
-    const VisitLogRepository = (await import('../repositories/VisitLogRepository')).VisitLogRepository;
+    const { VisitLogRepository } = await import('../repositories/VisitLogRepository.js');
     const visitLogRepo = new VisitLogRepository();
-    await visitLogRepo.create({
+    visitLogRepo.create({
       articleId: id,
       ipAddress: ip,
       userAgent,
@@ -128,11 +132,14 @@ export class ArticleService {
       categoryId: request.categoryId,
       userId,
       status: request.status,
-      tags,
       publishedAt: request.status === 'published' ? new Date() : undefined,
     };
 
     const article = await this.articleRepository.create(articleData);
+
+    if (request.tagIds && request.tagIds.length > 0) {
+      await this.articleRepository.setArticleTags(article.id, request.tagIds);
+    }
 
     if (request.categoryId) {
       await this.categoryRepository.incrementArticleCount(request.categoryId);
@@ -159,8 +166,7 @@ export class ArticleService {
       ? await this.tagRepository.findByIds(request.tagIds)
       : existing.tags;
 
-    const updateData: Partial<Article> = {
-      ...existing,
+    const updateData: Partial<Article> & Record<string, unknown> = {
       title: request.title || existing.title,
       summary: request.summary !== undefined ? request.summary : existing.summary,
       contentMd: request.contentMd || existing.contentMd,
@@ -168,15 +174,17 @@ export class ArticleService {
       coverImage: request.coverImage !== undefined ? request.coverImage : existing.coverImage,
       categoryId: request.categoryId !== undefined ? request.categoryId : existing.categoryId,
       status: request.status || existing.status,
-      tags,
       publishedAt:
         request.status === 'published' && !existing.publishedAt
           ? new Date()
           : existing.publishedAt,
-      updatedAt: new Date(),
     };
 
     const article = await this.articleRepository.update(request.id, updateData);
+
+    if (request.tagIds) {
+      await this.articleRepository.setArticleTags(request.id, request.tagIds);
+    }
 
     if (oldCategoryId !== updateData.categoryId) {
       if (oldCategoryId) {

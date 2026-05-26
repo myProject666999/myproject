@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recruitment.mapper.JobApplicationMapper">
+
+    <resultMap id="ApplicationDetailMap" type="com.recruitment.entity.JobApplication">
+        <id column="id" property="id"/>
+        <result column="job_id" property="jobId"/>
+        <result column="resume_id" property="resumeId"/>
+        <result column="user_id" property="userId"/>
+        <result column="company_id" property="companyId"/>
+        <result column="hr_id" property="hrId"/>
+        <result column="status" property="status"/>
+        <result column="resume_snapshot" property="resumeSnapshot"/>
+        <result column="hr_remark" property="hrRemark"/>
+        <result column="interview_time" property="interviewTime"/>
+        <result column="interview_venue" property="interviewVenue"/>
+        <result column="applied_at" property="appliedAt"/>
+        <result column="viewed_at" property="viewedAt"/>
+        <result column="processed_at" property="processedAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted" property="deleted"/>
+        <association property="job" javaType="com.recruitment.entity.Job">
+            <id column="job_id" property="id"/>
+            <result column="job_title" property="title"/>
+            <result column="job_department" property="department"/>
+            <result column="job_type" property="jobType"/>
+            <result column="job_min_salary" property="minSalary"/>
+            <result column="job_max_salary" property="maxSalary"/>
+            <result column="job_city" property="city"/>
+            <result column="job_experience" property="experience"/>
+            <result column="job_education" property="education"/>
+        </association>
+        <association property="company" javaType="com.recruitment.entity.Company">
+            <id column="company_id" property="id"/>
+            <result column="company_name" property="name"/>
+            <result column="company_logo" property="logo"/>
+            <result column="company_industry" property="industry"/>
+        </association>
+        <association property="user" javaType="com.recruitment.entity.User">
+            <id column="user_id" property="id"/>
+            <result column="user_username" property="username"/>
+            <result column="user_real_name" property="realName"/>
+            <result column="user_phone" property="phone"/>
+            <result column="user_email" property="email"/>
+            <result column="user_avatar" property="avatar"/>
+        </association>
+        <association property="resume" javaType="com.recruitment.entity.Resume">
+            <id column="resume_id" property="id"/>
+            <result column="resume_real_name" property="realName"/>
+            <result column="resume_phone" property="phone"/>
+            <result column="resume_email" property="email"/>
+            <result column="resume_intention_position" property="intentionPosition"/>
+            <result column="resume_education" property="education"/>
+            <result column="resume_graduate_school" property="graduateSchool"/>
+            <result column="resume_major" property="major"/>
+            <result column="resume_work_experience" property="workExperience"/>
+            <result column="resume_skills" property="skills"/>
+        </association>
+    </resultMap>
+
+    <select id="getApplicationDetail" resultMap="ApplicationDetailMap">
+        SELECT
+            ja.*,
+            j.title AS job_title,
+            j.department AS job_department,
+            j.job_type AS job_type,
+            j.min_salary AS job_min_salary,
+            j.max_salary AS job_max_salary,
+            j.city AS job_city,
+            j.experience AS job_experience,
+            j.education AS job_education,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            c.industry AS company_industry,
+            u.username AS user_username,
+            u.real_name AS user_real_name,
+            u.phone AS user_phone,
+            u.email AS user_email,
+            u.avatar AS user_avatar,
+            r.real_name AS resume_real_name,
+            r.phone AS resume_phone,
+            r.email AS resume_email,
+            r.intention_position AS resume_intention_position,
+            r.education AS resume_education,
+            r.graduate_school AS resume_graduate_school,
+            r.major AS resume_major,
+            r.work_experience AS resume_work_experience,
+            r.skills AS resume_skills
+        FROM job_application ja
+        LEFT JOIN job j ON ja.job_id = j.id
+        LEFT JOIN company c ON ja.company_id = c.id
+        LEFT JOIN user u ON ja.user_id = u.id
+        LEFT JOIN resume r ON ja.resume_id = r.id
+        WHERE ja.id = #{id} AND ja.deleted = 0
+    </select>
+
+    <select id="getApplicationsByUserId" resultMap="ApplicationDetailMap">
+        SELECT
+            ja.*,
+            j.title AS job_title,
+            j.department AS job_department,
+            j.job_type AS job_type,
+            j.min_salary AS job_min_salary,
+            j.max_salary AS job_max_salary,
+            j.city AS job_city,
+            j.experience AS job_experience,
+            j.education AS job_education,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            c.industry AS company_industry,
+            u.username AS user_username,
+            u.real_name AS user_real_name,
+            u.phone AS user_phone,
+            u.email AS user_email,
+            u.avatar AS user_avatar,
+            r.real_name AS resume_real_name,
+            r.phone AS resume_phone,
+            r.email AS resume_email,
+            r.intention_position AS resume_intention_position,
+            r.education AS resume_education,
+            r.graduate_school AS resume_graduate_school,
+            r.major AS resume_major,
+            r.work_experience AS resume_work_experience,
+            r.skills AS resume_skills
+        FROM job_application ja
+        LEFT JOIN job j ON ja.job_id = j.id
+        LEFT JOIN company c ON ja.company_id = c.id
+        LEFT JOIN user u ON ja.user_id = u.id
+        LEFT JOIN resume r ON ja.resume_id = r.id
+        WHERE ja.user_id = #{userId} AND ja.deleted = 0
+        <if test="status != null and status != ''">
+            AND ja.status = #{status}
+        </if>
+        ORDER BY ja.applied_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getApplicationsByCompanyId" resultMap="ApplicationDetailMap">
+        SELECT
+            ja.*,
+            j.title AS job_title,
+            j.department AS job_department,
+            j.job_type AS job_type,
+            j.min_salary AS job_min_salary,
+            j.max_salary AS job_max_salary,
+            j.city AS job_city,
+            j.experience AS job_experience,
+            j.education AS job_education,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            c.industry AS company_industry,
+            u.username AS user_username,
+            u.real_name AS user_real_name,
+            u.phone AS user_phone,
+            u.email AS user_email,
+            u.avatar AS user_avatar,
+            r.real_name AS resume_real_name,
+            r.phone AS resume_phone,
+            r.email AS resume_email,
+            r.intention_position AS resume_intention_position,
+            r.education AS resume_education,
+            r.graduate_school AS resume_graduate_school,
+            r.major AS resume_major,
+            r.work_experience AS resume_work_experience,
+            r.skills AS resume_skills
+        FROM job_application ja
+        LEFT JOIN job j ON ja.job_id = j.id
+        LEFT JOIN company c ON ja.company_id = c.id
+        LEFT JOIN user u ON ja.user_id = u.id
+        LEFT JOIN resume r ON ja.resume_id = r.id
+        WHERE ja.company_id = #{companyId} AND ja.deleted = 0
+        <if test="status != null and status != ''">
+            AND ja.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                OR j.title LIKE CONCAT('%', #{keyword}, '%')
+                OR r.intention_position LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        ORDER BY ja.applied_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="getApplicationsByCompanyIdCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM job_application ja
+        LEFT JOIN job j ON ja.job_id = j.id
+        LEFT JOIN user u ON ja.user_id = u.id
+        WHERE ja.company_id = #{companyId} AND ja.deleted = 0
+        <if test="status != null and status != ''">
+            AND ja.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                u.real_name LIKE CONCAT('%', #{keyword}, '%')
+                OR j.title LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+    </select>
+
+</mapper>

@@ -46,15 +46,23 @@ public class SecurityConfig {
             .and()
             .authorizeHttpRequests()
             .antMatchers(
+                "/auth/login",
+                "/auth/register",
                 "/api/auth/login",
                 "/api/auth/register",
+                "/jobs/**",
+                "/api/jobs/**",
+                "/companies/**",
+                "/api/companies/**",
                 "/doc.html",
                 "/webjars/**",
                 "/v2/api-docs",
                 "/v2/api-docs-ext",
                 "/swagger-resources/**",
+                "/swagger-ui/**",
                 "/favicon.ico",
-                "/error"
+                "/error",
+                "/"
             ).permitAll()
             .anyRequest().authenticated();
 

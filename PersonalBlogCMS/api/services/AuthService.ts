@@ -1,27 +1,22 @@
-import { Repository } from 'typeorm';
-import { AppDataSource } from '../config/data-source';
-import { User } from '../entities/User';
+import { db } from '../config/database.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { config } from '../config';
-import type { LoginRequest, LoginResponse } from '../../shared/types';
+import { config } from '../config/index.js';
+import type { LoginRequest, LoginResponse } from '../../shared/types.js';
 
 export class AuthService {
-  private userRepository: Repository<User>;
-
-  constructor() {
-    this.userRepository = AppDataSource.getRepository(User);
-  }
-
   async login(request: LoginRequest): Promise<LoginResponse | null> {
-    const user = await this.userRepository.findOneBy({ username: request.username });
-    if (!user) return null;
+    const row = db
+      .prepare('SELECT * FROM users WHERE username = ?')
+      .get(request.username) as Record<string, unknown> | undefined;
 
-    const isValid = await bcrypt.compare(request.password, user.passwordHash);
+    if (!row) return null;
+
+    const isValid = await bcrypt.compare(request.password, row.password_hash as string);
     if (!isValid) return null;
 
     const token = jwt.sign(
-      { id: user.id, username: user.username },
+      { id: row.id as number, username: row.username as string },
       config.jwtSecret,
       { expiresIn: config.jwtExpiresIn }
     );
@@ -29,24 +24,27 @@ export class AuthService {
     return {
       token,
       user: {
-        id: user.id,
-        username: user.username,
-        nickname: user.nickname,
-        avatar: user.avatar,
-        createdAt: user.createdAt,
+        id: row.id as number,
+        username: row.username as string,
+        nickname: (row.nickname as string) || '',
+        avatar: (row.avatar as string) || undefined,
+        createdAt: new Date(row.created_at as string),
       },
     };
   }
 
   async changePassword(userId: number, oldPassword: string, newPassword: string): Promise<boolean> {
-    const user = await this.userRepository.findOneBy({ id: userId });
-    if (!user) return false;
+    const row = db
+      .prepare('SELECT * FROM users WHERE id = ?')
+      .get(userId) as Record<string, unknown> | undefined;
 
-    const isValid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!row) return false;
+
+    const isValid = await bcrypt.compare(oldPassword, row.password_hash as string);
     if (!isValid) return false;
 
-    user.passwordHash = await bcrypt.hash(newPassword, 10);
-    await this.userRepository.save(user);
+    const newHash = await bcrypt.hash(newPassword, 10);
+    db.prepare('UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(newHash, userId);
     return true;
   }
 }

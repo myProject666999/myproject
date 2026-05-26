@@ -10,7 +10,7 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() {
+func InitDB() *gorm.DB {
 	dsn := "root:123456@tcp(127.0.0.1:3306)/excel_viewer?charset=utf8mb4&parseTime=True&loc=Local"
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -18,6 +18,7 @@ func InitDB() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	log.Println("Database connected successfully")
+	return DB
 }
 
 func GetUploadDir() string {

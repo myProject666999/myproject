@@ -19,8 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class JobService {
@@ -73,10 +75,10 @@ public class JobService {
                 new LambdaQueryWrapper<Company>().eq(Company::getIndustry, dto.getIndustry())
             );
             if (!companies.isEmpty()) {
-                List<Long> companyIds = companies.stream().map(Company::getId).toList();
+                List<Long> companyIds = companies.stream().map(Company::getId).collect(Collectors.toList());
                 wrapper.in(Job::getCompanyId, companyIds);
             } else {
-                return PageResult.of(0L, List.of(), dto.getPageNum(), dto.getPageSize());
+                return PageResult.of(0L, Arrays.asList(), dto.getPageNum(), dto.getPageSize());
             }
         }
 
@@ -192,6 +194,21 @@ public class JobService {
         wrapper.eq(Job::getDeleted, 0);
         wrapper.apply("MATCH(title, keywords, description, requirements) AGAINST({0} IN BOOLEAN MODE)", keyword);
         wrapper.orderByDesc(Job::getHotScore, Job::getCreatedAt);
+        jobMapper.selectPage(page, wrapper);
+        return PageResult.of(page.getTotal(), page.getRecords(), pageNum, pageSize);
+    }
+
+    public PageResult<Job> getMyJobs(Integer pageNum, Integer pageSize) {
+        User currentUser = userService.getCurrentUser();
+        if (!RoleEnum.HR.name().equals(currentUser.getRole())) {
+            throw new BusinessException("只有HR可以查看发布的职位");
+        }
+        LambdaQueryWrapper<Job> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Job::getHrId, currentUser.getId());
+        wrapper.eq(Job::getDeleted, 0);
+        wrapper.orderByDesc(Job::getCreatedAt);
+
+        Page<Job> page = new Page<>(pageNum, pageSize);
         jobMapper.selectPage(page, wrapper);
         return PageResult.of(page.getTotal(), page.getRecords(), pageNum, pageSize);
     }

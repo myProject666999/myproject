@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { CommentService } from '../services/CommentService';
-import { success, error, notFound } from '../utils/response';
-import type { AuthRequest } from '../middleware/auth';
-import type { CreateCommentRequest, CommentStatus } from '../../shared/types';
+import { CommentService } from '../services/CommentService.js';
+import { success, error, notFound } from '../utils/response.js';
+import type { AuthRequest } from '../middleware/auth.js';
+import type { CreateCommentRequest, CommentStatus } from '../../shared/types.js';
 
 export class CommentController {
   private commentService: CommentService;

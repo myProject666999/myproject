@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { config } from '../config';
-import { unauthorized } from '../utils/response';
+import { config } from '../config/index.js';
+import { unauthorized } from '../utils/response.js';
 
 export interface AuthRequest extends Request {
   user?: {

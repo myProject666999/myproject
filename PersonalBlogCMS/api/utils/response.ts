@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import type { ApiResponse } from '../../shared/types';
+import type { ApiResponse } from '../../shared/types.js';
 
 export function success<T>(res: Response, data?: T, message = 'success'): Response<ApiResponse<T>> {
   return res.json({

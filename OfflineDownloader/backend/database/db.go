@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"offlinedownloader/app/models"
 	"offlinedownloader/config"
 	"offlinedownloader/database/scripts"
 	"time"
@@ -14,7 +15,7 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&collation=utf8mb4_unicode_ci",
 		config.AppConfig.DBUser,
 		config.AppConfig.DBPassword,
 		config.AppConfig.DBHost,
@@ -33,6 +34,9 @@ func InitDB() {
 			log.Fatalf("Failed to connect to database after creation: %v", err)
 		}
 	}
+
+	DB.Exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci")
+	DB.Exec("SET CHARACTER SET utf8mb4")
 
 	sqlDB, err := DB.DB()
 	if err != nil {
@@ -55,5 +59,9 @@ func AutoMigrate() {
 	if err != nil {
 		log.Fatalf("Failed to auto migrate: %v", err)
 	}
+
+	sqlDB, _ := DB.DB()
+	scripts.InitDefaultSettings(sqlDB)
+
 	log.Println("Database migration completed")
 }

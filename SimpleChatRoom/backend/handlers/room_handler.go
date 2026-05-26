@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,8 @@ type CreateRoomRequest struct {
 func ListRooms(c *gin.Context) {
 	rooms, err := models.GetActiveRooms()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch rooms"})
+		log.Printf("Failed to fetch rooms: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch rooms", "detail": err.Error()})
 		return
 	}
 
@@ -35,6 +37,7 @@ func CreateRoom(c *gin.Context) {
 
 	room, err := models.CreateRoom(req.Name, req.CreatorNickname, req.ExpiresInHours)
 	if err != nil {
+		log.Printf("Failed to create room: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create room"})
 		return
 	}

@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { authRouter } from './auth';
-import { articleRouter } from './articles';
-import { categoryRouter } from './categories';
-import { commentRouter } from './comments';
-import { statsRouter } from './stats';
+import { authRouter } from './auth.js';
+import { articleRouter } from './articles.js';
+import { categoryRouter } from './categories.js';
+import { commentRouter } from './comments.js';
+import { statsRouter } from './stats.js';
 
 const router = Router();
 

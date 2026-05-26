@@ -1,12 +1,12 @@
-import { CategoryRepository } from '../repositories/CategoryRepository';
-import { TagRepository } from '../repositories/TagRepository';
-import { redis, cacheKeys } from '../config/redis';
+import { CategoryRepository } from '../repositories/CategoryRepository.js';
+import { TagRepository } from '../repositories/TagRepository.js';
+import { redis, cacheKeys } from '../config/redis.js';
 import type {
   Category,
   Tag,
   CreateCategoryRequest,
   CreateTagRequest,
-} from '../../shared/types';
+} from '../../shared/types.js';
 
 export class CategoryService {
   private categoryRepository: CategoryRepository;

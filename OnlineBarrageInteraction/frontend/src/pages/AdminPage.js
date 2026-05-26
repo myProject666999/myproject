@@ -26,6 +26,7 @@ const AdminPage = () => {
   const [lotteryModalVisible, setLotteryModalVisible] = useState(false);
   const [winners, setWinners] = useState([]);
   const [selectedLottery, setSelectedLottery] = useState(null);
+  const [activeTab, setActiveTab] = useState('1');
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -135,13 +136,19 @@ const AdminPage = () => {
       });
       fetchLotteries();
     } catch (error) {
-      message.error('抽奖失败');
+      console.error('Draw error:', error);
+      const errorMsg = error.response?.data?.error || '抽奖失败，请检查是否有注册用户';
+      message.error(errorMsg);
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('adminId');
     navigate('/admin/login');
+  };
+
+  const handleMenuClick = ({ key }) => {
+    setActiveTab(key);
   };
 
   const pendingColumns = [
@@ -338,14 +345,22 @@ const AdminPage = () => {
         >
           弹幕管理后台
         </div>
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[activeTab]}
+          onClick={handleMenuClick}
+        >
           <Menu.Item key="1" icon={<MessageOutlined />}>
             消息管理
           </Menu.Item>
-          <Menu.Item key="2" icon={<UserOutlined />}>
+          <Menu.Item key="2" icon={<MessageOutlined />}>
+            所有消息
+          </Menu.Item>
+          <Menu.Item key="3" icon={<UserOutlined />}>
             用户管理
           </Menu.Item>
-          <Menu.Item key="3" icon={<TrophyOutlined />}>
+          <Menu.Item key="4" icon={<TrophyOutlined />}>
             抽奖管理
           </Menu.Item>
         </Menu>
@@ -409,7 +424,8 @@ const AdminPage = () => {
           </Row>
 
           <Tabs
-            defaultActiveKey="1"
+            activeKey={activeTab}
+            onChange={setActiveTab}
             items={[
               {
                 key: '1',

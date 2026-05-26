@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
-import { ArticleService } from '../services/ArticleService';
-import { success, error, notFound } from '../utils/response';
-import type { AuthRequest } from '../middleware/auth';
+import { ArticleService } from '../services/ArticleService.js';
+import { success, error, notFound } from '../utils/response.js';
+import type { AuthRequest } from '../middleware/auth.js';
 import type {
   ArticleListQuery,
   CreateArticleRequest,
   UpdateArticleRequest,
-} from '../../shared/types';
+} from '../../shared/types.js';
 
 export class ArticleController {
   private articleService: ArticleService;
@@ -68,6 +68,26 @@ export class ArticleController {
       await this.articleService.incrementViewCount(id, ip, userAgent, referer);
 
       success(res, result);
+    } catch (err) {
+      error(res, '获取文章详情失败', 500, 500);
+    }
+  }
+
+  async getAdminArticleDetail(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        error(res, '无效的文章ID');
+        return;
+      }
+
+      const article = await this.articleService.getAdminArticleDetail(id);
+      if (!article) {
+        notFound(res, '文章不存在');
+        return;
+      }
+
+      success(res, { article });
     } catch (err) {
       error(res, '获取文章详情失败', 500, 500);
     }

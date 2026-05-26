@@ -17,6 +17,13 @@ func main() {
 	config.InitDB()
 	defer config.CloseDB()
 
+	var roomCount int
+	err := config.DB.QueryRow("SELECT COUNT(*) FROM rooms").Scan(&roomCount)
+	if err != nil {
+		log.Fatalf("Failed to test database query: %v", err)
+	}
+	log.Printf("Database test passed. Found %d rooms", roomCount)
+
 	hub := websocket.NewHub()
 	go hub.Run()
 

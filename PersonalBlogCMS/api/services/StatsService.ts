@@ -1,8 +1,8 @@
-import { ArticleRepository } from '../repositories/ArticleRepository';
-import { CommentRepository } from '../repositories/CommentRepository';
-import { VisitLogRepository } from '../repositories/VisitLogRepository';
-import { redis, cacheKeys } from '../config/redis';
-import type { StatsOverview, VisitTrendItem } from '../../shared/types';
+import { ArticleRepository } from '../repositories/ArticleRepository.js';
+import { CommentRepository } from '../repositories/CommentRepository.js';
+import { VisitLogRepository } from '../repositories/VisitLogRepository.js';
+import { redis, cacheKeys } from '../config/redis.js';
+import type { StatsOverview, VisitTrendItem } from '../../shared/types.js';
 
 export class StatsService {
   private articleRepository: ArticleRepository;
@@ -33,16 +33,14 @@ export class StatsService {
       pendingComments,
       todayViews,
     ] = await Promise.all([
-      this.articleRepository.count({ status: 'published' } as any),
-      this.commentRepository.count({ status: 'approved' } as any),
-      this.commentRepository.count({ status: 'pending' } as any),
+      this.articleRepository.count('status = ?', ['published']),
+      this.commentRepository.count('status = ?', ['approved']),
+      this.commentRepository.count('status = ?', ['pending']),
       this.visitLogRepository.countToday(),
     ]);
 
-    const articles = await this.articleRepository.findAll({
-      where: { status: 'published' } as any,
-    });
-    const totalViews = articles.reduce((sum, a) => sum + a.viewCount, 0);
+    const articles = this.articleRepository.findAll('status = ?', ['published']);
+    const totalViews = articles.reduce((sum, a) => sum + (a.viewCount || 0), 0);
 
     const result: StatsOverview = {
       totalArticles,
@@ -75,7 +73,7 @@ export class StatsService {
   }
 
   async getPopularArticles(limit = 5) {
-    const articles = await this.articleRepository.findHot(limit);
+    const articles = this.articleRepository.findHot(limit);
     return articles.map((a) => ({
       id: a.id,
       title: a.title,
@@ -84,9 +82,9 @@ export class StatsService {
   }
 
   async getCategoryStats() {
-    const CategoryRepository = (await import('../repositories/CategoryRepository')).CategoryRepository;
+    const { CategoryRepository } = await import('../repositories/CategoryRepository.js');
     const categoryRepo = new CategoryRepository();
-    const categories = await categoryRepo.findAllWithCount();
+    const categories = categoryRepo.findAllWithCount();
     return categories.map((c) => ({
       name: c.name,
       value: c.articleCount,

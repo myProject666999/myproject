@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { CategoryService } from '../services/CategoryService';
-import { success, error, notFound } from '../utils/response';
-import type { AuthRequest } from '../middleware/auth';
-import type { CreateCategoryRequest, CreateTagRequest } from '../../shared/types';
+import { CategoryService } from '../services/CategoryService.js';
+import { success, error, notFound } from '../utils/response.js';
+import type { AuthRequest } from '../middleware/auth.js';
+import type { CreateCategoryRequest, CreateTagRequest } from '../../shared/types.js';
 
 export class CategoryController {
   private categoryService: CategoryService;

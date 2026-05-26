@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recruitment.mapper.JobMapper">
+
+    <resultMap id="JobDetailMap" type="com.recruitment.entity.Job">
+        <id column="id" property="id"/>
+        <result column="company_id" property="companyId"/>
+        <result column="hr_id" property="hrId"/>
+        <result column="title" property="title"/>
+        <result column="department" property="department"/>
+        <result column="job_type" property="jobType"/>
+        <result column="min_salary" property="minSalary"/>
+        <result column="max_salary" property="maxSalary"/>
+        <result column="salary_months" property="salaryMonths"/>
+        <result column="province" property="province"/>
+        <result column="city" property="city"/>
+        <result column="address" property="address"/>
+        <result column="experience" property="experience"/>
+        <result column="education" property="education"/>
+        <result column="keywords" property="keywords"/>
+        <result column="description" property="description"/>
+        <result column="requirements" property="requirements"/>
+        <result column="benefits" property="benefits"/>
+        <result column="status" property="status"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="apply_count" property="applyCount"/>
+        <result column="hot_score" property="hotScore"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="searchJobs" resultMap="JobDetailMap">
+        SELECT
+            j.*,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            c.industry AS company_industry,
+            c.scale AS company_scale
+        FROM job j
+        LEFT JOIN company c ON j.company_id = c.id
+        WHERE j.deleted = 0 AND j.status = 'OPEN'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                j.title LIKE CONCAT('%', #{keyword}, '%')
+                OR j.keywords LIKE CONCAT('%', #{keyword}, '%')
+                OR j.description LIKE CONCAT('%', #{keyword}, '%')
+                OR j.requirements LIKE CONCAT('%', #{keyword}, '%')
+                OR c.name LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <if test="city != null and city != ''">
+            AND j.city = #{city}
+        </if>
+        <if test="jobType != null and jobType != ''">
+            AND j.job_type = #{jobType}
+        </if>
+        <if test="minSalary != null">
+            AND j.max_salary <![CDATA[ >= ]]> #{minSalary}
+        </if>
+        <if test="maxSalary != null">
+            AND j.min_salary <![CDATA[ <= ]]> #{maxSalary}
+        </if>
+        <if test="experience != null and experience != ''">
+            AND j.experience = #{experience}
+        </if>
+        <if test="education != null and education != ''">
+            AND j.education = #{education}
+        </if>
+        ORDER BY j.created_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="searchJobsCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM job j
+        LEFT JOIN company c ON j.company_id = c.id
+        WHERE j.deleted = 0 AND j.status = 'OPEN'
+        <if test="keyword != null and keyword != ''">
+            AND (
+                j.title LIKE CONCAT('%', #{keyword}, '%')
+                OR j.keywords LIKE CONCAT('%', #{keyword}, '%')
+                OR j.description LIKE CONCAT('%', #{keyword}, '%')
+                OR j.requirements LIKE CONCAT('%', #{keyword}, '%')
+                OR c.name LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <if test="city != null and city != ''">
+            AND j.city = #{city}
+        </if>
+        <if test="jobType != null and jobType != ''">
+            AND j.job_type = #{jobType}
+        </if>
+        <if test="minSalary != null">
+            AND j.max_salary <![CDATA[ >= ]]> #{minSalary}
+        </if>
+        <if test="maxSalary != null">
+            AND j.min_salary <![CDATA[ <= ]]> #{maxSalary}
+        </if>
+        <if test="experience != null and experience != ''">
+            AND j.experience = #{experience}
+        </if>
+        <if test="education != null and education != ''">
+            AND j.education = #{education}
+        </if>
+    </select>
+
+    <select id="getHotJobs" resultMap="JobDetailMap">
+        SELECT
+            j.*,
+            c.name AS company_name,
+            c.logo AS company_logo,
+            c.industry AS company_industry,
+            c.scale AS company_scale
+        FROM job j
+        LEFT JOIN company c ON j.company_id = c.id
+        WHERE j.deleted = 0 AND j.status = 'OPEN'
+        ORDER BY j.hot_score DESC, j.apply_count DESC, j.view_count DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

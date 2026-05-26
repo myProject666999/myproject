@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { AuthService } from '../services/AuthService';
-import { success, error, unauthorized } from '../utils/response';
-import type { AuthRequest } from '../middleware/auth';
-import type { LoginRequest } from '../../shared/types';
+import { AuthService } from '../services/AuthService.js';
+import { success, error, unauthorized } from '../utils/response.js';
+import type { AuthRequest } from '../middleware/auth.js';
+import type { LoginRequest } from '../../shared/types.js';
 
 export class AuthController {
   private authService: AuthService;

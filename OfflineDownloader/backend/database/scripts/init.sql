@@ -1,8 +1,17 @@
 -- 离线下载器数据库初始化脚本
+-- 设置字符集
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+SET collation_connection = 'utf8mb4_unicode_ci';
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS `offline_downloader` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE `offline_downloader`;
+
+-- 设置数据库字符集
+ALTER DATABASE `offline_downloader` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 下载任务表
 DROP TABLE IF EXISTS `download_tasks`;
@@ -10,8 +19,8 @@ CREATE TABLE `download_tasks` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `task_id` varchar(64) NOT NULL COMMENT 'aria2任务ID',
   `title` varchar(255) DEFAULT NULL COMMENT '任务标题',
-  `url` text NOT NULL COMMENT '下载链接（HTTP/磁力链）',
-  `type` tinyint NOT NULL DEFAULT '1' COMMENT '任务类型：1-HTTP，2-磁力链',
+  `url` text NOT NULL COMMENT '下载链接（HTTP/磁力链/ED2K）',
+  `type` tinyint NOT NULL DEFAULT '1' COMMENT '任务类型：1-HTTP，2-磁力链，3-ED2K',
   `status` tinyint NOT NULL DEFAULT '0' COMMENT '状态：0-等待中，1-下载中，2-已暂停，3-已完成，4-错误，5-已删除',
   `total_size` bigint unsigned DEFAULT '0' COMMENT '总大小（字节）',
   `downloaded_size` bigint unsigned DEFAULT '0' COMMENT '已下载大小（字节）',
@@ -77,3 +86,6 @@ INSERT INTO `settings` (`key`, `value`, `description`) VALUES
 ('aria2_rpc_url', 'http://127.0.0.1:6800/jsonrpc', 'aria2 RPC地址'),
 ('aria2_rpc_secret', '', 'aria2 RPC密钥'),
 ('auto_delete_completed', '0', '自动删除已完成任务（天），0表示不删除');
+
+-- 恢复外键检查
+SET FOREIGN_KEY_CHECKS = 1;

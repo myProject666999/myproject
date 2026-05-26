@@ -4,38 +4,43 @@ import com.recruitment.enums.ApplicationStatusEnum;
 import com.recruitment.exception.BusinessException;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 @Component
 public class ApplicationStatusMachine {
 
-    private static final Map<String, Set<String>> TRANSITION_RULES = Map.of(
-        ApplicationStatusEnum.PENDING.name(), Set.of(
+    private static final Map<String, Set<String>> TRANSITION_RULES;
+    static {
+        TRANSITION_RULES = new HashMap<>();
+        TRANSITION_RULES.put(ApplicationStatusEnum.PENDING.name(), new HashSet<>(Arrays.asList(
             ApplicationStatusEnum.VIEWED.name(),
             ApplicationStatusEnum.REJECTED.name()
-        ),
-        ApplicationStatusEnum.VIEWED.name(), Set.of(
+        )));
+        TRANSITION_RULES.put(ApplicationStatusEnum.VIEWED.name(), new HashSet<>(Arrays.asList(
             ApplicationStatusEnum.PASSED.name(),
             ApplicationStatusEnum.REJECTED.name()
-        ),
-        ApplicationStatusEnum.PASSED.name(), Set.of(
+        )));
+        TRANSITION_RULES.put(ApplicationStatusEnum.PASSED.name(), new HashSet<>(Arrays.asList(
             ApplicationStatusEnum.INTERVIEW.name(),
             ApplicationStatusEnum.REJECTED.name(),
             ApplicationStatusEnum.OFFER.name()
-        ),
-        ApplicationStatusEnum.INTERVIEW.name(), Set.of(
+        )));
+        TRANSITION_RULES.put(ApplicationStatusEnum.INTERVIEW.name(), new HashSet<>(Arrays.asList(
             ApplicationStatusEnum.OFFER.name(),
             ApplicationStatusEnum.REJECTED.name(),
             ApplicationStatusEnum.HIRED.name()
-        ),
-        ApplicationStatusEnum.OFFER.name(), Set.of(
+        )));
+        TRANSITION_RULES.put(ApplicationStatusEnum.OFFER.name(), new HashSet<>(Arrays.asList(
             ApplicationStatusEnum.HIRED.name(),
             ApplicationStatusEnum.REJECTED.name()
-        ),
-        ApplicationStatusEnum.HIRED.name(), Set.of(),
-        ApplicationStatusEnum.REJECTED.name(), Set.of()
-    );
+        )));
+        TRANSITION_RULES.put(ApplicationStatusEnum.HIRED.name(), new HashSet<>());
+        TRANSITION_RULES.put(ApplicationStatusEnum.REJECTED.name(), new HashSet<>());
+    }
 
     public boolean canTransition(String fromStatus, String toStatus) {
         if (fromStatus == null || toStatus == null) {

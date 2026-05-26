@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import { StatsService } from '../services/StatsService';
-import { success, error } from '../utils/response';
-import type { AuthRequest } from '../middleware/auth';
+import { StatsService } from '../services/StatsService.js';
+import { success, error } from '../utils/response.js';
+import type { AuthRequest } from '../middleware/auth.js';
 
 export class StatsController {
   private statsService: StatsService;
