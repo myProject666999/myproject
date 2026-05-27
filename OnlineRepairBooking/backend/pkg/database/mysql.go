@@ -7,8 +7,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"online-repair-booking/config"
+	"online-repair-booking/pkg/utils"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -31,7 +33,12 @@ func InitMySQL() error {
 		return fmt.Errorf("failed to ping MySQL: %w", err)
 	}
 
-	createDBQuery := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", cfg.MySQLDB)
+	dropDBQuery := fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", cfg.MySQLDB)
+	if _, err = db.Exec(dropDBQuery); err != nil {
+		return fmt.Errorf("failed to drop database: %w", err)
+	}
+
+	createDBQuery := fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", cfg.MySQLDB)
 	if _, err = db.Exec(createDBQuery); err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
 	}
@@ -50,6 +57,7 @@ func InitMySQL() error {
 
 	MySQL.SetMaxOpenConns(100)
 	MySQL.SetMaxIdleConns(20)
+	MySQL.SetConnMaxLifetime(time.Hour)
 
 	if err = initSchema(); err != nil {
 		return fmt.Errorf("failed to initialize schema: %w", err)
@@ -86,15 +94,41 @@ func initSchema() error {
 		return fmt.Errorf("failed to read schema file: %w", err)
 	}
 
-	statements := splitSQLStatements(string(sqlContent))
+	log.Printf("Schema file read: %s, size: %d bytes", schemaPath, len(sqlContent))
 
-	for _, stmt := range statements {
+	statements := splitSQLStatements(string(sqlContent))
+	log.Printf("Split into %d statements", len(statements))
+
+	hash, hashErr := utils.HashPassword("123456")
+	if hashErr != nil {
+		log.Printf("Warning: failed to generate password hash: %v", hashErr)
+	}
+
+	for i, stmt := range statements {
 		stmt = strings.TrimSpace(stmt)
-		if stmt == "" || strings.HasPrefix(stmt, "--") {
+		if stmt == "" {
 			continue
 		}
+		// Remove leading comment lines but keep the SQL
+		lines := strings.Split(stmt, "\n")
+		sqlLines := make([]string, 0)
+		for _, line := range lines {
+			trimmed := strings.TrimSpace(line)
+			if trimmed != "" && !strings.HasPrefix(trimmed, "--") {
+				sqlLines = append(sqlLines, line)
+			}
+		}
+		if len(sqlLines) == 0 {
+			continue
+		}
+		stmt = strings.Join(sqlLines, "\n")
+		if hashErr == nil {
+			stmt = strings.ReplaceAll(stmt, "'$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68L17lhWy'", "'"+string(hash)+"'")
+			stmt = strings.ReplaceAll(stmt, "'$2a$10$ipG2513cfWuwoVOIf2mPQORpOFr6hbzQn91IWJkZ/9iW5CdadP.YS'", "'"+string(hash)+"'")
+		}
+		log.Printf("Executing stmt %d: %.80s", i, stmt)
 		if _, err := MySQL.Exec(stmt); err != nil {
-			log.Printf("Warning: failed to execute statement: %v", err)
+			log.Printf("Error executing SQL stmt %d: %v", i, err)
 		}
 	}
 

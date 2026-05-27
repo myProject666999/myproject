@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -47,6 +48,7 @@ func (h *ServiceHandler) GetCategoryList(c echo.Context) error {
 	query := `SELECT id, name, icon, description, parent_id, sort FROM service_categories WHERE status = 1 ORDER BY sort ASC, id ASC`
 	rows, err := database.MySQL.Query(query)
 	if err != nil {
+		log.Printf("Error querying categories: %v", err)
 		return response.InternalServerError(c, "获取分类列表失败")
 	}
 	defer rows.Close()
@@ -214,13 +216,21 @@ func (h *ServiceHandler) GetServiceDetail(c echo.Context) error {
 	}
 
 	service := &ServiceDetail{}
-	err = database.MySQL.QueryRow(query, id).Scan(&service.ID, &service.CategoryID, &service.CategoryName,
-		&service.Name, &service.Description, &service.Price, &service.PriceUnit, &service.Image, &service.Duration)
+	var description, image sql.NullString
+	err = database.MySQL.QueryRow(query, id).Scan(&service.ID, &service.CategoryID, &service.Name,
+		&description, &service.Price, &service.PriceUnit, &image, &service.Duration, &service.CategoryName)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return response.NotFound(c, "服务不存在")
 		}
+		log.Printf("Error getting service detail: %v", err)
 		return response.InternalServerError(c, "获取服务详情失败")
+	}
+	if description.Valid {
+		service.Description = description.String
+	}
+	if image.Valid {
+		service.Image = image.String
 	}
 
 	return response.Success(c, service)

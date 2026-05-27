@@ -2,7 +2,13 @@ package com.training.service;
 
 import com.training.common.Result;
 import com.training.common.ResultCode;
+import com.training.entity.Attendance;
+import com.training.entity.Certificate;
+import com.training.entity.Student;
 import com.training.entity.Training;
+import com.training.repository.AttendanceRepository;
+import com.training.repository.CertificateRepository;
+import com.training.repository.StudentRepository;
 import com.training.repository.TrainingRepository;
 import com.training.util.QRCodeUtil;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +16,15 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

@@ -193,15 +193,28 @@ func (h *WorkerHandler) GetWorkerDetail(c echo.Context) error {
 	}
 
 	worker := &WorkerDetail{}
+	var avatar, district, introduction, skills sql.NullString
 	err = database.MySQL.QueryRow(query, id).Scan(&worker.ID, &worker.UserID, &worker.RealName,
-		&worker.Avatar, &worker.Phone, &worker.Province, &worker.City, &worker.District,
-		&worker.Introduction, &worker.Skills, &worker.YearsOfExperience, &worker.Rating,
+		&avatar, &worker.Phone, &worker.Province, &worker.City, &district,
+		&introduction, &skills, &worker.YearsOfExperience, &worker.Rating,
 		&worker.OrderCount, &worker.Level, &worker.IsCertified, &worker.Status)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return response.NotFound(c, "师傅不存在")
 		}
 		return response.InternalServerError(c, "获取师傅详情失败")
+	}
+	if avatar.Valid {
+		worker.Avatar = avatar.String
+	}
+	if district.Valid {
+		worker.District = district.String
+	}
+	if introduction.Valid {
+		worker.Introduction = introduction.String
+	}
+	if skills.Valid {
+		worker.Skills = skills.String
 	}
 
 	categoryQuery := `SELECT category_id FROM worker_skills WHERE worker_id = ?`

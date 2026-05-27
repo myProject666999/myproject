@@ -53,7 +53,7 @@ func (m *UserModel) Create(user *User) error {
 }
 
 func (m *UserModel) GetByID(id uint64) (*User, error) {
-	query := `SELECT id, username, phone, password, avatar, role, status, created_at, updated_at FROM ` + UserTableName + ` WHERE id = ?`
+	query := `SELECT id, username, phone, password, IFNULL(avatar, ''), role, status, created_at, updated_at FROM ` + UserTableName + ` WHERE id = ?`
 	row := m.db.QueryRow(query, id)
 	user := &User{}
 	err := row.Scan(&user.ID, &user.Username, &user.Phone, &user.Password, &user.Avatar, &user.Role, &user.Status, &user.CreatedAt, &user.UpdatedAt)
@@ -64,7 +64,7 @@ func (m *UserModel) GetByID(id uint64) (*User, error) {
 }
 
 func (m *UserModel) GetByPhone(phone string) (*User, error) {
-	query := `SELECT id, username, phone, password, avatar, role, status, created_at, updated_at FROM ` + UserTableName + ` WHERE phone = ?`
+	query := `SELECT id, username, phone, password, IFNULL(avatar, ''), role, status, created_at, updated_at FROM ` + UserTableName + ` WHERE phone = ?`
 	row := m.db.QueryRow(query, phone)
 	user := &User{}
 	err := row.Scan(&user.ID, &user.Username, &user.Phone, &user.Password, &user.Avatar, &user.Role, &user.Status, &user.CreatedAt, &user.UpdatedAt)
@@ -95,7 +95,7 @@ func (m *UserModel) List(page, pageSize int) ([]*User, int64, error) {
 	}
 
 	offset := (page - 1) * pageSize
-	query := `SELECT id, username, phone, password, avatar, role, status, created_at, updated_at FROM ` + UserTableName + ` ORDER BY id DESC LIMIT ? OFFSET ?`
+	query := `SELECT id, username, phone, password, IFNULL(avatar, ''), role, status, created_at, updated_at FROM ` + UserTableName + ` ORDER BY id DESC LIMIT ? OFFSET ?`
 	rows, err := m.db.Query(query, pageSize, offset)
 	if err != nil {
 		return nil, 0, err

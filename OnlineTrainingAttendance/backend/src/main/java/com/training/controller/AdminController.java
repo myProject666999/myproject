@@ -37,8 +37,8 @@ public class AdminController {
     }
 
     @PostMapping("/login")
-    public Result<Admin> login(@RequestParam String username, @RequestParam String password) {
-        return adminService.login(username, password);
+    public Result<Admin> login(@RequestBody Admin admin) {
+        return adminService.login(admin.getUsername(), admin.getPassword());
     }
 
     @DeleteMapping("/{id}")

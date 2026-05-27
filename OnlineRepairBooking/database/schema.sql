@@ -30,7 +30,11 @@ CREATE TABLE IF NOT EXISTS `addresses` (
   `city` VARCHAR(50) NOT NULL COMMENT '城市',
   `district` VARCHAR(50) NOT NULL COMMENT '区县',
   `detail` VARCHAR(255) NOT NULL COMMENT '详细地址',
+  `full_address` VARCHAR(600) DEFAULT NULL COMMENT '完整地址',
+  `longitude` DECIMAL(10,7) DEFAULT NULL COMMENT '经度',
+  `latitude` DECIMAL(10,7) DEFAULT NULL COMMENT '纬度',
   `is_default` TINYINT NOT NULL DEFAULT 0 COMMENT '是否默认：0-否 1-是',
+  `tag` VARCHAR(20) DEFAULT NULL COMMENT '标签：家/公司/其他',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -259,18 +263,18 @@ CREATE TABLE IF NOT EXISTS `time_slots` (
 
 -- 插入管理员账户（密码：123456，bcrypt加密）
 INSERT INTO `users` (`username`, `phone`, `password`, `role`, `status`) VALUES
-('admin', '13800000000', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 3, 1);
+('admin', '13800000000', '$2a$10$ipG2513cfWuwoVOIf2mPQORpOFr6hbzQn91IWJkZ/9iW5CdadP.YS', 3, 1);
 
 -- 插入测试普通用户（密码：123456）
 INSERT INTO `users` (`username`, `phone`, `password`, `role`, `status`) VALUES
-('张三', '13800000001', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 1),
-('李四', '13800000002', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 1);
+('张三', '13800000001', '$2a$10$ipG2513cfWuwoVOIf2mPQORpOFr6hbzQn91IWJkZ/9iW5CdadP.YS', 1, 1),
+('李四', '13800000002', '$2a$10$ipG2513cfWuwoVOIf2mPQORpOFr6hbzQn91IWJkZ/9iW5CdadP.YS', 1, 1);
 
 -- 插入测试师傅用户
 INSERT INTO `users` (`username`, `phone`, `password`, `role`, `status`) VALUES
-('王师傅', '13900000001', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 2, 1),
-('李师傅', '13900000002', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 2, 1),
-('张师傅', '13900000003', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 2, 1);
+('王师傅', '13900000001', '$2a$10$ipG2513cfWuwoVOIf2mPQORpOFr6hbzQn91IWJkZ/9iW5CdadP.YS', 2, 1),
+('李师傅', '13900000002', '$2a$10$ipG2513cfWuwoVOIf2mPQORpOFr6hbzQn91IWJkZ/9iW5CdadP.YS', 2, 1),
+('张师傅', '13900000003', '$2a$10$ipG2513cfWuwoVOIf2mPQORpOFr6hbzQn91IWJkZ/9iW5CdadP.YS', 2, 1);
 
 -- 插入用户地址
 INSERT INTO `addresses` (`user_id`, `name`, `phone`, `province`, `city`, `district`, `detail`, `is_default`) VALUES

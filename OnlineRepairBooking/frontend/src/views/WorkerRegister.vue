@@ -145,7 +145,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showNotify } from 'vant'
-import request from '@/utils/request'
+import { workerRegister } from '@/api/worker'
 
 const router = useRouter()
 
@@ -208,16 +208,12 @@ const onSubmit = async () => {
   
   submitting.value = true
   try {
-    await request({
-      url: '/worker/register',
-      method: 'post',
-      data: {
-        ...form,
-        skills: selectedSkills.value,
-        idCardFront: idCardFront.value[0]?.url || idCardFront.value[0]?.content,
-        idCardBack: idCardBack.value[0]?.url || idCardBack.value[0]?.content,
-        certificates: certificate.value.map(f => f.url || f.content)
-      }
+    await workerRegister({
+      ...form,
+      skills: selectedSkills.value,
+      idCardFront: idCardFront.value[0]?.url || idCardFront.value[0]?.content,
+      idCardBack: idCardBack.value[0]?.url || idCardBack.value[0]?.content,
+      certificates: certificate.value.map(f => f.url || f.content)
     })
     showNotify({ type: 'success', message: '申请提交成功，请等待审核' })
     setTimeout(() => {

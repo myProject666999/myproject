@@ -48,7 +48,7 @@ func (m *AddressModel) Create(address *Address) error {
 }
 
 func (m *AddressModel) GetByID(id uint64) (*Address, error) {
-	query := `SELECT id, user_id, name, phone, province, city, district, detail, full_address, longitude, latitude, is_default, tag, created_at, updated_at FROM ` + AddressTableName + ` WHERE id = ?`
+	query := `SELECT id, user_id, name, phone, IFNULL(province, ''), IFNULL(city, ''), IFNULL(district, ''), detail, IFNULL(full_address, ''), IFNULL(longitude, 0), IFNULL(latitude, 0), is_default, IFNULL(tag, ''), created_at, updated_at FROM ` + AddressTableName + ` WHERE id = ?`
 	row := m.db.QueryRow(query, id)
 	address := &Address{}
 	err := row.Scan(&address.ID, &address.UserID, &address.Name, &address.Phone, &address.Province, &address.City, &address.District, &address.Detail, &address.FullAddress, &address.Longitude, &address.Latitude, &address.IsDefault, &address.Tag, &address.CreatedAt, &address.UpdatedAt)
@@ -91,7 +91,7 @@ func (m *AddressModel) SetDefault(id uint64, userID uint64) error {
 }
 
 func (m *AddressModel) ListByUserID(userID uint64) ([]*Address, error) {
-	query := `SELECT id, user_id, name, phone, province, city, district, detail, full_address, longitude, latitude, is_default, tag, created_at, updated_at FROM ` + AddressTableName + ` WHERE user_id = ? ORDER BY is_default DESC, id DESC`
+	query := `SELECT id, user_id, name, phone, IFNULL(province, ''), IFNULL(city, ''), IFNULL(district, ''), detail, IFNULL(full_address, ''), IFNULL(longitude, 0), IFNULL(latitude, 0), is_default, IFNULL(tag, ''), created_at, updated_at FROM ` + AddressTableName + ` WHERE user_id = ? ORDER BY is_default DESC, id DESC`
 	rows, err := m.db.Query(query, userID)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (m *AddressModel) ListByUserID(userID uint64) ([]*Address, error) {
 }
 
 func (m *AddressModel) GetDefault(userID uint64) (*Address, error) {
-	query := `SELECT id, user_id, name, phone, province, city, district, detail, full_address, longitude, latitude, is_default, tag, created_at, updated_at FROM ` + AddressTableName + ` WHERE user_id = ? AND is_default = 1 LIMIT 1`
+	query := `SELECT id, user_id, name, phone, IFNULL(province, ''), IFNULL(city, ''), IFNULL(district, ''), detail, IFNULL(full_address, ''), IFNULL(longitude, 0), IFNULL(latitude, 0), is_default, IFNULL(tag, ''), created_at, updated_at FROM ` + AddressTableName + ` WHERE user_id = ? AND is_default = 1 LIMIT 1`
 	row := m.db.QueryRow(query, userID)
 	address := &Address{}
 	err := row.Scan(&address.ID, &address.UserID, &address.Name, &address.Phone, &address.Province, &address.City, &address.District, &address.Detail, &address.FullAddress, &address.Longitude, &address.Latitude, &address.IsDefault, &address.Tag, &address.CreatedAt, &address.UpdatedAt)

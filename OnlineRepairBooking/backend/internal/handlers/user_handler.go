@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 
 	"online-repair-booking/internal/middleware"
@@ -98,10 +99,13 @@ func (h *UserHandler) Login(c echo.Context) error {
 
 	user, err := h.userModel.GetByPhone(req.Phone)
 	if err != nil {
+		log.Printf("Login: GetByPhone failed for phone %s: %v", req.Phone, err)
 		return response.Error(c, http.StatusUnauthorized, "手机号或密码错误")
 	}
 
+	log.Printf("Login: user found, phone=%s, stored_hash=%s", req.Phone, user.Password)
 	if !utils.CheckPasswordHash(req.Password, user.Password) {
+		log.Printf("Login: password check failed for phone %s", req.Phone)
 		return response.Error(c, http.StatusUnauthorized, "手机号或密码错误")
 	}
 
