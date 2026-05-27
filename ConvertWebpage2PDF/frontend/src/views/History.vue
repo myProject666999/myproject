@@ -23,7 +23,10 @@
         <el-table-column prop="page_count" label="页数" width="80" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
+            <el-tooltip v-if="row.status === 'failed' && row.error_msg" :content="row.error_msg" placement="top">
+              <el-tag type="danger" size="small">失败</el-tag>
+            </el-tooltip>
+            <el-tag v-else :type="getStatusType(row.status)" size="small">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>

@@ -5,6 +5,32 @@ const api = axios.create({
   timeout: 10000
 })
 
+const toCamelCase = (str) => {
+  return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
+}
+
+const convertKeysToCamelCase = (obj) => {
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertKeysToCamelCase(item))
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const newObj = {}
+    Object.keys(obj).forEach(key => {
+      const camelKey = toCamelCase(key)
+      newObj[camelKey] = convertKeysToCamelCase(obj[key])
+    })
+    return newObj
+  }
+  return obj
+}
+
+api.interceptors.response.use((response) => {
+  if (response.data) {
+    response.data = convertKeysToCamelCase(response.data)
+  }
+  return response
+})
+
 export const exerciseApi = {
   getAll: (category) => api.get('/exercises', { params: { category } }),
   create: (data) => api.post('/exercises', data)

@@ -36,8 +36,9 @@ func main() {
 	db.Exec("SET NAMES utf8mb4")
 	db.Exec("SET CHARACTER SET utf8mb4")
 	db.Exec("SET collation_connection = 'utf8mb4_unicode_ci'")
+	db.Exec("SET FOREIGN_KEY_CHECKS = 0")
 
-	sqlFile := "./database/scripts/init.sql"
+	sqlFile := "./database/scripts/fix_task_id.sql"
 	sqlContent, err := ioutil.ReadFile(sqlFile)
 	if err != nil {
 		log.Fatalf("Failed to read SQL file: %v", err)
@@ -59,7 +60,7 @@ func main() {
 		}
 	}
 
-	scripts.InitDefaultSettings(db)
+	db.Exec("SET FOREIGN_KEY_CHECKS = 1")
 
 	log.Println("Database initialization completed successfully!")
 }

@@ -104,10 +104,11 @@ const nextAchievement = computed(() => {
 })
 
 const formatWeight = (weight) => {
-  if (weight >= 10000) {
-    return (weight / 1000).toFixed(1) + 'k'
+  const w = Number(weight) || 0
+  if (w >= 10000) {
+    return (w / 1000).toFixed(1) + 'k'
   }
-  return Math.round(weight).toLocaleString()
+  return Math.round(w).toLocaleString()
 }
 
 const getProgress = (achievement) => {
@@ -131,11 +132,17 @@ const getProgress = (achievement) => {
 const loadData = async () => {
   try {
     const [achRes, statsRes] = await Promise.all([
-      achievementApi.getAll(),
-      statsApi.get()
+      achievementApi.getAll().catch(() => ({ data: [] })),
+      statsApi.get().catch(() => ({ data: null }))
     ])
-    achievements.value = achRes.data
-    stats.value = statsRes.data
+    achievements.value = achRes.data || []
+    const data = statsRes.data || {}
+    stats.value = {
+      totalCheckIns: Number(data.totalCheckIns) || 0,
+      currentStreak: Number(data.currentStreak) || 0,
+      longestStreak: Number(data.longestStreak) || 0,
+      totalWeightLifted: Number(data.totalWeightLifted) || 0
+    }
   } catch (e) {
     console.error(e)
   }

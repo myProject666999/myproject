@@ -23,7 +23,7 @@ import {
   BankOutlined
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import request from '../utils/request.js'
+import request from '../utils/request'
 
 const { Title, Text } = Typography
 
@@ -105,7 +105,7 @@ const HomePage = () => {
       const params = {
         keyword,
         city,
-        page,
+        pageNum: page,
         pageSize,
         ...filters
       }
@@ -113,8 +113,8 @@ const HomePage = () => {
       if (data) {
         setJobs(data.records || data.list || [])
         setPagination({
-          current: data.current || page,
-          pageSize: data.size || pageSize,
+          current: page,
+          pageSize,
           total: data.total || 0
         })
       }
@@ -178,7 +178,7 @@ const HomePage = () => {
         key={job.id}
         hoverable
         style={{ marginBottom: 12, borderRadius: 8 }}
-        onClick={() => navigate(`/job/${job.id}`)}
+        onClick={() => navigate(`/jobs/${job.id}`)}
       >
         <Row justify="space-between" align="middle">
           <Col flex="auto">
@@ -371,7 +371,7 @@ const HomePage = () => {
                 dataSource={hotJobs}
                 renderItem={(job, idx) => (
                   <List.Item
-                    onClick={() => navigate(`/job/${job.id}`)}
+                    onClick={() => navigate(`/jobs/${job.id}`)}
                     style={{ cursor: 'pointer', padding: '8px 0' }}
                   >
                     <Row justify="space-between" style={{ width: '100%' }}>

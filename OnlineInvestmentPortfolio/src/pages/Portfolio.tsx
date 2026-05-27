@@ -169,7 +169,7 @@ const Portfolio: React.FC = () => {
           )}>
             {totalProfit >= 0 ? '+' : ''}¥{totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             <span className="text-lg font-normal ml-2">
-              ({totalProfitPercent >= 0 ? '+' : ''}{totalProfitPercent.toFixed(2)}%)
+              ({totalProfitPercent >= 0 ? '+' : ''}{parseFloat(totalProfitPercent).toFixed(2)}%)
             </span>
           </div>
         </div>
@@ -240,10 +240,10 @@ const Portfolio: React.FC = () => {
                       {position.shares.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-right text-gray-600">
-                      ¥{position.avg_cost.toFixed(2)}
+                      ¥{parseFloat(position.avg_cost).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-right font-medium text-gray-900">
-                      ¥{position.price.toFixed(2)}
+                      ¥{parseFloat(position.price).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-right font-medium text-gray-900">
                       ¥{position.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -259,14 +259,14 @@ const Portfolio: React.FC = () => {
                           <ArrowDownRight className="w-4 h-4" />
                         )}
                         <span>
-                          {position.profit >= 0 ? '+' : ''}¥{position.profit.toFixed(2)}
+                          {parseFloat(position.profit) >= 0 ? '+' : ''}¥{parseFloat(position.profit).toFixed(2)}
                         </span>
                       </div>
                       <div className={cn(
                         'text-sm',
-                        position.profitPercent >= 0 ? 'text-emerald-500' : 'text-red-500'
+                        parseFloat(position.profitPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'
                       )}>
-                        {position.profitPercent >= 0 ? '+' : ''}{position.profitPercent.toFixed(2)}%
+                        {parseFloat(position.profitPercent) >= 0 ? '+' : ''}{parseFloat(position.profitPercent).toFixed(2)}%
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -331,7 +331,7 @@ const Portfolio: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   当前价格
                 </label>
-                <div className="text-2xl font-bold text-gray-900">¥{selectedStock.price.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-gray-900">¥{parseFloat(selectedStock.price).toFixed(2)}</div>
               </div>
               {tradeType === 'sell' && (
                 <div className="text-sm text-gray-500">

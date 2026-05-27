@@ -22,7 +22,7 @@ import {
   ClockCircleOutlined
 } from '@ant-design/icons'
 import { useParams, useNavigate } from 'react-router-dom'
-import request from '../utils/request.js'
+import request from '../utils/request'
 
 const { Title, Paragraph, Text } = Typography
 

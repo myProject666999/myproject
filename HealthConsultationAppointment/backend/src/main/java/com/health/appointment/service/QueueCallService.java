@@ -36,7 +36,7 @@ public class QueueCallService {
     @Transactional
     public QueueCall callNext(Long scheduleId, Long doctorId) throws Exception {
         Optional<QueueCall> nextCallOpt = queueCallRepository.findNextToCall(scheduleId, doctorId);
-        if (nextCallOpt.isEmpty()) {
+        if (!nextCallOpt.isPresent()) {
             throw new Exception("没有等待叫号的患者");
         }
 

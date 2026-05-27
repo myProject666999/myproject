@@ -223,10 +223,10 @@ const Alerts: React.FC = () => {
                     <div className="text-sm text-gray-500 mt-1">
                       {getAlertTypeLabel(alert.type)}
                       <span className="font-medium text-gray-900 mx-1">
-                        {alert.type === 'change_percent' ? `${alert.threshold}%` : `¥${alert.threshold.toFixed(2)}`}
+                        {alert.type === 'change_percent' ? `${parseFloat(alert.threshold)}%` : `¥${parseFloat(alert.threshold).toFixed(2)}`}
                       </span>
                       <span className="text-gray-400">|</span>
-                      <span className="ml-1">当前价格：¥{alert.price?.toFixed(2) || '--'}</span>
+                      <span className="ml-1">当前价格：¥{alert.price ? parseFloat(alert.price).toFixed(2) : '--'}</span>
                     </div>
                   </div>
                 </div>
@@ -289,7 +289,7 @@ const Alerts: React.FC = () => {
                           <div className="font-medium text-gray-900">{stock.symbol}</div>
                           <div className="text-sm text-gray-500">{stock.name}</div>
                         </div>
-                        <span className="text-gray-900">¥{stock.price.toFixed(2)}</span>
+                        <span className="text-gray-900">¥{parseFloat(stock.price).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -327,7 +327,7 @@ const Alerts: React.FC = () => {
 
               {selectedStock && (
                 <div className="text-sm text-gray-500">
-                  当前价格：¥{selectedStock.price.toFixed(2)}
+                  当前价格：¥{parseFloat(selectedStock.price).toFixed(2)}
                 </div>
               )}
             </div>

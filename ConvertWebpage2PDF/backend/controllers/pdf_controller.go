@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -58,12 +59,14 @@ func ConvertWebpage(c *gin.Context) {
 			Style:      req.Style,
 			EnableTOC:  req.EnableTOC,
 			Pagination: req.Pagination,
-		}, config.AppConfig.PDFOutputDir)
+		}, config.AppConfig.PDFOutputDir, config.AppConfig.ChromePath)
 
 		now := time.Now()
 		if err != nil {
+			log.Printf("转换任务失败: %s, 错误: %v", job.ID, err)
 			models.DB.Model(&job).Updates(map[string]interface{}{
 				"status":      "failed",
+				"error_msg":   err.Error(),
 				"updated_at":  now,
 			})
 			return
@@ -111,13 +114,13 @@ func DownloadPDF(c *gin.Context) {
 		return
 	}
 
-	filePath := filepath.Join(config.AppConfig.PDFOutputDir, job.FilePath)
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+	fullPath := filepath.Join(config.AppConfig.PDFOutputDir, job.FilePath)
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "文件不存在"})
 		return
 	}
 
-	c.FileAttachment(filePath, job.FilePath)
+	c.FileAttachment(fullPath, job.FilePath)
 }
 
 func GetHistory(c *gin.Context) {
@@ -182,13 +185,15 @@ func BatchConvert(c *gin.Context) {
 				Style:      req.Style,
 				EnableTOC:  req.EnableTOC,
 				Pagination: req.Pagination,
-			}, config.AppConfig.PDFOutputDir)
+			}, config.AppConfig.PDFOutputDir, config.AppConfig.ChromePath)
 
 			now := time.Now()
 			if err != nil {
 				failedCount++
+				log.Printf("批量转换任务失败: %s, 错误: %v", job.ID, err)
 				models.DB.Model(&job).Updates(map[string]interface{}{
-					"status":     "failed",
+					"status":    "failed",
+					"error_msg": err.Error(),
 					"updated_at": now,
 				})
 			} else {
@@ -241,8 +246,8 @@ func DeleteJob(c *gin.Context) {
 	}
 
 	if job.FilePath != "" {
-		filePath := filepath.Join(config.AppConfig.PDFOutputDir, job.FilePath)
-		os.Remove(filePath)
+		fullPath := filepath.Join(config.AppConfig.PDFOutputDir, job.FilePath)
+		os.Remove(fullPath)
 	}
 
 	models.DB.Delete(&job)

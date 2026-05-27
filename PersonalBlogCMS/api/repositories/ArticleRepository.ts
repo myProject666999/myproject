@@ -98,8 +98,8 @@ export class ArticleRepository extends BaseRepository<Article> {
     }
 
     if (query.keyword) {
-      conditions.push('EXISTS (SELECT 1 FROM articles_fts fts WHERE fts.rowid = a.id AND articles_fts MATCH ?)');
-      params.push(`*${query.keyword}*`);
+      conditions.push('EXISTS (SELECT 1 FROM articles_fts WHERE rowid = a.id AND articles_fts MATCH ?)');
+      params.push(`${query.keyword}*`);
     }
 
     const whereClause = conditions.join(' AND ');

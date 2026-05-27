@@ -13,7 +13,7 @@ type ExcelFile struct {
 	FilePath      string     `gorm:"size:500;not null" json:"file_path"`
 	FileSize      int64      `json:"file_size"`
 	SheetCount    int        `json:"sheet_count"`
-	ShareToken    string     `gorm:"size:100;unique" json:"share_token"`
+	ShareToken    *string    `gorm:"size:100;unique" json:"share_token"`
 	ShareExpireAt *time.Time `json:"share_expire_at"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`

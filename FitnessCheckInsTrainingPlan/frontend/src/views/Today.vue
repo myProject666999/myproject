@@ -123,14 +123,14 @@
       </div>
     </div>
 
-    <div v-if="showCustomExercise" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
-      <div class="bg-white w-full rounded-t-2xl p-6 max-h-[80vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
+    <div v-if="showCustomExercise" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex flex-col justify-end">
+      <div class="bg-white rounded-t-2xl max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center p-4 pb-2 border-b flex-shrink-0">
           <h3 class="font-bold text-lg">选择动作</h3>
           <button @click="showCustomExercise = false" class="text-gray-400 text-2xl">&times;</button>
         </div>
         
-        <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+        <div class="flex gap-2 px-4 py-3 overflow-x-auto flex-shrink-0">
           <button
             v-for="cat in categories"
             :key="cat"
@@ -142,21 +142,21 @@
           </button>
         </div>
         
-        <div class="space-y-2 mb-4">
+        <div class="px-4 space-y-2 overflow-y-auto flex-1">
           <div
             v-for="ex in filteredExercises"
             :key="ex.id"
             @click="addExercise(ex)"
-            class="p-3 border rounded-lg flex justify-between items-center cursor-pointer hover:border-primary-500"
+            class="p-3 border rounded-lg flex justify-between items-center cursor-pointer hover:border-primary-500 active:bg-primary-50"
           >
             <span>{{ ex.name }}</span>
             <span class="text-sm text-gray-400">{{ ex.category }}</span>
           </div>
         </div>
 
-        <div v-if="todayExercises.length > 0" class="border-t pt-4">
-          <h4 class="font-medium mb-2">已选动作</h4>
-          <div class="space-y-2 mb-4">
+        <div v-if="todayExercises.length > 0" class="border-t p-4 flex-shrink-0 bg-white">
+          <h4 class="font-medium mb-2">已选动作 ({{ todayExercises.length }})</h4>
+          <div class="space-y-2 mb-3 max-h-24 overflow-y-auto">
             <div
               v-for="(ex, index) in todayExercises"
               :key="index"
@@ -167,7 +167,7 @@
             </div>
           </div>
           <button @click="confirmCustomTraining" class="btn-primary w-full">
-            开始训练 ({{ todayExercises.length }}个动作)
+            开始训练
           </button>
         </div>
       </div>
@@ -268,16 +268,16 @@ const loadData = async () => {
   try {
     const [todayRes, plansRes, exRes] = await Promise.all([
       checkInApi.getToday().catch(() => ({ data: null })),
-      planApi.getAll(),
-      exerciseApi.getAll()
+      planApi.getAll().catch(() => ({ data: [] })),
+      exerciseApi.getAll().catch(() => ({ data: [] }))
     ])
     if (todayRes.data) {
       todayCheckIn.value = todayRes.data
       todayExercises.value = todayRes.data.exercises || []
       isCheckedIn.value = true
     }
-    plans.value = plansRes.data
-    exercises.value = exRes.data
+    plans.value = plansRes.data || []
+    exercises.value = exRes.data || []
   } catch (e) {
     console.error(e)
   }

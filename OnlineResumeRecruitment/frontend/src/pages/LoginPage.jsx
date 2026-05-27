@@ -13,12 +13,14 @@ import {
 } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import request from '../utils/request.js'
+import request from '../utils/request'
+import { useAuthStore } from '../store'
 
 const { Title, Text } = Typography
 
 const LoginPage = () => {
   const navigate = useNavigate()
+  const setAuth = useAuthStore((state) => state.setAuth)
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('login')
 
@@ -27,12 +29,9 @@ const LoginPage = () => {
     try {
       const data = await request.post('/auth/login', values)
       if (data?.token) {
-        localStorage.setItem('token', data.token)
-        if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user))
-        }
+        setAuth(data.token, data.user || null)
         message.success('登录成功')
-        navigate('/home')
+        navigate('/')
       }
     } catch (err) {
       // error handled in interceptor

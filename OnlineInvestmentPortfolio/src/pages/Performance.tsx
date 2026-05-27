@@ -134,7 +134,7 @@ const Performance: React.FC = () => {
           )}>
             {performance?.totalProfit >= 0 ? '+' : ''}¥{performance?.totalProfit?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
             <div className="text-sm font-normal">
-              ({performance?.totalProfitPercent >= 0 ? '+' : ''}{performance?.totalProfitPercent?.toFixed(2) || '0.00'}%)
+              ({performance?.totalProfitPercent >= 0 ? '+' : ''}{performance?.totalProfitPercent ? parseFloat(performance.totalProfitPercent).toFixed(2) : '0.00'}%)
             </div>
           </div>
         </div>
@@ -259,7 +259,7 @@ const Performance: React.FC = () => {
                     'text-lg font-semibold',
                     performance?.totalProfitPercent >= 0 ? 'text-emerald-600' : 'text-red-600'
                   )}>
-                    {performance?.totalProfitPercent >= 0 ? '+' : ''}{performance?.totalProfitPercent?.toFixed(2) || '0.00'}%
+                    {performance?.totalProfitPercent >= 0 ? '+' : ''}{performance?.totalProfitPercent ? parseFloat(performance.totalProfitPercent).toFixed(2) : '0.00'}%
                   </div>
                 </div>
               </div>
@@ -293,7 +293,7 @@ const Performance: React.FC = () => {
                           {tx.symbol} <span className="text-gray-500 font-normal">{tx.name}</span>
                         </div>
                         <div className="text-sm text-gray-500">
-                          {tx.type === 'buy' ? '买入' : '卖出'} {tx.shares.toLocaleString()} 股 × ¥{tx.price.toFixed(2)}
+                          {tx.type === 'buy' ? '买入' : '卖出'} {tx.shares.toLocaleString()} 股 × ¥{parseFloat(tx.price).toFixed(2)}
                         </div>
                       </div>
                     </div>

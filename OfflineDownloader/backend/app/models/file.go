@@ -23,7 +23,7 @@ type File struct {
 	CreatedAt      time.Time `gorm:"autoCreateTime;index" json:"created_at"`
 	UpdatedAt      time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	Task *DownloadTask `gorm:"foreignKey:TaskID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL" json:"task,omitempty"`
+	Task *DownloadTask `gorm:"-" json:"task,omitempty"`
 }
 
 func (File) TableName() string {

@@ -39,7 +39,7 @@ export class StatsService {
       this.visitLogRepository.countToday(),
     ]);
 
-    const articles = this.articleRepository.findAll('status = ?', ['published']);
+    const articles = await this.articleRepository.findAll('status = ?', ['published']);
     const totalViews = articles.reduce((sum, a) => sum + (a.viewCount || 0), 0);
 
     const result: StatsOverview = {
@@ -73,7 +73,7 @@ export class StatsService {
   }
 
   async getPopularArticles(limit = 5) {
-    const articles = this.articleRepository.findHot(limit);
+    const articles = await this.articleRepository.findHot(limit);
     return articles.map((a) => ({
       id: a.id,
       title: a.title,
@@ -84,7 +84,7 @@ export class StatsService {
   async getCategoryStats() {
     const { CategoryRepository } = await import('../repositories/CategoryRepository.js');
     const categoryRepo = new CategoryRepository();
-    const categories = categoryRepo.findAllWithCount();
+    const categories = await categoryRepo.findAllWithCount();
     return categories.map((c) => ({
       name: c.name,
       value: c.articleCount,

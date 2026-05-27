@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -29,18 +31,84 @@ type TOCItem struct {
 	Selector string
 }
 
-func ConvertWebpageToPDF(opts PDFOptions, outputDir string) (string, int, error) {
+func detectChromePath() string {
+	if runtime.GOOS == "windows" {
+		paths := []string{
+			`C:\Program Files\Google\Chrome\Application\chrome.exe`,
+			`C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`,
+			`C:\Program Files\Microsoft\Edge\Application\msedge.exe`,
+			`C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`,
+		}
+		for _, p := range paths {
+			if _, err := os.Stat(p); err == nil {
+				return p
+			}
+		}
+	} else if runtime.GOOS == "darwin" {
+		paths := []string{
+			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+			"/Applications/Chromium.app/Contents/MacOS/Chromium",
+			"/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+		}
+		for _, p := range paths {
+			if _, err := os.Stat(p); err == nil {
+				return p
+			}
+		}
+	} else {
+		paths := []string{
+			"google-chrome",
+			"google-chrome-stable",
+			"chromium-browser",
+			"chromium",
+		}
+		for _, p := range paths {
+			if _, err := exec.LookPath(p); err == nil {
+				return p
+			}
+		}
+	}
+
+	return ""
+}
+
+func ConvertWebpageToPDF(opts PDFOptions, outputDir string, chromePath string) (string, int, error) {
+	log.Printf("开始转换网页: %s", opts.URL)
+	
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return "", 0, fmt.Errorf("创建输出目录失败: %v", err)
 	}
 
+	if chromePath == "" {
+		chromePath = detectChromePath()
+	}
+	
+	if chromePath == "" {
+		return "", 0, fmt.Errorf("未找到Chrome或Edge浏览器，请安装Chrome浏览器或在配置中指定Chrome路径")
+	}
+	
+	log.Printf("使用浏览器: %s", chromePath)
+
 	filename := fmt.Sprintf("%s_%s.pdf", sanitizeFilename(opts.Title), uuid.New().String()[:8])
-	filepath := filepath.Join(outputDir, filename)
+	fullPath := filepath.Join(outputDir, filename)
 
-	allocCtx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
+	optsChr := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", true),
+		chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("no-sandbox", true),
+		chromedp.Flag("disable-dev-shm-usage", true),
+		chromedp.Flag("disable-setuid-sandbox", true),
+		chromedp.Flag("disable-web-security", true),
+		chromedp.ExecPath(chromePath),
+	)
 
-	ctx, cancel := context.WithTimeout(allocCtx, 60*time.Second)
+	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), optsChr...)
+	defer allocCancel()
+
+	chromeCtx, chromeCancel := chromedp.NewContext(allocCtx)
+	defer chromeCancel()
+
+	ctx, cancel := context.WithTimeout(chromeCtx, 120*time.Second)
 	defer cancel()
 
 	var pdfBuf []byte
@@ -61,17 +129,19 @@ func ConvertWebpageToPDF(opts PDFOptions, outputDir string) (string, int, error)
 	}
 
 	if opts.EnableTOC && len(tocItems) > 0 {
+		log.Printf("生成目录，共 %d 个标题", len(tocItems))
 		tocHTML := generateTOCHTML(tocItems)
-		pdfBuf, err = insertTOCToPDF(pdfBuf, tocHTML, opts)
+		pdfBuf, err = insertTOCToPDF(pdfBuf, tocHTML, opts, chromePath)
 		if err != nil {
-			fmt.Printf("插入目录失败: %v，使用原始PDF\n", err)
+			log.Printf("插入目录失败: %v，使用原始PDF", err)
 		}
 	}
 
-	if err := ioutil.WriteFile(filepath, pdfBuf, 0644); err != nil {
+	if err := os.WriteFile(fullPath, pdfBuf, 0644); err != nil {
 		return "", 0, fmt.Errorf("保存PDF失败: %v", err)
 	}
 
+	log.Printf("转换完成: %s, 页数: %d", filename, pageCount)
 	return filename, pageCount, nil
 }
 
@@ -284,11 +354,24 @@ func generateTOCHTML(items []TOCItem) string {
 	return html.String()
 }
 
-func insertTOCToPDF(originalPDF []byte, tocHTML string, opts PDFOptions) ([]byte, error) {
-	allocCtx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
+func insertTOCToPDF(originalPDF []byte, tocHTML string, opts PDFOptions, chromePath string) ([]byte, error) {
+	optsChr := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", true),
+		chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("no-sandbox", true),
+	)
 
-	ctx, cancel := context.WithTimeout(allocCtx, 30*time.Second)
+	if chromePath != "" {
+		optsChr = append(optsChr, chromedp.ExecPath(chromePath))
+	}
+
+	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), optsChr...)
+	defer allocCancel()
+
+	chromeCtx, chromeCancel := chromedp.NewContext(allocCtx)
+	defer chromeCancel()
+
+	ctx, cancel := context.WithTimeout(chromeCtx, 30*time.Second)
 	defer cancel()
 
 	var tocPDF []byte

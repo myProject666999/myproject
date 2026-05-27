@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -80,7 +81,7 @@ public class AppointmentService {
         }
 
         boolean exists = appointmentRepository.existsByPatientIdAndScheduleIdAndStatusIn(
-                patient.getId(), scheduleId, List.of(1, 2));
+                patient.getId(), scheduleId, Arrays.asList(1, 2));
         if (exists) {
             throw new Exception("您已预约该排班，请勿重复预约");
         }

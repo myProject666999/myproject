@@ -6,7 +6,7 @@ import (
 
 type Setting struct {
 	ID          uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	Key         string    `gorm:"size:50;uniqueIndex;not null" json:"key"`
+	KeyName     string    `gorm:"column:key_name;size:50;uniqueIndex;not null" json:"key"`
 	Value       string    `gorm:"type:text" json:"value"`
 	Description string    `gorm:"size:255" json:"description"`
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`

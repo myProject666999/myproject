@@ -153,7 +153,7 @@ const Watchlist: React.FC = () => {
                     <div className="text-sm text-gray-500">{stock.name}</div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <span className="text-gray-900 font-medium">¥{stock.price.toFixed(2)}</span>
+                    <span className="text-gray-900 font-medium">¥{parseFloat(stock.price).toFixed(2)}</span>
                     <button
                       onClick={() => handleAddStock(stock.symbol)}
                       className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
@@ -193,26 +193,26 @@ const Watchlist: React.FC = () => {
             <div className="flex items-end justify-between">
               <div>
                 <div className="text-2xl font-bold text-gray-900">
-                  ¥{stock.price?.toFixed(2) || '--'}
+                  ¥{stock.price ? parseFloat(stock.price).toFixed(2) : '--'}
                 </div>
                 <div
                   className={cn(
                     'flex items-center space-x-1 mt-1 text-sm font-medium',
-                    stock.change_percent >= 0 ? 'text-emerald-600' : 'text-red-600'
+                    parseFloat(stock.change_percent) >= 0 ? 'text-emerald-600' : 'text-red-600'
                   )}
                 >
-                  {stock.change_percent >= 0 ? (
+                  {parseFloat(stock.change_percent) >= 0 ? (
                     <TrendingUp className="w-4 h-4" />
                   ) : (
                     <TrendingDown className="w-4 h-4" />
                   )}
                   <span>
-                    {stock.change_percent >= 0 ? '+' : ''}
-                    {stock.change_percent?.toFixed(2) || '0.00'}%
+                    {parseFloat(stock.change_percent) >= 0 ? '+' : ''}
+                    {stock.change_percent ? parseFloat(stock.change_percent).toFixed(2) : '0.00'}%
                   </span>
                   <span className="text-gray-400 font-normal ml-1">
-                    ({stock.change >= 0 ? '+' : ''}
-                    {stock.change?.toFixed(2) || '0.00'})
+                    ({parseFloat(stock.change) >= 0 ? '+' : ''}
+                    {stock.change ? parseFloat(stock.change).toFixed(2) : '0.00'})
                   </span>
                 </div>
               </div>

@@ -70,8 +70,8 @@ type Achievement struct {
 }
 
 type UserStats struct {
-	TotalCheckIns     int    `json:"total_check_ins"`
-	CurrentStreak     int    `json:"current_streak"`
-	LongestStreak     int    `json:"longest_streak"`
-	TotalWeightLifted float64 `json:"total_weight_lifted"`
+	TotalCheckIns     int     `json:"totalCheckIns"`
+	CurrentStreak     int     `json:"currentStreak"`
+	LongestStreak     int     `json:"longestStreak"`
+	TotalWeightLifted float64 `json:"totalWeightLifted"`
 }

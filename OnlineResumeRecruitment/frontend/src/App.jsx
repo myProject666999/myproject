@@ -14,6 +14,13 @@ import {
 } from '@ant-design/icons'
 import { useAuthStore } from './store'
 import { notificationApi } from './api'
+import LoginPage from './pages/LoginPage'
+import HomePage from './pages/HomePage'
+import JobDetailPage from './pages/JobDetailPage'
+import ResumePage from './pages/ResumePage'
+import ApplicationPage from './pages/ApplicationPage'
+import HRRecruitPage from './pages/HRRecruitPage'
+import NotificationPage from './pages/NotificationPage'
 
 const { Header, Content, Footer } = Layout
 
@@ -107,7 +114,7 @@ function AppHeader() {
         ) : (
           <>
             <Button type="primary" onClick={() => navigate('/login')}>登录</Button>
-            <Button onClick={() => navigate('/register')}>注册</Button>
+            <Button onClick={() => navigate('/login')}>注册</Button>
           </>
         )}
       </Space>
@@ -121,16 +128,16 @@ function App() {
       <AppHeader />
       <Content style={{ padding: '24px', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
         <Routes>
-          <Route path="/" element={<div>首页</div>} />
-          <Route path="/jobs" element={<div>职位列表</div>} />
-          <Route path="/jobs/:id" element={<div>职位详情</div>} />
-          <Route path="/login" element={<div>登录</div>} />
-          <Route path="/register" element={<div>注册</div>} />
-          <Route path="/resume/my" element={<div>我的简历</div>} />
-          <Route path="/applications/my" element={<div>投递记录</div>} />
-          <Route path="/hr/publish" element={<div>发布职位</div>} />
-          <Route path="/hr/applications" element={<div>招聘后台</div>} />
-          <Route path="/notifications" element={<div>通知页</div>} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/jobs" element={<HomePage />} />
+          <Route path="/jobs/:id" element={<JobDetailPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<LoginPage />} />
+          <Route path="/resume/my" element={<ResumePage />} />
+          <Route path="/applications/my" element={<ApplicationPage />} />
+          <Route path="/hr/publish" element={<HRRecruitPage />} />
+          <Route path="/hr/applications" element={<HRRecruitPage />} />
+          <Route path="/notifications" element={<NotificationPage />} />
         </Routes>
       </Content>
       <Footer style={{ textAlign: 'center', background: '#fff' }}>

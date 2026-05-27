@@ -17,6 +17,7 @@ type ConversionJob struct {
 	Status      string    `gorm:"type:varchar(20);default:'pending'" json:"status"`
 	FilePath    string    `gorm:"type:varchar(500)" json:"file_path"`
 	PageCount   int       `gorm:"default:0" json:"page_count"`
+	ErrorMsg    string    `gorm:"type:text" json:"error_msg,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	CompletedAt *time.Time `json:"completed_at"`

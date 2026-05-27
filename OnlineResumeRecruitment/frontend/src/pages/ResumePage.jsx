@@ -27,7 +27,7 @@ import {
   CloseOutlined
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import request from '../utils/request.js'
+import request from '../utils/request'
 
 const { Title, Text } = Typography
 const { TextArea } = Input

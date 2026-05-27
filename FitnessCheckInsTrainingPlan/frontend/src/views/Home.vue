@@ -151,14 +151,20 @@ const unlockedAchievements = computed(() => {
 const loadData = async () => {
   try {
     const [statsRes, achievementsRes, plansRes, todayRes] = await Promise.all([
-      statsApi.get(),
-      achievementApi.getAll(),
-      planApi.getAll(),
+      statsApi.get().catch(() => ({ data: null })),
+      achievementApi.getAll().catch(() => ({ data: [] })),
+      planApi.getAll().catch(() => ({ data: [] })),
       checkInApi.getToday().catch(() => ({ data: null }))
     ])
-    stats.value = statsRes.data
-    achievements.value = achievementsRes.data
-    plans.value = plansRes.data
+    const data = statsRes.data || {}
+    stats.value = {
+      totalCheckIns: Number(data.totalCheckIns) || 0,
+      currentStreak: Number(data.currentStreak) || 0,
+      longestStreak: Number(data.longestStreak) || 0,
+      totalWeightLifted: Number(data.totalWeightLifted) || 0
+    }
+    achievements.value = achievementsRes.data || []
+    plans.value = plansRes.data || []
     todayCheckedIn.value = !!todayRes.data
   } catch (e) {
     console.error(e)

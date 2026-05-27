@@ -211,25 +211,25 @@ const StockDetail: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-end justify-between mb-6">
           <div>
-            <div className="text-4xl font-bold text-gray-900">¥{stock.price.toFixed(2)}</div>
+            <div className="text-4xl font-bold text-gray-900">¥{parseFloat(stock.price).toFixed(2)}</div>
             <div
               className={cn(
                 'flex items-center space-x-2 mt-2 text-lg font-medium',
-                stock.change_percent >= 0 ? 'text-emerald-600' : 'text-red-600'
+                parseFloat(stock.change_percent) >= 0 ? 'text-emerald-600' : 'text-red-600'
               )}
             >
-              {stock.change_percent >= 0 ? (
+              {parseFloat(stock.change_percent) >= 0 ? (
                 <TrendingUp className="w-6 h-6" />
               ) : (
                 <TrendingDown className="w-6 h-6" />
               )}
               <span>
-                {stock.change_percent >= 0 ? '+' : ''}
-                {stock.change_percent.toFixed(2)}%
+                {parseFloat(stock.change_percent) >= 0 ? '+' : ''}
+                {parseFloat(stock.change_percent).toFixed(2)}%
               </span>
               <span className="text-gray-400 font-normal">
-                ({stock.change >= 0 ? '+' : ''}
-                {stock.change.toFixed(2)})
+                ({parseFloat(stock.change) >= 0 ? '+' : ''}
+                {parseFloat(stock.change).toFixed(2)})
               </span>
             </div>
           </div>
@@ -316,14 +316,14 @@ const StockDetail: React.FC = () => {
             <PieChart className="w-4 h-4" />
             <span>市盈率</span>
           </div>
-          <div className="text-xl font-bold text-gray-900">{stock.pe_ratio?.toFixed(2) || '--'}</div>
+          <div className="text-xl font-bold text-gray-900">{stock.pe_ratio ? parseFloat(stock.pe_ratio).toFixed(2) : '--'}</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
           <div className="flex items-center space-x-2 text-gray-500 text-sm mb-2">
             <TrendingUp className="w-4 h-4" />
             <span>52周最高</span>
           </div>
-          <div className="text-xl font-bold text-emerald-600">¥{(stock.price * 1.3).toFixed(2)}</div>
+          <div className="text-xl font-bold text-emerald-600">¥{(parseFloat(stock.price) * 1.3).toFixed(2)}</div>
         </div>
       </div>
 
@@ -362,7 +362,7 @@ const StockDetail: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   当前价格
                 </label>
-                <div className="text-2xl font-bold text-gray-900">¥{stock.price.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-gray-900">¥{parseFloat(stock.price).toFixed(2)}</div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -381,7 +381,7 @@ const StockDetail: React.FC = () => {
                   预计金额
                 </label>
                 <div className="text-xl font-bold text-gray-900">
-                  ¥{(shares * stock.price).toLocaleString()}
+                  ¥{(shares * parseFloat(stock.price)).toLocaleString()}
                 </div>
               </div>
             </div>
@@ -450,7 +450,7 @@ const StockDetail: React.FC = () => {
               </div>
               {stock && (
                 <div className="text-sm text-gray-500">
-                  当前价格：¥{stock.price.toFixed(2)}，{stock.change_percent >= 0 ? '+' : ''}{stock.change_percent.toFixed(2)}%
+                  当前价格：¥{parseFloat(stock.price).toFixed(2)}，{parseFloat(stock.change_percent) >= 0 ? '+' : ''}{parseFloat(stock.change_percent).toFixed(2)}%
                 </div>
               )}
             </div>

@@ -173,7 +173,7 @@ func CreateShareLink(c *gin.Context) {
 	token := utils.GenerateShareToken()
 	expireAt := time.Now().AddDate(0, 0, days)
 
-	excelFile.ShareToken = token
+	excelFile.ShareToken = &token
 	excelFile.ShareExpireAt = &expireAt
 
 	if err := models.UpdateExcelFile(excelFile); err != nil {

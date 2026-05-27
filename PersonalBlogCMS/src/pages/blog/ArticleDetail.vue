@@ -27,17 +27,17 @@ const commentForm = reactive<CreateCommentRequest>({
 
 const commentRules: FormRules = {
   authorName: [
-    { required: true, message: '请输入昵称', trigger: 'blur' },
-    { min: 2, max: 20, message: '昵称长度在 2 到 20 个字符', trigger: 'blur' },
+    { required: true, message: '请输入昵�?, trigger: 'blur' },
+    { min: 2, max: 20, message: '昵称长度�?2 �?20 个字�?, trigger: 'blur' },
   ],
   content: [
-    { required: true, message: '请输入评论内容', trigger: 'blur' },
-    { min: 2, max: 500, message: '评论内容长度在 2 到 500 个字符', trigger: 'blur' },
+    { required: true, message: '请输入评论内�?, trigger: 'blur' },
+    { min: 2, max: 500, message: '评论内容长度�?2 �?500 个字�?, trigger: 'blur' },
   ],
 };
 
 const formatDate = (date: Date) => {
-  return dayjs(date).format('YYYY年MM月DD日');
+  return dayjs(date).format('YYYY年MM月DD�?);
 };
 
 const formatDateTime = (date: Date) => {
@@ -51,9 +51,9 @@ const loadArticle = async () => {
   loading.value = true;
   try {
     const response = await articleApi.getDetail(id);
-    article.value = response.data.article;
-    prevArticle.value = response.data.prev;
-    nextArticle.value = response.data.next;
+    article.value = response.article;
+    prevArticle.value = response.prev;
+    nextArticle.value = response.next;
     loadComments(id);
   } catch (error) {
     ElMessage.error('加载文章失败');
@@ -67,7 +67,7 @@ const loadComments = async (articleId: number) => {
   commentsLoading.value = true;
   try {
     const response = await commentApi.getApproved(articleId);
-    comments.value = response.data;
+    comments.value = response;
   } catch (error) {
     console.error('加载评论失败', error);
   } finally {
@@ -137,7 +137,7 @@ onMounted(() => {
 
               <span class="flex items-center gap-1">
                 <el-icon><View /></el-icon>
-                {{ article.viewCount }} 次阅读
+                {{ article.viewCount }} 次阅�?
               </span>
             </div>
 
@@ -164,7 +164,7 @@ onMounted(() => {
             <div v-if="prevArticle" class="flex-1 cursor-pointer group" @click="goToArticle(prevArticle.id)">
               <div class="text-sm text-gray-400 mb-1 flex items-center gap-1">
                 <el-icon><ArrowLeft /></el-icon>
-                上一篇
+                上一�?
               </div>
               <div class="text-gray-700 group-hover:text-primary transition-colors truncate">
                 {{ prevArticle.title }}
@@ -175,7 +175,7 @@ onMounted(() => {
             <div class="flex-1 text-right">
               <div v-if="nextArticle" class="cursor-pointer group" @click="goToArticle(nextArticle.id)">
                 <div class="text-sm text-gray-400 mb-1 flex items-center gap-1 justify-end">
-                  下一篇
+                  下一�?
                   <el-icon><ArrowRight /></el-icon>
                 </div>
                 <div class="text-gray-700 group-hover:text-primary transition-colors truncate">
@@ -203,14 +203,14 @@ onMounted(() => {
                 <el-form-item label="昵称" prop="authorName">
                   <el-input
                     v-model="commentForm.authorName"
-                    placeholder="请输入昵称"
+                    placeholder="请输入昵�?
                     :disabled="submitting"
                   />
                 </el-form-item>
                 <el-form-item label="邮箱 (选填)" prop="authorEmail">
                   <el-input
                     v-model="commentForm.authorEmail"
-                    placeholder="请输入邮箱（用于回复通知）"
+                    placeholder="请输入邮箱（用于回复通知�?
                     :disabled="submitting"
                   />
                 </el-form-item>
@@ -316,3 +316,4 @@ onMounted(() => {
   padding-bottom: 0;
 }
 </style>
+

@@ -41,7 +41,7 @@
         </el-form-item>
         <el-form-item label="所属部门" prop="department_id">
           <el-select v-model="userForm.department_id" style="width: 100%">
-            <el-option label="无" :value="" />
+            <el-option label="无" :value="''" />
             <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
           </el-select>
         </el-form-item>

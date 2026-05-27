@@ -8,13 +8,33 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
-type DownloadService struct{}
+type DownloadService struct {
+	aria2Available bool
+}
+
+var GlobalDownloadService *DownloadService
 
 func NewDownloadService() *DownloadService {
-	return &DownloadService{}
+	if GlobalDownloadService == nil {
+		GlobalDownloadService = &DownloadService{
+			aria2Available: true,
+		}
+	}
+	return GlobalDownloadService
+}
+
+func generateLocalTaskID() string {
+	return fmt.Sprintf("local-%d", time.Now().UnixNano())
+}
+
+func (s *DownloadService) CheckAria2() bool {
+	_, err := Aria2.GetGlobalStat()
+	s.aria2Available = (err == nil)
+	return s.aria2Available
 }
 
 func (s *DownloadService) AddDownload(url string, title string) (*models.DownloadTask, error) {
@@ -39,31 +59,61 @@ func (s *DownloadService) AddDownload(url string, title string) (*models.Downloa
 		return nil, fmt.Errorf("failed to create download directory: %v", err)
 	}
 
-	options := map[string]interface{}{
-		"dir": downloadDir,
-	}
+	var taskID string
+	var taskStatus int8 = models.TaskStatusWaiting
+	var errMsg string
 
-	gid, err := Aria2.AddURI(url, options)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add download to aria2: %v", err)
+	aria2Available := s.CheckAria2()
+
+	if aria2Available {
+		options := map[string]interface{}{
+			"dir": downloadDir,
+		}
+
+		gid, err := Aria2.AddURI(url, options)
+		if err != nil {
+			taskID = generateLocalTaskID()
+			taskStatus = models.TaskStatusWaiting
+			errMsg = fmt.Sprintf("aria2 error: %v, task will retry when aria2 is available", err)
+		} else {
+			taskID = gid
+		}
+	} else {
+		taskID = generateLocalTaskID()
+		taskStatus = models.TaskStatusWaiting
+		errMsg = "aria2 is not available, task will be submitted when aria2 starts"
 	}
 
 	if title == "" {
-		title = fmt.Sprintf("下载任务 - %s", gid[:8])
+		if aria2Available && taskID != "" && !strings.HasPrefix(taskID, "local-") {
+			title = fmt.Sprintf("下载任务 - %s", taskID[:8])
+		} else {
+			if IsMagnetLink(url) {
+				title = "磁力链下载任务"
+			} else if IsED2KLink(url) {
+				if parsedName := ParseED2KFileName(url); parsedName != "" {
+					title = parsedName
+				} else {
+					title = "ED2K下载任务"
+				}
+			} else {
+				title = "HTTP下载任务"
+			}
+		}
 	}
 
 	task := &models.DownloadTask{
-		TaskID:   gid,
-		Title:    title,
-		URL:      url,
-		Type:     int8(taskType),
-		Status:   models.TaskStatusWaiting,
-		InfoHash: infoHash,
-		SavePath: downloadDir,
+		TaskID:       taskID,
+		Title:        title,
+		URL:          url,
+		Type:         int8(taskType),
+		Status:       taskStatus,
+		InfoHash:     infoHash,
+		SavePath:     downloadDir,
+		ErrorMessage: errMsg,
 	}
 
 	if err := database.DB.Create(task).Error; err != nil {
-		Aria2.ForceRemove(gid)
 		return nil, fmt.Errorf("failed to save task to database: %v", err)
 	}
 
@@ -116,8 +166,10 @@ func (s *DownloadService) PauseTask(id uint64) error {
 	}
 
 	if task.Status == models.TaskStatusDownloading || task.Status == models.TaskStatusWaiting {
-		if err := Aria2.Pause(task.TaskID); err != nil {
-			return fmt.Errorf("failed to pause task in aria2: %v", err)
+		if !strings.HasPrefix(task.TaskID, "local-") {
+			if err := Aria2.Pause(task.TaskID); err != nil {
+				return fmt.Errorf("failed to pause task in aria2: %v", err)
+			}
 		}
 
 		task.Status = models.TaskStatusPaused
@@ -134,8 +186,10 @@ func (s *DownloadService) ResumeTask(id uint64) error {
 	}
 
 	if task.Status == models.TaskStatusPaused {
-		if err := Aria2.Resume(task.TaskID); err != nil {
-			return fmt.Errorf("failed to resume task in aria2: %v", err)
+		if !strings.HasPrefix(task.TaskID, "local-") {
+			if err := Aria2.Resume(task.TaskID); err != nil {
+				return fmt.Errorf("failed to resume task in aria2: %v", err)
+			}
 		}
 
 		task.Status = models.TaskStatusWaiting
@@ -152,12 +206,13 @@ func (s *DownloadService) DeleteTask(id uint64, deleteFiles bool) error {
 	}
 
 	if task.Status == models.TaskStatusDownloading || task.Status == models.TaskStatusWaiting {
-		if err := Aria2.ForceRemove(task.TaskID); err != nil {
-			return fmt.Errorf("failed to remove task from aria2: %v", err)
+		if !strings.HasPrefix(task.TaskID, "local-") {
+			if err := Aria2.ForceRemove(task.TaskID); err != nil {
+				return fmt.Errorf("failed to remove task from aria2: %v", err)
+			}
+			Aria2.RemoveDownloadResult(task.TaskID)
 		}
 	}
-
-	Aria2.RemoveDownloadResult(task.TaskID)
 
 	if deleteFiles && task.SavePath != "" {
 		fileService := NewFileService()
@@ -178,11 +233,31 @@ func (s *DownloadService) DeleteTask(id uint64, deleteFiles bool) error {
 }
 
 func (s *DownloadService) PauseAll() error {
-	return Aria2.PauseAll()
+	if s.CheckAria2() {
+		return Aria2.PauseAll()
+	}
+
+	var tasks []models.DownloadTask
+	database.DB.Where("status IN (0,1) AND task_id NOT LIKE 'local-%'").Find(&tasks)
+	for _, task := range tasks {
+		Aria2.Pause(task.TaskID)
+	}
+
+	return nil
 }
 
 func (s *DownloadService) ResumeAll() error {
-	return Aria2.ResumeAll()
+	if s.CheckAria2() {
+		return Aria2.ResumeAll()
+	}
+
+	var tasks []models.DownloadTask
+	database.DB.Where("status = 2 AND task_id NOT LIKE 'local-%'").Find(&tasks)
+	for _, task := range tasks {
+		Aria2.Resume(task.TaskID)
+	}
+
+	return nil
 }
 
 func (s *DownloadService) ClearCompleted() error {
@@ -198,6 +273,23 @@ func (s *DownloadService) ClearCompleted() error {
 
 func (s *DownloadService) updateTaskFromAria2(task *models.DownloadTask) {
 	if task.Status == models.TaskStatusCompleted || task.Status == models.TaskStatusError || task.Status == models.TaskStatusDeleted {
+		return
+	}
+
+	if strings.HasPrefix(task.TaskID, "local-") {
+		if s.CheckAria2() {
+			options := map[string]interface{}{
+				"dir": task.SavePath,
+			}
+
+			gid, err := Aria2.AddURI(task.URL, options)
+			if err == nil {
+				task.TaskID = gid
+				task.Status = models.TaskStatusWaiting
+				task.ErrorMessage = ""
+				database.DB.Save(task)
+			}
+		}
 		return
 	}
 

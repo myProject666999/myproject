@@ -22,7 +22,7 @@ import {
   CheckCircleOutlined,
   MessageOutlined
 } from '@ant-design/icons'
-import request from '../utils/request.js'
+import request from '../utils/request'
 
 const { Title, Text, Paragraph } = Typography
 

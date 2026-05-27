@@ -72,6 +72,14 @@
           <el-descriptions-item label="页数">{{ currentJob.page_count || '-' }}</el-descriptions-item>
         </el-descriptions>
         
+        <el-alert
+          v-if="currentJob.status === 'failed' && currentJob.error_msg"
+          :title="'转换失败: ' + currentJob.error_msg"
+          type="error"
+          :closable="false"
+          style="margin-top: 16px"
+        />
+        
         <div class="progress-bar" v-if="currentJob.status === 'processing'">
           <el-progress :percentage="progress" :indeterminate="true" />
         </div>

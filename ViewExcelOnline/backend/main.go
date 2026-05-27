@@ -10,6 +10,8 @@ import (
 func main() {
 	db := config.InitDB()
 
+	db.Exec("ALTER TABLE excel_files MODIFY COLUMN share_token VARCHAR(100) NULL")
+
 	err := db.AutoMigrate(&models.ExcelFile{})
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)

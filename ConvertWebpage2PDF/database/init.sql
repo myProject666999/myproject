@@ -13,6 +13,7 @@ CREATE TABLE conversion_jobs (
     status VARCHAR(20) DEFAULT 'pending' COMMENT '任务状态',
     file_path VARCHAR(500) DEFAULT '' COMMENT 'PDF文件路径',
     page_count INT DEFAULT 0 COMMENT '页数',
+    error_msg TEXT DEFAULT NULL COMMENT '错误信息',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     completed_at DATETIME NULL COMMENT '完成时间',

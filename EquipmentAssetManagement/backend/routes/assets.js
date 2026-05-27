@@ -112,14 +112,20 @@ router.put('/:id', async (req, res) => {
   try {
     const { asset_code, name, category_id, specification, brand, serial_number, purchase_date, purchase_price, supplier, location, description, status } = req.body;
     
+    const currentStatus = status || 'IDLE';
+    const currentPurchasePrice = purchase_price !== undefined ? purchase_price : null;
+    
     await pool.query(
       `UPDATE assets SET asset_code = ?, name = ?, category_id = ?, specification = ?, brand = ?, serial_number = ?, 
        purchase_date = ?, purchase_price = ?, supplier = ?, location = ?, description = ?, status = ? WHERE id = ?`,
-      [asset_code, name, category_id, specification, brand, serial_number, purchase_date, purchase_price, supplier, location, description, status, req.params.id]
+      [asset_code, name, category_id, specification || null, brand || null, serial_number || null, 
+       purchase_date || null, currentPurchasePrice, supplier || null, location || null, 
+       description || null, currentStatus, req.params.id]
     );
     
     res.json({ code: 200, message: '更新成功' });
   } catch (error) {
+    console.error('Update asset error:', error);
     res.status(500).json({ code: 500, message: error.message });
   }
 });

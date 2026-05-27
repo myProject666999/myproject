@@ -36,8 +36,6 @@ type DownloadTask struct {
 	CreatedAt      time.Time  `gorm:"autoCreateTime;index" json:"created_at"`
 	UpdatedAt      time.Time  `gorm:"autoUpdateTime" json:"updated_at"`
 	CompletedAt    *time.Time `json:"completed_at,omitempty"`
-
-	Files []File `gorm:"foreignKey:TaskID;references:ID" json:"files,omitempty"`
 }
 
 func (DownloadTask) TableName() string {

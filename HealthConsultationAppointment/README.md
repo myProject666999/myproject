@@ -7,12 +7,12 @@
 ## 技术栈
 
 ### 后端
-- **框架**: Spring Boot 3.2.0
+- **框架**: Spring Boot 2.7.18
 - **数据库**: MySQL 8.0+
 - **缓存**: Redis 6.0+
 - **ORM**: Spring Data JPA
 - **构建工具**: Maven
-- **Java版本**: JDK 17+
+- **Java版本**: JDK 8+
 
 ### 前端
 - **框架**: Vue 3.4
