@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留样记录 - 学校食堂明厨亮灶系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .nav { background: white; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .nav a { padding: 10px 20px; text-decoration: none; color: #667eea; border-radius: 5px; transition: all 0.3s; }
+        .nav a:hover, .nav a.active { background: #667eea; color: white; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .filter-bar { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .filter-bar input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 150px; }
+        .filter-bar button { padding: 10px 25px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .sample-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .sample-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .sample-img { height: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%); display: flex; align-items: center; justify-content: center; }
+        .sample-img img { width: 100%; height: 100%; object-fit: cover; }
+        .sample-img-placeholder { font-size: 80px; color: #ccc; }
+        .sample-info { padding: 20px; }
+        .sample-name { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .sample-meta { display: flex; justify-content: space-between; color: #666; font-size: 14px; margin-bottom: 10px; }
+        .sample-no { color: #667eea; font-size: 12px; margin-bottom: 10px; }
+        .sample-status { padding: 5px 12px; border-radius: 12px; font-size: 12px; display: inline-block; }
+        .status-active { background: #fff3cd; color: #856404; }
+        .status-disposed { background: #d1ecf1; color: #0c5460; }
+        .sample-detail { margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; font-size: 13px; color: #999; }
+        .footer { text-align: center; padding: 30px; color: #999; font-size: 14px; }
+        .empty { text-align: center; padding: 50px; color: #999; grid-column: 1/-1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📦 食品留样记录</h1>
+        <p>每顿留样 · 48小时 · 有据可查</p>
+    </div>
+
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="menu.html">菜谱公示</a>
+        <a href="ingredient.html">食材溯源</a>
+        <a href="sample.html" class="active">留样记录</a>
+        <a href="accompany.html">陪餐评价</a>
+        <a href="inspection.html">卫生检查</a>
+        <a href="feedback.html">家长反馈</a>
+    </div>
+
+    <div class="container">
+        <div class="filter-bar">
+            <input type="date" id="sampleDate" value="">
+            <input type="text" id="keyword" placeholder="搜索菜品名称...">
+            <button onclick="search()">搜索</button>
+        </div>
+
+        <div class="sample-grid" id="sampleGrid">
+            <div class="empty">加载中...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2024 学校食堂明厨亮灶与陪餐管理系统</p>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        document.getElementById('sampleDate').valueAsDate = new Date();
+        search();
+
+        async function search() {
+            const date = document.getElementById('sampleDate').value;
+            const keyword = document.getElementById('keyword').value;
+
+            let url = `${API_BASE}/sample/public/date/${date}`;
+            if (keyword) {
+                url = `${API_BASE}/sample/public/search?keyword=${encodeURIComponent(keyword)}`;
+            }
+
+            try {
+                const res = await fetch(url);
+                const result = await res.json();
+                renderList(result.data || []);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('sampleGrid').innerHTML = '<div class="empty">加载失败</div>';
+            }
+        }
+
+        function renderList(list) {
+            const container = document.getElementById('sampleGrid');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty">暂无留样记录</div>';
+                return;
+            }
+
+            container.innerHTML = list.map(item => `
+                <div class="sample-card">
+                    <div class="sample-img">
+                        ${item.imageUrl ? 
+                            `<img src="${item.imageUrl}" alt="${item.dishName}">` : 
+                            `<span class="sample-img-placeholder">🍽️</span>`
+                        }
+                    </div>
+                    <div class="sample-info">
+                        <div class="sample-name">${item.dishName}</div>
+                        <div class="sample-no">留样编号: ${item.sampleNo}</div>
+                        <div class="sample-meta">
+                            <span>📅 ${item.sampleDate}</span>
+                            <span>⏰ ${item.sampleTime}</span>
+                        </div>
+                        <div class="sample-meta">
+                            <span>👤 ${item.sampler}</span>
+                            <span class="sample-status ${item.disposalTime ? 'status-disposed' : 'status-active'}">
+                                ${item.disposalTime ? '已销毁' : '留样中'}
+                            </span>
+                        </div>
+                        <div class="sample-detail">
+                            <div>存放位置: ${item.storageLocation || '-'}</div>
+                            <div>留样重量: ${item.sampleWeight || 0}g</div>
+                            ${item.disposalTime ? `<div>销毁时间: ${new Date(item.disposalTime).toLocaleString()}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

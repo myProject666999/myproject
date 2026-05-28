@@ -39,11 +39,15 @@ export class ArticleService {
     const cacheKey = cacheKeys.articleDetail(id);
     const cached = await redis.hgetall(cacheKey);
 
-    if (cached && Object.keys(cached).length > 0) {
-      const article = JSON.parse(cached.article) as Article;
-      const prev = cached.prev ? JSON.parse(cached.prev) : null;
-      const next = cached.next ? JSON.parse(cached.next) : null;
-      return { article, prev, next };
+    if (cached && Object.keys(cached).length > 0 && cached.article) {
+      try {
+        const article = JSON.parse(cached.article) as Article;
+        const prev = cached.prev ? JSON.parse(cached.prev) : null;
+        const next = cached.next ? JSON.parse(cached.next) : null;
+        return { article, prev, next };
+      } catch {
+        // 缓存数据损坏，忽略缓存
+      }
     }
 
     const article = await this.articleRepository.findDetailById(id);
@@ -82,12 +86,12 @@ export class ArticleService {
     const current = await redis.incr(cacheKey);
 
     if (current % 10 === 0) {
-      this.articleRepository.incrementViewCount(id);
+      await this.articleRepository.incrementViewCount(id);
     }
 
     const { VisitLogRepository } = await import('../repositories/VisitLogRepository.js');
     const visitLogRepo = new VisitLogRepository();
-    visitLogRepo.create({
+    await visitLogRepo.create({
       articleId: id,
       ipAddress: ip,
       userAgent,
@@ -157,14 +161,10 @@ export class ArticleService {
     if (!existing) return null;
 
     const oldCategoryId = existing.categoryId;
-    const oldTagIds = existing.tags ? existing.tags.map((t) => t.id) : [];
 
     const contentHtml = request.contentMd
       ? markdownToHtml(request.contentMd)
       : existing.contentHtml;
-    const tags = request.tagIds
-      ? await this.tagRepository.findByIds(request.tagIds)
-      : existing.tags;
 
     const updateData: Partial<Article> & Record<string, unknown> = {
       title: request.title || existing.title,
@@ -182,23 +182,27 @@ export class ArticleService {
 
     const article = await this.articleRepository.update(request.id, updateData);
 
-    if (request.tagIds) {
+    if (request.tagIds !== undefined) {
+      const existingWithTags = await this.articleRepository.findDetailById(request.id, true);
+      const oldTagIds = existingWithTags?.tags ? existingWithTags.tags.map((t) => t.id) : [];
+
+      const tags = await this.tagRepository.findByIds(request.tagIds);
       await this.articleRepository.setArticleTags(request.id, request.tagIds);
+
+      const newTagIds = tags.map((t) => t.id);
+      const changedTagIds = [...new Set([...oldTagIds, ...newTagIds])];
+      if (changedTagIds.length > 0) {
+        await this.tagRepository.updateArticleCountBatch(changedTagIds);
+      }
     }
 
-    if (oldCategoryId !== updateData.categoryId) {
+    if (oldCategoryId != updateData.categoryId) {
       if (oldCategoryId) {
         await this.categoryRepository.incrementArticleCount(oldCategoryId, -1);
       }
       if (updateData.categoryId) {
         await this.categoryRepository.incrementArticleCount(updateData.categoryId);
       }
-    }
-
-    const newTagIds = tags ? tags.map((t) => t.id) : [];
-    const changedTagIds = [...new Set([...oldTagIds, ...newTagIds])];
-    if (changedTagIds.length > 0) {
-      await this.tagRepository.updateArticleCountBatch(changedTagIds);
     }
 
     await this.invalidateCache();

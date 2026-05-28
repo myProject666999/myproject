@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区网格化治理工单系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #1890ff, #096dd9); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .nav { background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; padding: 0 30px; }
+        .nav-item { padding: 15px 25px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .nav-item:hover, .nav-item.active { color: #1890ff; border-bottom-color: #1890ff; }
+        .container { padding: 20px 30px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333; border-left: 4px solid #1890ff; padding-left: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #555; font-weight: 500; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; transition: border 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #1890ff; outline: none;
+        }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #1890ff; color: white; }
+        .btn-primary:hover { background: #40a9ff; }
+        .btn-success { background: #52c41a; color: white; }
+        .btn-success:hover { background: #73d13d; }
+        .btn-warning { background: #faad14; color: white; }
+        .btn-warning:hover { background: #ffc53d; }
+        .btn-danger { background: #ff4d4f; color: white; }
+        .btn-danger:hover { background: #ff7875; }
+        .btn-default { background: white; color: #595959; border: 1px solid #d9d9d9; }
+        .btn-default:hover { border-color: #1890ff; color: #1890ff; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+        .table th { background: #fafafa; font-weight: 600; color: #333; }
+        .table tr:hover { background: #f5f5f5; }
+        .status-tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; color: white; }
+        .status-PENDING { background: #faad14; }
+        .status-ASSIGNED { background: #1890ff; }
+        .status-PROCESSING { background: #13c2c2; }
+        .status-ESCALATED { background: #ff4d4f; }
+        .status-COMPLETED { background: #52c41a; }
+        .status-EVALUATED { background: #722ed1; }
+        .status-CLOSED { background: #8c8c8c; }
+        .type-tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px; }
+        .type-TRASH { background: #fff7e6; color: #fa8c16; }
+        .type-ILLEGAL_BUILD { background: #fff1f0; color: #f5222d; }
+        .type-FACILITY_DAMAGE { background: #e6f7ff; color: #1890ff; }
+        .type-OTHER { background: #f6ffed; color: #52c41a; }
+        .level-tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px; }
+        .level-LOW { background: #f0f5ff; color: #597ef7; }
+        .level-NORMAL { background: #e6f7ff; color: #1890ff; }
+        .level-HIGH { background: #fff7e6; color: #fa8c16; }
+        .level-URGENT { background: #fff1f0; color: #f5222d; }
+        .flex { display: flex; gap: 15px; }
+        .flex-1 { flex: 1; }
+        .grid { display: grid; gap: 15px; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .stat-card { background: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .stat-card .num { font-size: 32px; font-weight: bold; color: #1890ff; }
+        .stat-card .label { color: #8c8c8c; margin-top: 5px; }
+        .stat-card.overdue .num { color: #ff4d4f; }
+        .stat-card.completed .num { color: #52c41a; }
+        .stat-card.processing .num { color: #13c2c2; }
+        #map { height: 600px; width: 100%; border-radius: 8px; }
+        .map-container { position: relative; }
+        .map-legend { position: absolute; top: 15px; right: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 100; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 8px; }
+        .legend-color { width: 20px; height: 20px; border-radius: 4px; margin-right: 8px; }
+        .timeline { position: relative; padding-left: 30px; }
+        .timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: #e8e8e8; }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -25px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: #1890ff; border: 2px solid white; box-shadow: 0 0 0 2px #1890ff; }
+        .timeline-item .time { color: #8c8c8c; font-size: 12px; }
+        .timeline-item .content { background: #f5f5f5; padding: 10px 15px; border-radius: 6px; margin-top: 5px; }
+        .image-preview { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .image-preview img { width: 100px; height: 100px; object-fit: cover; border-radius: 4px; border: 1px solid #d9d9d9; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 8px; width: 600px; max-width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 15px 20px; border-top: 1px solid #f0f0f0; text-align: right; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #8c8c8c; }
+        .rating { display: flex; gap: 5px; }
+        .star { font-size: 24px; cursor: pointer; color: #d9d9d9; transition: color 0.3s; }
+        .star.active { color: #fadb14; }
+        .hotspot-marker { background: rgba(24, 144, 255, 0.9); color: white; padding: 8px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .hotspot-marker.high { background: rgba(255, 77, 79, 0.9); }
+        .hotspot-marker.medium { background: rgba(250, 173, 20, 0.9); }
+        .hotspot-marker.low { background: rgba(82, 196, 26, 0.9); }
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 400px; }
+        .login-box h2 { text-align: center; margin-bottom: 30px; color: #333; }
+        .hidden { display: none !important; }
+        .empty { text-align: center; padding: 40px; color: #8c8c8c; }
+        .badge { display: inline-block; background: #ff4d4f; color: white; padding: 2px 6px; border-radius: 10px; font-size: 12px; margin-left: 5px; }
+    </style>
+</head>
+<body>
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h2>社区网格化治理工单系统</h2>
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="loginUsername" placeholder="请输入用户名" value="resident1">
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="loginPassword" placeholder="请输入密码" value="123456">
+            </div>
+            <div class="form-group">
+                <label>角色</label>
+                <select id="loginRole">
+                    <option value="RESIDENT">居民</option>
+                    <option value="GRID_WORKER">网格员</option>
+                    <option value="ADMIN">管理员</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="doLogin()">登 录</button>
+            <p style="margin-top: 15px; font-size: 12px; color: #8c8c8c; text-align: center;">
+                测试账号: resident1/123456(居民) | worker1/123456(网格员) | admin/123456(管理员)
+            </p>
+        </div>
+    </div>
+
+    <div id="appContainer" class="hidden">
+        <div class="header">
+            <h1>🏘️ 社区网格化治理工单系统</h1>
+            <div class="user-info">
+                <span id="currentUser"></span>
+                <button class="btn btn-default btn-sm" onclick="doLogout()">退出</button>
+            </div>
+        </div>
+        <div class="nav" id="navBar"></div>
+        <div class="container">
+            <div id="pageReport" class="page">
+                <div class="card">
+                    <div class="card-title">📝 问题上报</div>
+                    <div class="form-group">
+                        <label>问题标题 *</label>
+                        <input type="text" id="reportTitle" placeholder="请简要描述问题">
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label>问题类型 *</label>
+                            <select id="reportType">
+                                <option value="TRASH">垃圾问题</option>
+                                <option value="ILLEGAL_BUILD">违建问题</option>
+                                <option value="FACILITY_DAMAGE">设施损坏</option>
+                                <option value="OTHER">其他问题</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>紧急程度</label>
+                            <select id="reportLevel">
+                                <option value="LOW">低</option>
+                                <option value="NORMAL" selected>中</option>
+                                <option value="HIGH">高</option>
+                                <option value="URGENT">紧急</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>问题描述 *</label>
+                        <textarea id="reportDesc" rows="4" placeholder="请详细描述问题情况"></textarea>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label>经度 *</label>
+                            <input type="number" id="reportLng" step="0.00000001" placeholder="点击地图获取或手动输入" value="116.315">
+                        </div>
+                        <div class="form-group">
+                            <label>纬度 *</label>
+                            <input type="number" id="reportLat" step="0.00000001" placeholder="点击地图获取或手动输入" value="39.915">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>详细地址 *</label>
+                        <input type="text" id="reportAddress" placeholder="请输入详细地址">
+                    </div>
+                    <div class="form-group">
+                        <label>当前网格</label>
+                        <input type="text" id="reportGrid" readonly placeholder="系统将自动匹配">
+                    </div>
+                    <div class="form-group">
+                        <label>问题图片URL（多个用逗号分隔）</label>
+                        <input type="text" id="reportImages" placeholder="https://example.com/img1.jpg,https://example.com/img2.jpg">
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitReport()">📤 提交上报</button>
+                </div>
+            </div>
+
+            <div id="pageAssign" class="page">
+                <div class="card">
+                    <div class="card-title">📋 工单派单 / 处理列表</div>
+                    <div class="grid grid-4" style="margin-bottom: 20px;">
+                        <div class="stat-card">
+                            <div class="num" id="statTotal">0</div>
+                            <div class="label">全部工单</div>
+                        </div>
+                        <div class="stat-card processing">
+                            <div class="num" id="statPending">0</div>
+                            <div class="label">待处理</div>
+                        </div>
+                        <div class="stat-card completed">
+                            <div class="num" id="statCompleted">0</div>
+                            <div class="label">已完成</div>
+                        </div>
+                        <div class="stat-card overdue">
+                            <div class="num" id="statOverdue">0</div>
+                            <div class="label">已逾期</div>
+                        </div>
+                    </div>
+                    <div class="flex" style="margin-bottom: 15px; gap: 10px;">
+                        <select id="filterStatus" onchange="loadOrderList()">
+                            <option value="">全部状态</option>
+                            <option value="PENDING">待派单</option>
+                            <option value="ASSIGNED">已派单</option>
+                            <option value="PROCESSING">处理中</option>
+                            <option value="ESCALATED">已升级</option>
+                            <option value="COMPLETED">已完成</option>
+                            <option value="EVALUATED">已评价</option>
+                        </select>
+                        <select id="filterType" onchange="loadOrderList()">
+                            <option value="">全部类型</option>
+                            <option value="TRASH">垃圾问题</option>
+                            <option value="ILLEGAL_BUILD">违建问题</option>
+                            <option value="FACILITY_DAMAGE">设施损坏</option>
+                            <option value="OTHER">其他问题</option>
+                        </select>
+                        <button class="btn btn-default" onclick="loadOrderList()">🔄 刷新</button>
+                    </div>
+                    <table class="table" id="orderTable">
+                        <thead>
+                            <tr>
+                                <th>工单编号</th>
+                                <th>标题</th>
+                                <th>类型</th>
+                                <th>等级</th>
+                                <th>状态</th>
+                                <th>所属网格</th>
+                                <th>处理人</th>
+                                <th>创建时间</th>
+                                <th>是否逾期</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="pageTrack" class="page">
+                <div class="card">
+                    <div class="card-title">🔍 工单详情 / 处理跟踪</div>
+                    <div class="form-group">
+                        <label>请输入工单ID</label>
+                        <div class="flex">
+                            <input type="number" id="trackOrderId" placeholder="请输入工单ID">
+                            <button class="btn btn-primary" onclick="loadOrderDetail()">查询</button>
+                        </div>
+                    </div>
+                    <div id="orderDetail"></div>
+                </div>
+            </div>
+
+            <div id="pageEvaluate" class="page">
+                <div class="card">
+                    <div class="card-title">⭐ 我的评价</div>
+                    <div id="myOrdersToEvaluate"></div>
+                </div>
+            </div>
+
+            <div id="pageHotspot" class="page">
+                <div class="card">
+                    <div class="card-title">🗺️ 治理热点分析地图</div>
+                    <div class="flex" style="margin-bottom: 15px;">
+                        <button class="btn btn-primary" onclick="loadHotspot('today')">今日数据</button>
+                        <button class="btn btn-default" onclick="loadHotspot('all')">累计数据</button>
+                    </div>
+                    <div class="map-container">
+                        <div id="map"></div>
+                        <div class="map-legend">
+                            <div style="font-weight: bold; margin-bottom: 10px;">图例</div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ff4d4f;"></div>
+                                <span>高风险 (≥10单)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #faad14;"></div>
+                                <span>中风险 (5-9单)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #52c41a;"></div>
+                                <span>低风险 (<5单)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="hotspotStats" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modalTitle">工单处理</span>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        const API_BASE = '/api';
+        let currentUser = null;
+        let map = null;
+        let markers = [];
+        let orderTypeMap = { 'TRASH': '垃圾问题', 'ILLEGAL_BUILD': '违建问题', 'FACILITY_DAMAGE': '设施损坏', 'OTHER': '其他问题' };
+        let statusMap = { 'PENDING': '待派单', 'ASSIGNED': '已派单', 'PROCESSING': '处理中', 'ESCALATED': '已升级', 'COMPLETED': '已完成', 'EVALUATED': '已评价', 'CLOSED': '已关闭' };
+        let levelMap = { 'LOW': '低', 'NORMAL': '中', 'HIGH': '高', 'URGENT': '紧急' };
+
+        function initUserByRole() {
+            const role = document.getElementById('loginRole').value;
+            let username, password;
+            switch(role) {
+                case 'RESIDENT': username = 'resident1'; password = '123456'; break;
+                case 'GRID_WORKER': username = 'worker1'; password = '123456'; break;
+                case 'ADMIN': username = 'admin'; password = '123456'; break;
+            }
+            document.getElementById('loginUsername').value = username;
+            document.getElementById('loginPassword').value = password;
+        }
+
+        function doLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            if (!username || !password) { alert('请输入用户名和密码'); return; }
+            axios.post(`${API_BASE}/auth/login`, { username, password })
+                .then(res => {
+                    if (res.data.code === 200) {
+                        currentUser = res.data.data.user;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        showApp();
+                    } else {
+                        alert(res.data.message);
+                    }
+                })
+                .catch(err => alert('登录失败: ' + (err.response?.data?.message || err.message)));
+        }
+
+        function doLogout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = `${currentUser.realName} (${currentUser.roleType === 'RESIDENT' ? '居民' : currentUser.roleType === 'GRID_WORKER' ? '网格员' : '管理员'})`;
+            initNav();
+            initMap();
+            switchPage('report');
+        }
+
+        function initNav() {
+            const nav = document.getElementById('navBar');
+            let navItems = [];
+            if (currentUser.roleType === 'RESIDENT' || currentUser.roleType === 'ADMIN') {
+                navItems.push({ id: 'report', label: '📝 问题上报' });
+            }
+            if (currentUser.roleType === 'GRID_WORKER' || currentUser.roleType === 'ADMIN') {
+                navItems.push({ id: 'assign', label: '📋 工单处理' });
+            }
+            navItems.push({ id: 'track', label: '🔍 工单跟踪' });
+            if (currentUser.roleType === 'RESIDENT' || currentUser.roleType === 'ADMIN') {
+                navItems.push({ id: 'evaluate', label: '⭐ 评价中心' });
+            }
+            navItems.push({ id: 'hotspot', label: '🗺️ 热点分析' });
+            nav.innerHTML = navItems.map(item =>
+                `<div class="nav-item" data-page="${item.id}" onclick="switchPage('${item.id}')">${item.label}</div>`
+            ).join('');
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.page === pageId);
+            });
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            document.getElementById('page' + pageId.charAt(0).toUpperCase() + pageId.slice(1)).classList.add('active');
+            if (pageId === 'assign') loadOrderList();
+            if (pageId === 'track') { document.getElementById('orderDetail').innerHTML = ''; document.getElementById('trackOrderId').value = ''; }
+            if (pageId === 'evaluate') loadMyOrdersToEvaluate();
+            if (pageId === 'hotspot') setTimeout(loadHotspot, 100, 'today');
+            if (pageId === 'report') {
+                document.getElementById('reportTitle').value = '';
+                document.getElementById('reportDesc').value = '';
+                document.getElementById('reportAddress').value = '';
+                document.getElementById('reportImages').value = '';
+                document.getElementById('imagePreview').innerHTML = '';
+                document.getElementById('reportGrid').value = '';
+            }
+        }
+
+        document.getElementById('reportLng').addEventListener('change', detectGrid);
+        document.getElementById('reportLat').addEventListener('change', detectGrid);
+        document.getElementById('reportImages').addEventListener('input', function() {
+            const urls = this.value.split(',').filter(u => u.trim());
+            document.getElementById('imagePreview').innerHTML = urls.map(u =>
+                `<img src="${u.trim()}" onerror="this.style.display='none'">`
+            ).join('');
+        });
+
+        function detectGrid() {
+            const lng = parseFloat(document.getElementById('reportLng').value);
+            const lat = parseFloat(document.getElementById('reportLat').value);
+            if (lng && lat) {
+                axios.get(`${API_BASE}/grid/locate`, { params: { lng, lat } })
+                    .then(res => {
+                        if (res.data.code === 200) {
+                            document.getElementById('reportGrid').value = res.data.data.gridName + ' (' + res.data.data.gridCode + ')';
+                        } else {
+                            document.getElementById('reportGrid').value = '未匹配到网格';
+                        }
+                    })
+                    .catch(() => document.getElementById('reportGrid').value = '未匹配到网格');
+            }
+        }
+
+        function submitReport() {
+            const data = {
+                title: document.getElementById('reportTitle').value,
+                description: document.getElementById('reportDesc').value,
+                orderType: document.getElementById('reportType').value,
+                level: document.getElementById('reportLevel').value,
+                reporterId: currentUser.id,
+                reporterName: currentUser.realName,
+                reporterPhone: currentUser.phone,
+                lng: parseFloat(document.getElementById('reportLng').value),
+                lat: parseFloat(document.getElementById('reportLat').value),
+                address: document.getElementById('reportAddress').value,
+                beforeImages: document.getElementById('reportImages').value || null
+            };
+            if (!data.title || !data.description || !data.lng || !data.lat || !data.address) {
+                alert('请填写必填项'); return;
+            }
+            axios.post(`${API_BASE}/order/report`, data)
+                .then(res => {
+                    if (res.data.code === 200) {
+                        alert('工单上报成功！\n工单编号: ' + res.data.data.orderNo);
+                        switchPage('track');
+                        document.getElementById('trackOrderId').value = res.data.data.id;
+                        loadOrderDetail();
+                    } else {
+                        alert(res.data.message);
+                    }
+                })
+                .catch(err => alert('上报失败: ' + (err.response?.data?.message || err.message)));
+        }
+
+        function loadOrderList() {
+            let url = `${API_BASE}/order/list`;
+            const status = document.getElementById('filterStatus').value;
+            const type = document.getElementById('filterType').value;
+            if (currentUser.roleType === 'GRID_WORKER') {
+                url = `${API_BASE}/order/worker/${currentUser.id}`;
+            } else if (currentUser.roleType === 'RESIDENT') {
+                url = `${API_BASE}/order/reporter/${currentUser.id}`;
+            }
+            axios.get(url).then(res => {
+                if (res.data.code === 200) {
+                    let orders = res.data.data;
+                    if (status) orders = orders.filter(o => o.status === status);
+                    if (type) orders = orders.filter(o => o.orderType === type);
+                    renderOrderTable(orders);
+                }
+            });
+        }
+
+        function renderOrderTable(orders) {
+            let total = orders.length;
+            let pending = orders.filter(o => ['PENDING', 'ASSIGNED', 'PROCESSING', 'ESCALATED'].includes(o.status)).length;
+            let completed = orders.filter(o => ['COMPLETED', 'EVALUATED', 'CLOSED'].includes(o.status)).length;
+            let overdue = orders.filter(o => o.isOverdue === 1).length;
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statCompleted').textContent = completed;
+            document.getElementById('statOverdue').textContent = overdue;
+            const tbody = document.getElementById('orderTableBody');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty">暂无数据</td></tr>';
+                return;
+            }
+            tbody.innerHTML = orders.map(o => `
+                <tr>
+                    <td>${o.orderNo}</td>
+                    <td>${o.title}</td>
+                    <td><span class="type-tag type-${o.orderType}">${orderTypeMap[o.orderType]}</span></td>
+                    <td><span class="level-tag level-${o.level}">${levelMap[o.level]}</span></td>
+                    <td><span class="status-tag status-${o.status}">${statusMap[o.status]}</span></td>
+                    <td>${o.gridId || '-'}</td>
+                    <td>${o.gridWorkerName || '-'}</td>
+                    <td>${formatDate(o.createTime)}</td>
+                    <td>${o.isOverdue === 1 ? '<span style="color:#ff4d4f;">是</span>' : '否'}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewOrderDetail(${o.id})">查看</button>
+                        ${(currentUser.roleType === 'GRID_WORKER' && o.status === 'ASSIGNED' && o.gridWorkerId === currentUser.id) ?
+                            '<button class="btn btn-success btn-sm" onclick="acceptOrder(' + o.id + ')">接单</button>' : ''}
+                        ${(currentUser.roleType === 'GRID_WORKER' && ['PROCESSING', 'ESCALATED'].includes(o.status) && o.gridWorkerId === currentUser.id) ?
+                            '<button class="btn btn-warning btn-sm" onclick="openProcessModal(' + o.id + ')">处理</button>' : ''}
+                        ${(currentUser.roleType === 'GRID_WORKER' && ['ASSIGNED', 'PROCESSING'].includes(o.status) && o.gridWorkerId === currentUser.id) ?
+                            '<button class="btn btn-danger btn-sm" onclick="openEscalateModal(' + o.id + ')">升级</button>' : ''}
+                        ${(currentUser.roleType === 'RESIDENT' && o.status === 'COMPLETED' && o.reporterId === currentUser.id) ?
+                            '<button class="btn btn-warning btn-sm" onclick="openEvaluateModal(' + o.id + ')">评价</button>' : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewOrderDetail(id) {
+            document.getElementById('trackOrderId').value = id;
+            switchPage('track');
+            loadOrderDetail();
+        }
+
+        function loadOrderDetail() {
+            const id = document.getElementById('trackOrderId').value;
+            if (!id) { alert('请输入工单ID'); return; }
+            axios.get(`${API_BASE}/order/${id}`).then(res => {
+                if (res.data.code === 200) {
+                    renderOrderDetail(res.data.data);
+                } else {
+                    document.getElementById('orderDetail').innerHTML = `<div class="empty">${res.data.message}</div>`;
+                }
+            }).catch(err => {
+                document.getElementById('orderDetail').innerHTML = `<div class="empty">查询失败: ${err.message}</div>`;
+            });
+        }
+
+        function renderOrderDetail(order) {
+            const beforeImages = order.beforeImages ? order.beforeImages.split(',').filter(u => u.trim()) : [];
+            const afterImages = order.afterImages ? order.afterImages.split(',').filter(u => u.trim()) : [];
+            let html = `
+                <div class="grid grid-2">
+                    <div>
+                        <p><strong>工单编号：</strong>${order.orderNo}</p>
+                        <p><strong>标题：</strong>${order.title}</p>
+                        <p><strong>类型：</strong><span class="type-tag type-${order.orderType}">${orderTypeMap[order.orderType]}</span></p>
+                        <p><strong>等级：</strong><span class="level-tag level-${order.level}">${levelMap[order.level]}</span></p>
+                        <p><strong>状态：</strong><span class="status-tag status-${order.status}">${statusMap[order.status]}</span></p>
+                        <p><strong>是否逾期：</strong>${order.isOverdue === 1 ? '<span style="color:#ff4d4f;">是</span>' : '否'}</p>
+                    </div>
+                    <div>
+                        <p><strong>上报人：</strong>${order.reporterName}</p>
+                        <p><strong>联系电话：</strong>${order.reporterPhone}</p>
+                        <p><strong>处理人：</strong>${order.gridWorkerName || '未分配'}</p>
+                        <p><strong>创建时间：</strong>${formatDate(order.createTime)}</p>
+                        <p><strong>派单时间：</strong>${order.assignTime ? formatDate(order.assignTime) : '-'}</p>
+                        <p><strong>预计完成：</strong>${order.expectCompleteTime ? formatDate(order.expectCompleteTime) : '-'}</p>
+                        <p><strong>完成时间：</strong>${order.completeTime ? formatDate(order.completeTime) : '-'}</p>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:15px;">
+                    <label>问题描述</label>
+                    <div style="padding: 10px; background: #f5f5f5; border-radius: 4px;">${order.description}</div>
+                </div>
+                <div class="form-group">
+                    <label>详细地址</label>
+                    <div style="padding: 10px; background: #f5f5f5; border-radius: 4px;">${order.address} (经纬度: ${order.lng}, ${order.lat})</div>
+                </div>
+                ${beforeImages.length > 0 ? `
+                <div class="form-group">
+                    <label>问题图片</label>
+                    <div class="image-preview">${beforeImages.map(u => `<img src="${u.trim()}" onerror="this.style.display='none'">`).join('')}</div>
+                </div>
+                ` : ''}
+                ${order.processResult ? `
+                <div class="form-group">
+                    <label>处理结果</label>
+                    <div style="padding: 10px; background: #f0f9eb; border-radius: 4px;">${order.processResult}</div>
+                </div>
+                ` : ''}
+                ${afterImages.length > 0 ? `
+                <div class="form-group">
+                    <label>处理后图片</label>
+                    <div class="image-preview">${afterImages.map(u => `<img src="${u.trim()}" onerror="this.style.display='none'">`).join('')}</div>
+                </div>
+                ` : ''}
+                <div class="form-group" style="margin-top:20px;">
+                    <label>📊 处理跟踪日志</label>
+                    <div id="orderLogs" style="margin-top:10px;"></div>
+                </div>
+            `;
+            document.getElementById('orderDetail').innerHTML = html;
+            loadOrderLogs(order.id);
+            if (order.status === 'COMPLETED' && order.reporterId === currentUser.id) {
+                setTimeout(() => {
+                    const evalBtn = document.createElement('button');
+                    evalBtn.className = 'btn btn-warning';
+                    evalBtn.textContent = '⭐ 立即评价';
+                    evalBtn.onclick = () => openEvaluateModal(order.id);
+                    document.getElementById('orderDetail').appendChild(evalBtn);
+                }, 100);
+            }
+            loadOrderEvaluation(order.id);
+        }
+
+        function loadOrderLogs(orderId) {
+            axios.get(`${API_BASE}/order/${orderId}/logs`).then(res => {
+                if (res.data.code === 200 && res.data.data.length > 0) {
+                    const html = `<div class="timeline">${res.data.data.map(log => `
+                        <div class="timeline-item">
+                            <div class="time">${formatDate(log.createTime)} | ${log.operatorName}</div>
+                            <div class="content">
+                                <strong>${log.operationType}:</strong> ${log.remark || ''}
+                                ${log.beforeStatus && log.afterStatus ? `<br><small>状态变更: ${statusMap[log.beforeStatus]} → ${statusMap[log.afterStatus]}</small>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}</div>`;
+                    document.getElementById('orderLogs').innerHTML = html;
+                } else {
+                    document.getElementById('orderLogs').innerHTML = '<div class="empty">暂无日志</div>';
+                }
+            });
+        }
+
+        function loadOrderEvaluation(orderId) {
+            axios.get(`${API_BASE}/order/${orderId}/evaluation`).then(res => {
+                if (res.data.code === 200 && res.data.data) {
+                    const e = res.data.data;
+                    const html = `
+                        <div class="form-group" style="margin-top:20px;">
+                            <label>⭐ 评价信息</label>
+                            <div style="padding: 15px; background: #fffbe6; border-radius: 8px;">
+                                <div class="grid grid-4" style="text-align:center;">
+                                    <div>
+                                        <div style="font-size:24px; color:#fadb14;">${'★'.repeat(e.overallScore)}${'☆'.repeat(5-e.overallScore)}</div>
+                                        <div style="font-size:12px; color:#8c8c8c;">总体</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size:24px; color:#fadb14;">${'★'.repeat(e.responseSpeedScore)}${'☆'.repeat(5-e.responseSpeedScore)}</div>
+                                        <div style="font-size:12px; color:#8c8c8c;">响应速度</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size:24px; color:#fadb14;">${'★'.repeat(e.processQualityScore)}${'☆'.repeat(5-e.processQualityScore)}</div>
+                                        <div style="font-size:12px; color:#8c8c8c;">处理质量</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size:24px; color:#fadb14;">${'★'.repeat(e.serviceAttitudeScore)}${'☆'.repeat(5-e.serviceAttitudeScore)}</div>
+                                        <div style="font-size:12px; color:#8c8c8c;">服务态度</div>
+                                    </div>
+                                </div>
+                                ${e.content ? `<div style="margin-top:10px; padding-top:10px; border-top:1px dashed #e8e8e8;"><strong>评价内容：</strong>${e.content}</div>` : ''}
+                                <div style="margin-top:10px;"><strong>是否满意：</strong>${e.isSatisfied === 1 ? '✅ 满意' : '❌ 不满意'}</div>
+                                <div style="margin-top:5px; color:#8c8c8c; font-size:12px;">评价时间：${formatDate(e.createTime)}</div>
+                            </div>
+                        </div>
+                    `;
+                    const detailDiv = document.getElementById('orderDetail');
+                    if (detailDiv) detailDiv.innerHTML += html;
+                }
+            });
+        }
+
+        function loadMyOrdersToEvaluate() {
+            axios.get(`${API_BASE}/order/reporter/${currentUser.id}`).then(res => {
+                if (res.data.code === 200) {
+                    const orders = res.data.data.filter(o => o.status === 'COMPLETED' || o.status === 'EVALUATED');
+                    const container = document.getElementById('myOrdersToEvaluate');
+                    if (orders.length === 0) {
+                        container.innerHTML = '<div class="empty">暂无需要评价的工单</div>';
+                        return;
+                    }
+                    container.innerHTML = orders.map(o => `
+                        <div class="card" style="margin-bottom:15px;">
+                            <div class="flex" style="justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4>${o.title}</h4>
+                                    <p style="color:#8c8c8c; margin:5px 0;">工单编号：${o.orderNo} | 创建时间：${formatDate(o.createTime)} | 处理人：${o.gridWorkerName || '-'}</p>
+                                    <span class="status-tag status-${o.status}">${statusMap[o.status]}</span>
+                                    <span class="type-tag type-${o.orderType}" style="margin-left:8px;">${orderTypeMap[o.orderType]}</span>
+                                </div>
+                                <div>
+                                    ${o.status === 'COMPLETED' ?
+                                        `<button class="btn btn-warning" onclick="openEvaluateModal(${o.id})">⭐ 去评价</button>` :
+                                        `<button class="btn btn-default" onclick="viewOrderDetail(${o.id})">查看评价</button>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            });
+        }
+
+        function acceptOrder(orderId) {
+            axios.post(`${API_BASE}/order/accept`, null, { params: { orderId, workerId: currentUser.id } })
+                .then(res => {
+                    if (res.data.code === 200) {
+                        alert('接单成功！');
+                        loadOrderList();
+                    } else {
+                        alert(res.data.message);
+                    }
+                })
+                .catch(err => alert('操作失败: ' + (err.response?.data?.message || err.message)));
+        }
+
+        function openProcessModal(orderId) {
+            const modal = document.getElementById('orderModal');
+            document.getElementById('modalTitle').textContent = '处理工单';
+            document.getElementById('modalBody').innerHTML = `
+                <div class="form-group">
+                    <label>处理结果描述 *</label>
+                    <textarea id="processResult" rows="4" placeholder="请输入处理结果描述" style="width:100%;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>处理后图片URL（多个用逗号分隔）</label>
+                    <input type="text" id="afterImages" placeholder="https://example.com/img1.jpg" style="width:100%;">
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <input type="text" id="processRemark" placeholder="处理备注" style="width:100%;">
+                </div>
+            `;
+            document.getElementById('modalFooter').innerHTML = `
+                <button class="btn btn-default" onclick="closeModal()">取消</button>
+                <button class="btn btn-success" onclick="submitProcess(${orderId})">提交处理</button>
+            `;
+            modal.classList.add('active');
+        }
+
+        function submitProcess(orderId) {
+            const data = {
+                orderId,
+                operatorId: currentUser.id,
+                processResult: document.getElementById('processResult').value,
+                afterImages: document.getElementById('afterImages').value || null,
+                remark: document.getElementById('processRemark').value || null
+            };
+            if (!data.processResult) { alert('请填写处理结果'); return; }
+            axios.post(`${API_BASE}/order/process`, data)
+                .then(res => {
+                    if (res.data.code === 200) {
+                        alert('处理成功！');
+                        closeModal();
+                        loadOrderList();
+                    } else {
+                        alert(res.data.message);
+                    }
+                })
+                .catch(err => alert('操作失败: ' + (err.response?.data?.message || err.message)));
+        }
+
+        function openEscalateModal(orderId) {
+            const modal = document.getElementById('orderModal');
+            document.getElementById('modalTitle').textContent = '工单升级';
+            document.getElementById('modalBody').innerHTML = `
+                <div class="form-group">
+                    <label>升级原因 *</label>
+                    <textarea id="escalateReason" rows="4" placeholder="请说明升级原因" style="width:100%;"></textarea>
+                </div>
+                <p style="color:#faad14; font-size:12px;">注意：工单升级将通知上级管理员处理，升级次数最多2次</p>
+            `;
+            document.getElementById('modalFooter').innerHTML = `
+                <button class="btn btn-default" onclick="closeModal()">取消</button>
+                <button class="btn btn-danger" onclick="submitEscalate(${orderId})">确认升级</button>
+            `;
+            modal.classList.add('active');
+        }
+
+        function submitEscalate(orderId) {
+            const remark = document.getElementById('escalateReason').value;
+            if (!remark) { alert('请填写升级原因'); return; }
+            axios.post(`${API_BASE}/order/escalate`, null, { params: { orderId, operatorId: currentUser.id, remark } })
+                .then(res => {
+                    if (res.data.code === 200) {
+                        alert('工单已升级！');
+                        closeModal();
+                        loadOrderList();
+                    } else {
+                        alert(res.data.message);
+                    }
+                })
+                .catch(err => alert('操作失败: ' + (err.response?.data?.message || err.message)));
+        }
+
+        function openEvaluateModal(orderId) {
+            const modal = document.getElementById('orderModal');
+            document.getElementById('modalTitle').textContent = '工单评价';
+            document.getElementById('modalBody').innerHTML = `
+                <div class="form-group">
+                    <label>总体评分 *</label>
+                    <div class="rating" id="rating-overall" data-score="0">
+                        ${[1,2,3,4,5].map(i => `<span class="star" onclick="setRating('overall', ${i})">★</span>`).join('')}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>响应速度 *</label>
+                    <div class="rating" id="rating-response" data-score="0">
+                        ${[1,2,3,4,5].map(i => `<span class="star" onclick="setRating('response', ${i})">★</span>`).join('')}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>处理质量 *</label>
+                    <div class="rating" id="rating-quality" data-score="0">
+                        ${[1,2,3,4,5].map(i => `<span class="star" onclick="setRating('quality', ${i})">★</span>`).join('')}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>服务态度 *</label>
+                    <div class="rating" id="rating-attitude" data-score="0">
+                        ${[1,2,3,4,5].map(i => `<span class="star" onclick="setRating('attitude', ${i})">★</span>`).join('')}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>评价内容</label>
+                    <textarea id="evalContent" rows="3" placeholder="请输入您的评价" style="width:100%;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>是否满意 *</label>
+                    <select id="evalSatisfied">
+                        <option value="1">满意</option>
+                        <option value="0">不满意</option>
+                    </select>
+                </div>
+            `;
+            document.getElementById('modalFooter').innerHTML = `
+                <button class="btn btn-default" onclick="closeModal()">取消</button>
+                <button class="btn btn-warning" onclick="submitEvaluation(${orderId})">提交评价</button>
+            `;
+            modal.classList.add('active');
+        }
+
+        function setRating(type, score) {
+            const el = document.getElementById('rating-' + type);
+            el.dataset.score = score;
+            el.querySelectorAll('.star').forEach((star, idx) => {
+                star.classList.toggle('active', idx < score);
+            });
+        }
+
+        function submitEvaluation(orderId) {
+            const overall = parseInt(document.getElementById('rating-overall').dataset.score);
+            const response = parseInt(document.getElementById('rating-response').dataset.score);
+            const quality = parseInt(document.getElementById('rating-quality').dataset.score);
+            const attitude = parseInt(document.getElementById('rating-attitude').dataset.score);
+            if (overall === 0 || response === 0 || quality === 0 || attitude === 0) {
+                alert('请完成所有评分项'); return;
+            }
+            const data = {
+                orderId,
+                reporterId: currentUser.id,
+                overallScore: overall,
+                responseSpeedScore: response,
+                processQualityScore: quality,
+                serviceAttitudeScore: attitude,
+                content: document.getElementById('evalContent').value || null,
+                isSatisfied: parseInt(document.getElementById('evalSatisfied').value)
+            };
+            axios.post(`${API_BASE}/order/evaluate`, data)
+                .then(res => {
+                    if (res.data.code === 200) {
+                        alert('评价成功！感谢您的反馈');
+                        closeModal();
+                        if (document.getElementById('pageEvaluate').classList.contains('active')) {
+                            loadMyOrdersToEvaluate();
+                        } else if (document.getElementById('pageTrack').classList.contains('active')) {
+                            loadOrderDetail();
+                        }
+                    } else {
+                        alert(res.data.message);
+                    }
+                })
+                .catch(err => alert('操作失败: ' + (err.response?.data?.message || err.message)));
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        function initMap() {
+            if (map) { map.remove(); }
+            map = L.map('map').setView([39.91, 116.34], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            map.on('click', function(e) {
+                if (document.getElementById('pageReport').classList.contains('active')) {
+                    document.getElementById('reportLng').value = e.latlng.lng.toFixed(8);
+                    document.getElementById('reportLat').value = e.latlng.lat.toFixed(8);
+                    detectGrid();
+                }
+            });
+        }
+
+        function loadHotspot(type) {
+            const url = type === 'today' ? `${API_BASE}/hotspot/today` : `${API_BASE}/hotspot/all`;
+            axios.get(url).then(res => {
+                if (res.data.code === 200) {
+                    renderHotspotMap(res.data.data);
+                }
+            });
+        }
+
+        function renderHotspotMap(data) {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            if (data.length === 0) {
+                document.getElementById('hotspotStats').innerHTML = '<div class="empty">暂无热点数据</div>';
+                return;
+            }
+            data.forEach(item => {
+                const count = item.totalCount;
+                let level = 'low', className = 'hotspot-marker low';
+                if (count >= 10) { level = 'high'; className = 'hotspot-marker high'; }
+                else if (count >= 5) { level = 'medium'; className = 'hotspot-marker medium'; }
+                const icon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div class="${className}">${item.gridName}<br>${count}单</div>`,
+                    iconSize: [120, 50]
+                });
+                const marker = L.marker([parseFloat(item.centerLat), parseFloat(item.centerLng)], { icon })
+                    .addTo(map)
+                    .bindPopup(`
+                        <strong>${item.gridName}</strong><br>
+                        区域: ${item.areaName}<br>
+                        工单总数: ${item.totalCount}<br>
+                        待处理: ${item.pendingCount}<br>
+                        处理中: ${item.processingCount}<br>
+                        已完成: ${item.completedCount}<br>
+                        逾期: ${item.overdueCount}
+                    `);
+                markers.push(marker);
+            });
+            let html = '<h4 style="margin-bottom:15px;">热点详情</h4><div class="grid grid-3">';
+            data.forEach(item => {
+                html += `
+                    <div class="card">
+                        <h4>${item.gridName}</h4>
+                        <p style="color:#8c8c8c; font-size:12px;">${item.areaName}</p>
+                        <div class="grid grid-4" style="text-align:center; margin-top:10px;">
+                            <div>
+                                <div style="font-size:20px; font-weight:bold; color:#1890ff;">${item.totalCount}</div>
+                                <div style="font-size:11px; color:#8c8c8c;">总数</div>
+                            </div>
+                            <div>
+                                <div style="font-size:20px; font-weight:bold; color:#faad14;">${item.pendingCount}</div>
+                                <div style="font-size:11px; color:#8c8c8c;">待处理</div>
+                            </div>
+                            <div>
+                                <div style="font-size:20px; font-weight:bold; color:#52c41a;">${item.completedCount}</div>
+                                <div style="font-size:11px; color:#8c8c8c;">已完成</div>
+                            </div>
+                            <div>
+                                <div style="font-size:20px; font-weight:bold; color:#ff4d4f;">${item.overdueCount}</div>
+                                <div style="font-size:11px; color:#8c8c8c;">逾期</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; font-size:12px;">
+                            <strong>类型分布：</strong>
+                            ${(item.typeDetail || []).map(t => `
+                                <span class="type-tag type-${t.orderType}" style="margin-right:5px;">${orderTypeMap[t.orderType]}: ${t.totalCount}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            document.getElementById('hotspotStats').innerHTML = html;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                return new Date(dateStr).toLocaleString('zh-CN');
+            } catch(e) { return dateStr; }
+        }
+
+        document.getElementById('loginRole').addEventListener('change', initUserByRole);
+        document.addEventListener('DOMContentLoaded', function() {
+            const saved = localStorage.getItem('currentUser');
+            if (saved) {
+                try {
+                    currentUser = JSON.parse(saved);
+                    showApp();
+                } catch(e) {}
+            }
+        });
+    </script>
+</body>
+</html>

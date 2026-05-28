@@ -77,7 +77,15 @@ const favoriteController = {
     try {
       const { cityId } = req.params;
       cityModel.removeFavorite(cityId);
-      res.json({ message: '已从收藏中移除' });
+
+      const { cacheDel } = require('../config/redis');
+      await cacheDel(`weather:${cityId}:all`);
+      await cacheDel(`weather:${cityId}:current`);
+      await cacheDel(`weather:${cityId}:forecast:7`);
+      await cacheDel(`weather:${cityId}:indices`);
+      await cacheDel(`weather:${cityId}:alerts`);
+
+      res.json({ success: true, message: '已从收藏中移除' });
     } catch (err) {
       console.error('[Favorite] Remove error:', err);
       res.status(500).json({ error: '移除收藏失败' });
@@ -99,7 +107,7 @@ const weatherController = {
         return res.json({ data: cached, cached: true });
       }
 
-      const weather = weatherService.generateCurrentWeather(city);
+      const weather = await weatherService.generateCurrentWeather(city);
       await weatherService.setCachedWeather(cityId, 'current', weather);
       res.json({ data: weather, cached: false });
     } catch (err) {
@@ -122,7 +130,7 @@ const weatherController = {
         return res.json({ data: cached, cached: true });
       }
 
-      const forecast = weatherService.generateForecast(city, parseInt(days, 10));
+      const forecast = await weatherService.generateForecast(city, parseInt(days, 10));
       await weatherService.setCachedWeather(cityId, `forecast:${days}`, forecast);
       res.json({ data: forecast, cached: false });
     } catch (err) {
@@ -146,7 +154,7 @@ const weatherController = {
 
       const currentCached = await weatherService.getCachedWeather(cityId, 'current');
       const currentTemp = currentCached?.current?.temp;
-      const indices = weatherService.generateIndices(city, currentTemp);
+      const indices = await weatherService.generateIndices(city, currentTemp);
       await weatherService.setCachedWeather(cityId, 'indices', indices);
       res.json({ data: indices, cached: false });
     } catch (err) {
@@ -168,7 +176,7 @@ const weatherController = {
         return res.json({ data: cached, cached: true });
       }
 
-      const alerts = weatherService.generateAlerts(city);
+      const alerts = await weatherService.generateAlerts(city);
       await weatherService.setCachedWeather(cityId, 'alerts', alerts);
       res.json({ data: alerts, cached: false });
     } catch (err) {
@@ -185,36 +193,28 @@ const weatherController = {
         return res.status(404).json({ error: '城市不存在' });
       }
 
-      const [current, forecast, indices, alerts] = await Promise.all([
-        weatherService.getCachedWeather(cityId, 'current').then(cached => {
-          if (cached) return cached;
-          const w = weatherService.generateCurrentWeather(city);
-          weatherService.setCachedWeather(cityId, 'current', w);
-          return w;
-        }),
-        weatherService.getCachedWeather(cityId, 'forecast:7').then(cached => {
-          if (cached) return cached;
-          const f = weatherService.generateForecast(city, 7);
-          weatherService.setCachedWeather(cityId, 'forecast:7', f);
-          return f;
-        }),
-        weatherService.getCachedWeather(cityId, 'indices').then(cached => {
-          if (cached) return cached;
-          const i = weatherService.generateIndices(city);
-          weatherService.setCachedWeather(cityId, 'indices', i);
-          return i;
-        }),
-        weatherService.getCachedWeather(cityId, 'alerts').then(cached => {
-          if (cached) return cached;
-          const a = weatherService.generateAlerts(city);
-          weatherService.setCachedWeather(cityId, 'alerts', a);
-          return a;
-        })
-      ]);
+      const cacheKey = `weather:${cityId}:all`;
+      const cached = await weatherService.getCachedWeather(cityId, 'all');
+      if (cached) {
+        return res.json({
+          data: cached,
+          city: { id: city.id, name: city.name, country: city.country },
+          cached: true
+        });
+      }
+
+      const allData = await weatherService.getAllWeather(city);
+
+      await weatherService.setCachedWeather(cityId, 'all', allData);
+      await weatherService.setCachedWeather(cityId, 'current', allData.current);
+      await weatherService.setCachedWeather(cityId, 'forecast:7', allData.forecast);
+      await weatherService.setCachedWeather(cityId, 'indices', allData.indices);
+      await weatherService.setCachedWeather(cityId, 'alerts', allData.alerts);
 
       res.json({
-        data: { current, forecast, indices, alerts },
-        city: { id: city.id, name: city.name, country: city.country }
+        data: allData,
+        city: { id: city.id, name: city.name, country: city.country },
+        cached: false
       });
     } catch (err) {
       console.error('[Weather] All error:', err);

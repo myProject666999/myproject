@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线作答 - 心理测评中心</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">❤</div>
+                <span>心理测评中心</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="scales.html">量表</a></li>
+                <li><a href="trend.html">趋势</a></li>
+                <li><a href="resources.html">资源</a></li>
+            </ul>
+            <div class="nav-actions"></div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <div class="answer-container">
+        <div class="answer-header">
+            <div class="container">
+                <div class="answer-header-inner">
+                    <div class="answer-title">
+                        <h1 id="scaleName">加载中...</h1>
+                        <div class="answer-meta">
+                            <span id="questionProgress">0 / 0</span>
+                            <span id="timeElapsed">⏱ 00:00</span>
+                            <span id="autoSaveStatus" class="auto-save-status">
+                                <span class="auto-save-dot"></span>
+                                <span class="auto-save-text">自动保存中</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="answer-content">
+            <div class="container">
+                <div class="answer-main">
+                    <div class="question-card" id="questionCard">
+                        <div class="question-header">
+                            <span class="question-number" id="questionNumber">第 1 题</span>
+                            <span class="question-required" id="questionRequired">必答</span>
+                        </div>
+                        <div class="question-text" id="questionText">加载中...</div>
+                        <div class="question-hint" id="questionHint"></div>
+                        <div class="options-list" id="optionsList"></div>
+                        <div class="question-actions">
+                            <button class="btn btn-outline" id="prevBtn" onclick="Answer.prevQuestion()">上一题</button>
+                            <button class="btn btn-primary" id="nextBtn" onclick="Answer.nextQuestion()">下一题</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="answer-sidebar">
+                    <div class="answer-card">
+                        <div class="sidebar-title">答题卡</div>
+                        <div class="answer-grid" id="answerGrid"></div>
+                        <div class="answer-summary">
+                            <span>已答：<strong id="answeredCount">0</strong></span>
+                            <span>未答：<strong id="unansweredCount">0</strong></span>
+                        </div>
+                        <button class="btn btn-primary btn-block" id="submitBtn" onclick="Answer.checkAndSubmit()">提交答案</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="privacyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>隐私声明</h3>
+            </div>
+            <div class="modal-body">
+                <div class="privacy-content">
+                    <div class="privacy-item">
+                        <div class="privacy-icon">🔒</div>
+                        <div>
+                            <h4>数据加密</h4>
+                            <p>您的作答数据将进行加密存储，保护您的隐私安全。</p>
+                        </div>
+                    </div>
+                    <div class="privacy-item">
+                        <div class="privacy-icon">👤</div>
+                        <div>
+                            <h4>匿名处理</h4>
+                            <p>除您主动提供的信息外，我们不会收集额外的个人身份信息。</p>
+                        </div>
+                    </div>
+                    <div class="privacy-item">
+                        <div class="privacy-icon">📊</div>
+                        <div>
+                            <h4>仅用于测评</h4>
+                            <p>您的数据仅用于生成测评报告，不会用于其他商业用途。</p>
+                        </div>
+                    </div>
+                    <div class="privacy-item">
+                        <div class="privacy-icon">⚠️</div>
+                        <div>
+                            <h4>重要提示</h4>
+                            <p>本测评结果仅供参考，不构成医学诊断。如有需要，请咨询专业心理医生。</p>
+                        </div>
+                    </div>
+                </div>
+                <label class="checkbox-group" style="margin-top: 20px;">
+                    <input type="checkbox" id="privacyAgree">
+                    我已阅读并同意以上隐私声明
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="location.href='scales.html'">取消</button>
+                <button class="btn btn-primary" id="startAnswerBtn" onclick="Answer.startAnswering()" disabled>开始作答</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>确认提交</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">确定要提交答案吗？提交后将无法修改。</p>
+                <div id="unansweredWarning" class="warning-message" style="display: none; color: var(--danger); margin-top: 12px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="Answer.closeConfirmModal()">取消</button>
+                <button class="btn btn-primary" onclick="Answer.submitAnswers()">确认提交</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/answer.js"></script>
+</body>
+</html>

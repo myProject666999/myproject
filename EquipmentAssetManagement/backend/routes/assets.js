@@ -3,6 +3,25 @@ const router = express.Router();
 const pool = require('../config/database');
 const QRCode = require('qrcode');
 
+const formatDate = (dateString) => {
+  if (!dateString) return null;
+  try {
+    const dateStr = String(dateString);
+    const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return null;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    return null;
+  }
+};
+
 router.get('/', async (req, res) => {
   try {
     const { page = 1, pageSize = 10, keyword, category_id, status } = req.query;
@@ -82,10 +101,12 @@ router.post('/', async (req, res) => {
     
     const { asset_code, name, category_id, specification, brand, serial_number, purchase_date, purchase_price, supplier, location, description } = req.body;
     
+    const formattedPurchaseDate = formatDate(purchase_date);
+    
     const [result] = await connection.query(
       `INSERT INTO assets (asset_code, name, category_id, specification, brand, serial_number, purchase_date, purchase_price, supplier, location, description)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [asset_code, name, category_id, specification, brand, serial_number, purchase_date, purchase_price, supplier, location, description]
+      [asset_code, name, category_id, specification, brand, serial_number, formattedPurchaseDate, purchase_price, supplier, location, description]
     );
     
     const assetId = result.insertId;
@@ -114,12 +135,13 @@ router.put('/:id', async (req, res) => {
     
     const currentStatus = status || 'IDLE';
     const currentPurchasePrice = purchase_price !== undefined ? purchase_price : null;
+    const formattedPurchaseDate = formatDate(purchase_date);
     
     await pool.query(
       `UPDATE assets SET asset_code = ?, name = ?, category_id = ?, specification = ?, brand = ?, serial_number = ?, 
        purchase_date = ?, purchase_price = ?, supplier = ?, location = ?, description = ?, status = ? WHERE id = ?`,
       [asset_code, name, category_id, specification || null, brand || null, serial_number || null, 
-       purchase_date || null, currentPurchasePrice, supplier || null, location || null, 
+       formattedPurchaseDate, currentPurchasePrice, supplier || null, location || null, 
        description || null, currentStatus, req.params.id]
     );
     

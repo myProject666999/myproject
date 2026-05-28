@@ -32,8 +32,8 @@ function AppHeader() {
 
   useEffect(() => {
     if (token) {
-      notificationApi.getUnreadCount().then((count) => {
-        setUnreadCount(count)
+      notificationApi.getUnreadCount().then((res) => {
+        setUnreadCount(res?.count ?? 0)
       }).catch(() => {})
     }
   }, [token, location.pathname])

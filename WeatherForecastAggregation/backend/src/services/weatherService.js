@@ -48,6 +48,8 @@ const CLOTHING_ADVICE = [
   { range: [30, 50], advice: '背心、短裤、注意防暑', level: '炎热' }
 ];
 
+let rawWeatherCache = new Map();
+
 function getWeatherInfo(code) {
   return WEATHER_CODE_MAP[code] || { icon: '🌡️', desc: '未知', code: 'unknown' };
 }
@@ -178,7 +180,7 @@ function generateAlertsFromWeather(current, forecast) {
     });
   }
 
-  if (forecast) {
+  if (forecast && forecast.length > 0) {
     const futureHeavyRain = forecast.some(d => d.weatherCode >= 61 && d.weatherCode <= 65 && d.precipitation >= 50);
     if (futureHeavyRain && !alerts.some(a => a.type === '暴雨')) {
       alerts.push({
@@ -205,16 +207,35 @@ function generateAlertsFromWeather(current, forecast) {
   return alerts;
 }
 
-async function fetchWeatherData(lat, lon) {
-  const currentUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl,surface_pressure,cloud_cover&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,relative_humidity_2m_mean,sunrise,sunset&timezone=auto&forecast_days=7`;
+async function fetchRawWeatherData(lat, lon) {
+  const cacheKey = `raw_weather:${lat}:${lon}`;
+  const cached = rawWeatherCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 30000) {
+    return cached.data;
+  }
+
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl,surface_pressure,cloud_cover&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,relative_humidity_2m_mean,sunrise,sunset&timezone=auto&forecast_days=7`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const response = await fetch(currentUrl);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
     if (!response.ok) {
       throw new Error(`Weather API error: ${response.status}`);
     }
-    return await response.json();
+    const data = await response.json();
+    
+    rawWeatherCache.set(cacheKey, { data, timestamp: Date.now() });
+    if (rawWeatherCache.size > 50) {
+      rawWeatherCache.clear();
+    }
+    
+    return data;
   } catch (err) {
+    clearTimeout(timeoutId);
     console.error('[WeatherService] Fetch error:', err.message);
     throw err;
   }
@@ -222,7 +243,7 @@ async function fetchWeatherData(lat, lon) {
 
 async function generateCurrentWeather(city) {
   try {
-    const data = await fetchWeatherData(city.lat, city.lon);
+    const data = await fetchRawWeatherData(city.lat, city.lon);
     const current = data.current;
     const weatherInfo = getWeatherInfo(current.weather_code);
     const month = new Date().getMonth() + 1;
@@ -261,7 +282,7 @@ async function generateCurrentWeather(city) {
 
 async function generateForecast(city, days = 7) {
   try {
-    const data = await fetchWeatherData(city.lat, city.lon);
+    const data = await fetchRawWeatherData(city.lat, city.lon);
     const forecast = [];
 
     if (data.daily) {
@@ -298,7 +319,7 @@ async function generateForecast(city, days = 7) {
 
 async function generateIndices(city, currentTemp) {
   try {
-    const data = await fetchWeatherData(city.lat, city.lon);
+    const data = await fetchRawWeatherData(city.lat, city.lon);
     const current = data.current;
     const temp = currentTemp !== undefined ? currentTemp : Math.round(current.temperature_2m);
     const weatherCode = current.weather_code;
@@ -362,7 +383,7 @@ async function generateIndices(city, currentTemp) {
 
 async function generateAlerts(city) {
   try {
-    const data = await fetchWeatherData(city.lat, city.lon);
+    const data = await fetchRawWeatherData(city.lat, city.lon);
     const current = {
       temp: Math.round(data.current.temperature_2m),
       weatherCode: data.current.weather_code,
@@ -393,6 +414,108 @@ async function generateAlerts(city) {
   }
 }
 
+async function getAllWeather(city) {
+  try {
+    const data = await fetchRawWeatherData(city.lat, city.lon);
+    const currentData = data.current;
+    const weatherInfo = getWeatherInfo(currentData.weather_code);
+    const month = new Date().getMonth() + 1;
+    const uvIndex = calculateUVIndex(currentData.weather_code, month);
+
+    const sunrise = data.daily?.sunrise?.[0]?.split('T')[1] || '06:00';
+    const sunset = data.daily?.sunset?.[0]?.split('T')[1] || '18:00';
+
+    const temp = Math.round(currentData.temperature_2m);
+    const weatherCode = currentData.weather_code;
+    const windSpeed = Math.round(currentData.wind_speed_10m);
+    const humidity = currentData.relative_humidity_2m;
+
+    const current = {
+      city: { id: city.id, name: city.name, country: city.country },
+      current: {
+        temp,
+        feels_like: Math.round(currentData.apparent_temperature),
+        condition: weatherInfo.desc,
+        icon: weatherInfo.icon,
+        code: weatherInfo.code,
+        humidity,
+        wind: {
+          speed: windSpeed,
+          direction: getWindDirection(currentData.wind_direction_10m)
+        },
+        pressure: Math.round(currentData.pressure_msl || currentData.surface_pressure || 1013),
+        visibility: 10,
+        uv_index: uvIndex,
+        sunrise,
+        sunset,
+        weather_code: weatherCode,
+        updated_at: new Date().toISOString()
+      }
+    };
+
+    const forecastList = [];
+    if (data.daily) {
+      for (let i = 0; i < Math.min(7, data.daily.time.length); i++) {
+        const date = new Date(data.daily.time[i]);
+        const dayWeatherInfo = getWeatherInfo(data.daily.weather_code[i]);
+
+        forecastList.push({
+          date: data.daily.time[i],
+          day_of_week: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][date.getDay()],
+          high: Math.round(data.daily.temperature_2m_max[i]),
+          low: Math.round(data.daily.temperature_2m_min[i]),
+          condition: dayWeatherInfo.desc,
+          icon: dayWeatherInfo.icon,
+          code: dayWeatherInfo.code,
+          weather_code: data.daily.weather_code[i],
+          precipitation: data.daily.precipitation_probability_max[i] || Math.round((data.daily.precipitation_sum[i] || 0) * 10),
+          wind_speed: Math.round(data.daily.wind_speed_10m_max[i] || 0),
+          humidity: Math.round(data.daily.relative_humidity_2m_mean[i] || 50)
+        });
+      }
+    }
+
+    const forecast = {
+      city: { id: city.id, name: city.name, country: city.country },
+      forecast: forecastList,
+      updated_at: new Date().toISOString()
+    };
+
+    const clothing = getClothingAdvice(temp);
+    const sport = getSportAdvice(weatherCode, windSpeed, temp);
+    const uv = getUVAdvice(uvIndex);
+    const air = getAirQualityAdvice();
+    const comfort = getComfortAdvice(temp, humidity);
+
+    const indices = {
+      city: { id: city.id, name: city.name, country: city.country },
+      indices: [
+        { type: 'clothing', name: '穿衣指数', level: clothing.level, advice: clothing.advice, icon: '👔' },
+        { type: 'sport', name: '运动指数', level: sport.level, advice: sport.advice, icon: '🏃' },
+        { type: 'uv', name: '紫外线指数', level: uv.level, advice: uv.advice, icon: '☀️' },
+        { type: 'air', name: '空气指数', level: air.level, advice: air.advice, icon: '💨' },
+        { type: 'comfort', name: '舒适度', level: comfort.level, advice: comfort.advice, icon: '😊' }
+      ],
+      updated_at: new Date().toISOString()
+    };
+
+    const currentForAlerts = { temp, weatherCode, wind: { speed: windSpeed } };
+    const forecastForAlerts = forecastList;
+    const alertList = generateAlertsFromWeather(currentForAlerts, forecastForAlerts);
+
+    const alerts = {
+      city: { id: city.id, name: city.name, country: city.country },
+      alerts: alertList,
+      updated_at: new Date().toISOString()
+    };
+
+    return { current, forecast, indices, alerts };
+  } catch (err) {
+    console.error('[WeatherService] Failed to get all weather:', err);
+    throw err;
+  }
+}
+
 async function getCachedWeather(cityId, type) {
   const key = `weather:${cityId}:${type}`;
   return await cacheGet(key);
@@ -409,6 +532,7 @@ module.exports = {
   generateForecast,
   generateIndices,
   generateAlerts,
+  getAllWeather,
   getCachedWeather,
   setCachedWeather
 };

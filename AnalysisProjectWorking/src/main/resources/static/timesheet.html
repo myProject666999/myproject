@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工时填报</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header a { color: white; text-decoration: none; margin-left: 20px; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .card h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #555; font-weight: 500; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .btn { padding: 10px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-success { background: #52c41a; color: white; }
+        .btn-danger { background: #ff4d4f; color: white; }
+        .btn-default { background: #f0f0f0; color: #333; }
+        .btn-group { display: flex; gap: 12px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; font-weight: 600; color: #333; }
+        tr:hover { background: #f9f9f9; }
+        .status { padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .status-draft { background: #e6f7ff; color: #1890ff; }
+        .status-pending { background: #fff7e6; color: #fa8c16; }
+        .status-approved { background: #f6ffed; color: #52c41a; }
+        .status-rejected { background: #fff1f0; color: #f5222d; }
+        .filter-bar { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-bar input, .filter-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+        .message { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; display: none; }
+        .message-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .message-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>⏱️ 工时填报</h1>
+        </div>
+        <div>
+            <a href="index.html">首页</a>
+            <a href="approval.html">审批</a>
+            <a href="dashboard.html">成本看板</a>
+            <a href="utilization.html">利用率</a>
+            <a href="report.html">报表</a>
+        </div>
+    </div>
+    <div class="container">
+        <div id="message" class="message"></div>
+        <div class="card">
+            <h2>新增工时记录</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>用户ID</label>
+                    <input type="number" id="userId" value="3" placeholder="用户ID">
+                </div>
+                <div class="form-group">
+                    <label>项目</label>
+                    <select id="projectId"></select>
+                </div>
+                <div class="form-group">
+                    <label>工作日期</label>
+                    <input type="date" id="workDate">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>开始时间</label>
+                    <input type="time" id="startTime" value="09:00">
+                </div>
+                <div class="form-group">
+                    <label>结束时间</label>
+                    <input type="time" id="endTime" value="12:00">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>工作内容</label>
+                <textarea id="workContent" placeholder="请描述工作内容..."></textarea>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="saveTimesheet()">保存草稿</button>
+                <button class="btn btn-success" onclick="submitTimesheet()">提交审批</button>
+                <button class="btn btn-default" onclick="resetForm()">重置</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>我的工时记录</h2>
+            <div class="filter-bar">
+                <span>日期范围：</span>
+                <input type="date" id="startDate">
+                <span>至</span>
+                <input type="date" id="endDate">
+                <button class="btn btn-primary" onclick="loadMyTimesheets()">查询</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>项目</th>
+                        <th>工作日期</th>
+                        <th>时间段</th>
+                        <th>工时</th>
+                        <th>工作内容</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="timesheetList"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        const API_BASE = '/api';
+        let currentTimesheetId = null;
+
+        window.onload = function() {
+            const today = new Date();
+            document.getElementById('workDate').valueAsDate = today;
+            document.getElementById('startDate').valueAsDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('endDate').valueAsDate = today;
+            loadProjects();
+            loadMyTimesheets();
+        };
+
+        async function loadProjects() {
+            const res = await fetch(`${API_BASE}/project/user/3`);
+            const data = await res.json();
+            const select = document.getElementById('projectId');
+            data.data.forEach(p => {
+                select.innerHTML += `<option value="${p.projectId}">${p.projectName}</option>`;
+            });
+        }
+
+        function showMessage(type, msg) {
+            const el = document.getElementById('message');
+            el.className = 'message message-' + type;
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        function getFormData() {
+            return {
+                timesheetId: currentTimesheetId,
+                userId: parseInt(document.getElementById('userId').value),
+                projectId: parseInt(document.getElementById('projectId').value),
+                workDate: document.getElementById('workDate').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                workContent: document.getElementById('workContent').value
+            };
+        }
+
+        async function saveTimesheet() {
+            const data = getFormData();
+            const url = currentTimesheetId ? `${API_BASE}/timesheet/update` : `${API_BASE}/timesheet/create`;
+            const res = await fetch(url, {
+                method: currentTimesheetId ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showMessage('success', '保存成功');
+                resetForm();
+                loadMyTimesheets();
+            } else {
+                showMessage('error', result.message);
+            }
+        }
+
+        async function submitTimesheet() {
+            const data = getFormData();
+            let tsId = currentTimesheetId;
+
+            if (!tsId) {
+                const res = await fetch(`${API_BASE}/timesheet/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.code !== 200) {
+                    showMessage('error', result.message);
+                    return;
+                }
+                tsId = result.data.timesheetId;
+            }
+
+            const res = await fetch(`${API_BASE}/timesheet/submit/${tsId}`, { method: 'POST' });
+            const result = await res.json();
+            if (result.code === 200) {
+                showMessage('success', '提交成功');
+                resetForm();
+                loadMyTimesheets();
+            } else {
+                showMessage('error', result.message);
+            }
+        }
+
+        function resetForm() {
+            currentTimesheetId = null;
+            document.getElementById('workContent').value = '';
+            document.getElementById('startTime').value = '09:00';
+            document.getElementById('endTime').value = '12:00';
+        }
+
+        async function loadMyTimesheets() {
+            const userId = document.getElementById('userId').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const res = await fetch(`${API_BASE}/timesheet/my?userId=${userId}&startDate=${startDate}&endDate=${endDate}`);
+            const data = await res.json();
+            const tbody = document.getElementById('timesheetList');
+            tbody.innerHTML = '';
+            data.data.forEach(ts => {
+                const statusClass = { 0: 'status-draft', 1: 'status-pending', 2: 'status-approved', 3: 'status-rejected' };
+                const statusText = { 0: '草稿', 1: '待审批', 2: '已通过', 3: '已拒绝' };
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${ts.timesheetId}</td>
+                        <td>${ts.projectId}</td>
+                        <td>${ts.workDate}</td>
+                        <td>${ts.startTime} - ${ts.endTime}</td>
+                        <td>${ts.workHours}h</td>
+                        <td>${ts.workContent || '-'}</td>
+                        <td><span class="status ${statusClass[ts.approvalStatus]}">${statusText[ts.approvalStatus]}</span></td>
+                        <td>
+                            ${ts.approvalStatus === 0 ? `
+                                <button class="btn btn-primary" style="padding:4px 12px;font-size:12px;" onclick="editTimesheet(${ts.timesheetId})">编辑</button>
+                                <button class="btn btn-danger" style="padding:4px 12px;font-size:12px;" onclick="deleteTimesheet(${ts.timesheetId})">删除</button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editTimesheet(id) {
+            currentTimesheetId = id;
+            showMessage('success', '请修改后保存');
+        }
+
+        async function deleteTimesheet(id) {
+            if (!confirm('确定删除此工时记录？')) return;
+            await fetch(`${API_BASE}/timesheet/${id}`, { method: 'DELETE' });
+            showMessage('success', '删除成功');
+            loadMyTimesheets();
+        }
+    </script>
+</body>
+</html>

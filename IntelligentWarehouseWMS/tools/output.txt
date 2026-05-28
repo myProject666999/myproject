@@ -1,0 +1,4 @@
+开始连接MySQL数据库...
+数据库连接成功!
+读取SQL文件成功，大小: 13778 字节
+执行SQL脚本失败: Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿CREATE DATABASE IF NOT EXISTS wms_db DEFAULT CHARACTER SET utf8mb4 COLLATE ut' at line 1

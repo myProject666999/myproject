@@ -39,7 +39,10 @@ public class AuthService extends ServiceImpl<UserMapper, User> {
         String token = jwtUtils.generateToken(user.getId(), user.getUsername(), user.getRole());
 
         String userKey = "user:" + user.getId();
-        redisTemplate.opsForValue().set(userKey, user, 24, TimeUnit.HOURS);
+        try {
+            redisTemplate.opsForValue().set(userKey, user, 24, TimeUnit.HOURS);
+        } catch (Exception ignored) {
+        }
 
         Map<String, Object> data = new HashMap<>();
         data.put("token", token);
@@ -54,11 +57,19 @@ public class AuthService extends ServiceImpl<UserMapper, User> {
     }
 
     public Result<?> logout(Long userId) {
-        redisTemplate.delete("user:" + userId);
+        if (userId != null) {
+            try {
+                redisTemplate.delete("user:" + userId);
+            } catch (Exception ignored) {
+            }
+        }
         return Result.success("退出成功");
     }
 
     public Result<User> getUserInfo(Long userId) {
+        if (userId == null) {
+            return Result.error("用户未登录");
+        }
         User user = this.getById(userId);
         if (user != null) {
             user.setPassword(null);

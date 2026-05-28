@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目成本看板</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header a { color: white; text-decoration: none; margin-left: 20px; }
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .card h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        .filter-bar { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; }
+        .filter-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { padding: 20px; border-radius: 8px; color: white; }
+        .stat-card .label { font-size: 14px; opacity: 0.9; }
+        .stat-card .value { font-size: 28px; font-weight: bold; margin: 8px 0; }
+        .stat-card .sub { font-size: 12px; opacity: 0.8; }
+        .bg-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-pink { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .bg-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .bg-green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .progress-bar { height: 24px; background: #f0f0f0; border-radius: 12px; overflow: hidden; margin: 8px 0; }
+        .progress-fill { height: 100%; border-radius: 12px; transition: width 0.3s; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; font-weight: 600; color: #333; }
+        tr:hover { background: #f9f9f9; }
+        .tag { padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .tag-normal { background: #e6f7ff; color: #1890ff; }
+        .tag-warning { background: #fff7e6; color: #fa8c16; }
+        .tag-danger { background: #fff1f0; color: #f5222d; }
+        .message { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; display: none; }
+        .message-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .message-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>📈 项目成本看板</h1>
+        </div>
+        <div>
+            <a href="index.html">首页</a>
+            <a href="timesheet.html">工时填报</a>
+            <a href="approval.html">审批</a>
+            <a href="utilization.html">利用率</a>
+            <a href="report.html">报表</a>
+        </div>
+    </div>
+    <div class="container">
+        <div id="message" class="message"></div>
+        <div class="card">
+            <div class="filter-bar">
+                <span>选择项目：</span>
+                <select id="projectSelect" onchange="loadProjectData()">
+                    <option value="">请选择项目</option>
+                </select>
+            </div>
+            <div id="projectStats" style="display:none;">
+                <div class="stats-grid">
+                    <div class="stat-card bg-purple">
+                        <div class="label">预算成本</div>
+                        <div class="value" id="budgetCost">¥0</div>
+                        <div class="sub">预算工时：<span id="budgetHours">0</span>h</div>
+                    </div>
+                    <div class="stat-card bg-pink">
+                        <div class="label">实际成本</div>
+                        <div class="value" id="actualCost">¥0</div>
+                        <div class="sub">实际工时：<span id="actualHours">0</span>h</div>
+                    </div>
+                    <div class="stat-card bg-blue">
+                        <div class="label">剩余预算</div>
+                        <div class="value" id="remainingCost">¥0</div>
+                        <div class="sub">成本使用率：<span id="costUsageRate">0%</span></div>
+                    </div>
+                    <div class="stat-card bg-green">
+                        <div class="label">项目状态</div>
+                        <div class="value" id="projectStatus">进行中</div>
+                        <div class="sub">工时使用率：<span id="hoursUsageRate">0%</span></div>
+                    </div>
+                </div>
+                <h3 style="margin: 20px 0 12px;">成本使用率</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="costProgress" style="width: 0%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+                </div>
+                <h3 style="margin: 20px 0 12px;">工时使用率</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="hoursProgress" style="width: 0%; background: linear-gradient(90deg, #4facfe, #00f2fe);"></div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>项目列表</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>项目编号</th>
+                        <th>项目名称</th>
+                        <th>预算成本</th>
+                        <th>实际成本</th>
+                        <th>剩余成本</th>
+                        <th>成本使用率</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody id="projectList"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        const API_BASE = '/api';
+
+        window.onload = function() {
+            loadProjects();
+            loadProjectList();
+        };
+
+        function showMessage(type, msg) {
+            const el = document.getElementById('message');
+            el.className = 'message message-' + type;
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        function formatMoney(cents) {
+            if (!cents) return '¥0.00';
+            return '¥' + (cents / 100).toFixed(2);
+        }
+
+        async function loadProjects() {
+            const res = await fetch(`${API_BASE}/project/list`);
+            const data = await res.json();
+            const select = document.getElementById('projectSelect');
+            data.data.forEach(p => {
+                select.innerHTML += `<option value="${p.projectId}">${p.projectCode} - ${p.projectName}</option>`;
+            });
+        }
+
+        async function loadProjectList() {
+            const res = await fetch(`${API_BASE}/project/list`);
+            const data = await res.json();
+            const tbody = document.getElementById('projectList');
+            tbody.innerHTML = '';
+
+            for (const p of data.data) {
+                try {
+                    const analysisRes = await fetch(`${API_BASE}/analysis/project/${p.projectId}`);
+                    const analysis = await analysisRes.json();
+                    const d = analysis.data || {};
+
+                    const usageRate = parseFloat(d.costUsageRate || 0);
+                    let tagClass = 'tag-normal';
+                    if (usageRate > 90) tagClass = 'tag-danger';
+                    else if (usageRate > 70) tagClass = 'tag-warning';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.projectCode}</td>
+                            <td>${p.projectName}</td>
+                            <td>${formatMoney(d.budgetCost)}</td>
+                            <td>${formatMoney(d.actualCost)}</td>
+                            <td>${formatMoney(d.remainingCost)}</td>
+                            <td>
+                                <span class="tag ${tagClass}">${d.costUsageRate || 0}%</span>
+                            </td>
+                            <td>${p.status === 1 ? '进行中' : p.status === 2 ? '已完成' : '其他'}</td>
+                        </tr>
+                    `;
+                } catch (e) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.projectCode}</td>
+                            <td>${p.projectName}</td>
+                            <td>${formatMoney(p.budgetCost)}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>${p.status === 1 ? '进行中' : p.status === 2 ? '已完成' : '其他'}</td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        async function loadProjectData() {
+            const projectId = document.getElementById('projectSelect').value;
+            if (!projectId) {
+                document.getElementById('projectStats').style.display = 'none';
+                return;
+            }
+
+            const res = await fetch(`${API_BASE}/analysis/project/${projectId}`);
+            const data = await res.json();
+            const d = data.data;
+
+            document.getElementById('projectStats').style.display = 'block';
+            document.getElementById('budgetCost').textContent = d.budgetCostYuan;
+            document.getElementById('budgetHours').textContent = d.budgetHours;
+            document.getElementById('actualCost').textContent = d.actualCostYuan;
+            document.getElementById('actualHours').textContent = d.actualHours;
+            document.getElementById('remainingCost').textContent = d.remainingCostYuan;
+            document.getElementById('costUsageRate').textContent = d.costUsageRate + '%';
+            document.getElementById('hoursUsageRate').textContent = d.hoursUsageRate + '%';
+
+            document.getElementById('costProgress').style.width = Math.min(d.costUsageRate, 100) + '%';
+            document.getElementById('hoursProgress').style.width = Math.min(d.hoursUsageRate, 100) + '%';
+        }
+    </script>
+</body>
+</html>

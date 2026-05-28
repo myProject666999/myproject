@@ -48,10 +48,10 @@ async function refreshFavoritesWeather() {
     console.log(`[Cron] Refreshing weather for ${favorites.length} favorite cities`);
 
     for (const city of favorites) {
-      const current = weatherService.generateCurrentWeather(city);
-      const forecast = weatherService.generateForecast(city, 7);
-      const indices = weatherService.generateIndices(city, current.current.temp);
-      const alerts = weatherService.generateAlerts(city);
+      const current = await weatherService.generateCurrentWeather(city);
+      const forecast = await weatherService.generateForecast(city, 7);
+      const indices = await weatherService.generateIndices(city, current.current.temp);
+      const alerts = await weatherService.generateAlerts(city);
 
       await weatherService.setCachedWeather(city.id, 'current', current);
       await weatherService.setCachedWeather(city.id, 'forecast:7', forecast);

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线心理量表测评系统 - 专业心理健康评估</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">❤</div>
+                <span>心理测评中心</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="scales.html">量表</a></li>
+                <li><a href="trend.html">趋势</a></li>
+                <li><a href="resources.html">资源</a></li>
+            </ul>
+            <div class="nav-actions"></div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-inner">
+                <div class="hero-content">
+                    <h1>专业<span class="highlight">心理健康</span><br>测评与守护</h1>
+                    <p>采用国际通用的标准化心理量表，为您提供专业、便捷、私密的心理健康评估服务，帮助您更好地了解自己，守护心灵健康。</p>
+                    <div class="hero-buttons">
+                        <a href="scales.html" class="btn btn-primary btn-lg">开始测评</a>
+                        <a href="#" class="btn btn-outline btn-lg">了解更多</a>
+                    </div>
+                    <div class="hero-features">
+                        <div class="feature-item">
+                            <div class="feature-icon">📋</div>
+                            <h3>专业量表</h3>
+                            <p>国际通用标准化工具</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🔒</div>
+                            <h3>隐私保护</h3>
+                            <p>数据加密安全可靠</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">📊</div>
+                            <h3>智能分析</h3>
+                            <p>科学解读专业建议</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-card">
+                        <div class="hero-card-header">
+                            <div class="hero-card-icon">📈</div>
+                            <div>
+                                <h3>心理健康状态</h3>
+                                <p style="color: #8c8c8c; font-size: 13px;">已为 10,000+ 用户提供服务</p>
+                            </div>
+                        </div>
+                        <h3 style="font-size: 16px; margin-bottom: 12px;">今日测评完成度</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%;"></div>
+                        </div>
+                        <p style="font-size: 13px; color: #595959;">75% 的用户完成了至少1项测评</p>
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <div class="stat-number">6+</div>
+                                <div class="stat-label">专业量表</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">98%</div>
+                                <div class="stat-label">满意度</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">24h</div>
+                                <div class="stat-label">危机热线</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="quick-access">
+        <div class="container">
+            <div class="section-header">
+                <h2>快速入口</h2>
+                <p>一键直达您需要的服务</p>
+            </div>
+            <div class="quick-cards">
+                <div class="quick-card" onclick="location.href='scales.html'">
+                    <div class="quick-icon">📝</div>
+                    <h3>开始测评</h3>
+                    <p>选择适合您的心理量表，完成专业评估</p>
+                    <button class="btn btn-primary">立即开始</button>
+                </div>
+                <div class="quick-card" onclick="Common.requireLogin() && location.href='trend.html'">
+                    <div class="quick-icon">📊</div>
+                    <h3>查看趋势</h3>
+                    <p>追踪您的心理健康变化趋势和历史记录</p>
+                    <button class="btn btn-primary">查看报告</button>
+                </div>
+                <div class="quick-card" onclick="location.href='resources.html'">
+                    <div class="quick-icon">📚</div>
+                    <h3>科普资源</h3>
+                    <p>学习心理健康知识，掌握自我调节方法</p>
+                    <button class="btn btn-primary">浏览资源</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="popular-scales">
+        <div class="container">
+            <div class="section-header">
+                <h2>常用量表</h2>
+                <p>基于国际标准的专业心理测评工具</p>
+            </div>
+            <div class="scale-cards" id="popularScales"></div>
+        </div>
+    </section>
+
+    <section class="risk-alert">
+        <div class="container">
+            <div class="risk-inner">
+                <div class="risk-icon">⚠️</div>
+                <h2>心理危机？请立即求助</h2>
+                <p>如果您或您身边的人正在经历心理危机、有自伤或自杀的想法，请立即拨打以下24小时免费援助热线</p>
+                <div class="hotline-grid">
+                    <div class="hotline-card">
+                        <h4>全国24小时心理危机干预热线</h4>
+                        <div class="hotline-number">400-161-9995</div>
+                        <p>7×24小时 · 免费保密 · 专业接听</p>
+                    </div>
+                    <div class="hotline-card">
+                        <h4>北京心理危机研究与干预中心</h4>
+                        <div class="hotline-number">010-82951332</div>
+                        <p>专业机构 · 24小时服务</p>
+                    </div>
+                </div>
+                <p style="margin-top: 24px; font-size: 13px; color: #8c8c8c;">
+                    紧急情况请立即拨打 <strong style="color: #f5222d;">120</strong> 或前往最近医院急诊科
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <div class="logo-icon">❤</div>
+                        <span>心理测评中心</span>
+                    </div>
+                    <p class="footer-desc">专业的在线心理量表测评系统，采用国际通用标准化工具，为您提供便捷、私密的心理健康评估服务。</p>
+                    <p style="font-size: 12px; color: #595959;">⚠️ 本平台测评结果仅供参考，不构成医学诊断。如有需要，请咨询专业心理医生。</p>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul>
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="scales.html">量表列表</a></li>
+                        <li><a href="trend.html">趋势分析</a></li>
+                        <li><a href="resources.html">科普资源</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>帮助中心</h4>
+                    <ul>
+                        <li><a href="#">使用指南</a></li>
+                        <li><a href="#">常见问题</a></li>
+                        <li><a href="privacy.html">隐私政策</a></li>
+                        <li><a href="#">用户协议</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系我们</h4>
+                    <ul>
+                        <li><a href="#">关于我们</a></li>
+                        <li><a href="#">意见反馈</a></li>
+                        <li><a href="#">合作洽谈</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 在线心理量表测评系统 版权所有 | 京ICP备XXXXXXXX号</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const mockScales = [
+            { id: 1, code: 'PHQ-9', name: '患者健康问卷抑郁量表', short_name: 'PHQ-9', category: '抑郁', estimated_minutes: 3, description: 'PHQ-9是由Kroenke等人于2001年开发的自评量表，用于筛查和评估抑郁症状的严重程度。该量表基于DSM-IV抑郁诊断标准，共9个条目，广泛用于临床和科研。' },
+            { id: 2, code: 'GAD-7', name: '广泛性焦虑量表', short_name: 'GAD-7', category: '焦虑', estimated_minutes: 3, description: 'GAD-7是由Spitzer等人于2006年开发的自评量表，用于筛查和评估广泛性焦虑症状的严重程度。共7个条目，具有良好的信效度。' },
+            { id: 3, code: 'PHQ-15', name: '患者健康问卷躯体症状量表', short_name: 'PHQ-15', category: '躯体症状', estimated_minutes: 5, description: 'PHQ-15用于评估躯体症状的严重程度，涵盖15个常见躯体症状，广泛用于初级保健和心身医学领域。' },
+            { id: 4, code: 'PSQI', name: '匹兹堡睡眠质量指数', short_name: 'PSQI', category: '睡眠', estimated_minutes: 10, description: 'PSQI由Buysse等人于1989年开发，用于评估过去一个月的睡眠质量，包含7个因子，广泛用于睡眠障碍筛查。' },
+            { id: 5, code: 'PSS-10', name: '知觉压力量表', short_name: 'PSS-10', category: '压力', estimated_minutes: 5, description: 'PSS-10由Cohen等人于1983年开发，用于评估个体对生活压力的主观感受，共10个条目，是全球最常用的压力评估工具之一。' },
+            { id: 6, code: 'ISI', name: '失眠严重指数', short_name: 'ISI', category: '睡眠', estimated_minutes: 3, description: 'ISI由Morin等人于2011年开发，用于评估失眠症状的严重程度，共7个条目，简短高效，适合临床快速筛查。' }
+        ];
+
+        function renderScaleCard(scale) {
+            return `
+                <div class="scale-card">
+                    <div class="scale-header">
+                        <div class="scale-title">
+                            <h3>${scale.name}</h3>
+                            <span class="scale-code">${scale.short_name || scale.code}</span>
+                        </div>
+                        <span class="scale-category">${scale.category}</span>
+                    </div>
+                    <div class="scale-meta">
+                        <span>⏱ ${scale.estimated_minutes} 分钟</span>
+                        <span>📝 ${scale.code}</span>
+                    </div>
+                    <p class="scale-desc">${scale.description}</p>
+                    <div class="scale-footer">
+                        <button class="btn btn-outline" onclick="location.href='scales.html?highlight=${scale.id}'">了解详情</button>
+                        <button class="btn btn-primary" onclick="startScale(${scale.id})">开始测评</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function startScale(id) {
+            if (!Common.requireLogin()) return;
+            Common.showToast('即将开始测评...', 'info');
+        }
+
+        async function loadPopularScales() {
+            const container = document.getElementById('popularScales');
+            try {
+                const data = await API.scales.list({ limit: 6 });
+                const scales = data.data || data.list || mockScales;
+                container.innerHTML = scales.map(renderScaleCard).join('');
+            } catch (error) {
+                container.innerHTML = mockScales.map(renderScaleCard).join('');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPopularScales();
+
+            const progressFill = document.querySelector('.progress-fill');
+            if (progressFill) {
+                setTimeout(() => {
+                    progressFill.style.width = '75%';
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

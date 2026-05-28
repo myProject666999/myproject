@@ -1,0 +1,919 @@
+syntax = "v1"
+
+info(
+	title: "WMS API"
+	desc: "智能仓库管理系统API文档"
+	author: "WMS Team"
+	version: "1.0.0"
+)
+
+type (
+	LoginReq {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	LoginResp {
+		Token    string `json:"token"`
+		UserId   int64  `json:"userId"`
+		Username string `json:"username"`
+		RealName string `json:"realName"`
+		Role     string `json:"role"`
+	}
+)
+
+@server(
+	prefix: /api/auth
+)
+service wms-api {
+	@doc "用户登录"
+	@handler login
+	post /login (LoginReq) returns (LoginResp)
+}
+
+type (
+	UserInfo {
+		Id         int64  `json:"id"`
+		Username   string `json:"username"`
+		RealName   string `json:"realName"`
+		Phone      string `json:"phone"`
+		Email      string `json:"email"`
+		Role       string `json:"role"`
+		Status     int64  `json:"status"`
+		Remark     string `json:"remark"`
+		CreateTime string `json:"createTime"`
+	}
+
+	UserListReq {
+		Page     int64  `form:"page"`
+		PageSize int64  `form:"pageSize"`
+		Username string `form:"username,optional"`
+		RealName string `form:"realName,optional"`
+		Phone    string `form:"phone,optional"`
+		Role     string `form:"role,optional"`
+		Status   int64  `form:"status,optional"`
+	}
+
+	UserListResp {
+		Total int64      `json:"total"`
+		List  []UserInfo `json:"list"`
+	}
+
+	UserCreateReq {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		RealName string `json:"realName"`
+		Phone    string `json:"phone"`
+		Email    string `json:"email"`
+		Role     string `json:"role"`
+		Status   int64  `json:"status"`
+		Remark   string `json:"remark"`
+	}
+
+	UserUpdateReq {
+		Id       int64  `json:"id"`
+		Username string `json:"username"`
+		Password string `json:"password,optional"`
+		RealName string `json:"realName"`
+		Phone    string `json:"phone"`
+		Email    string `json:"email"`
+		Role     string `json:"role"`
+		Status   int64  `json:"status"`
+		Remark   string `json:"remark"`
+	}
+
+	UserDeleteReq {
+		Id int64 `json:"id"`
+	}
+
+	CommonResp {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+)
+
+@server(
+	prefix: /api/user
+	group: user
+)
+service wms-api {
+	@doc "获取用户列表"
+	@handler userList
+	get /list (UserListReq) returns (UserListResp)
+
+	@doc "获取用户详情"
+	@handler userDetail
+	get /detail/:id returns (UserInfo)
+
+	@doc "创建用户"
+	@handler userCreate
+	post /create (UserCreateReq) returns (CommonResp)
+
+	@doc "更新用户"
+	@handler userUpdate
+	post /update (UserUpdateReq) returns (CommonResp)
+
+	@doc "删除用户"
+	@handler userDelete
+	post /delete (UserDeleteReq) returns (CommonResp)
+}
+
+type (
+	WarehouseInfo {
+		Id            int64  `json:"id"`
+		WarehouseCode string `json:"warehouseCode"`
+		WarehouseName string `json:"warehouseName"`
+		Address       string `json:"address"`
+		Manager       string `json:"manager"`
+		Phone         string `json:"phone"`
+		Status        int64  `json:"status"`
+		Remark        string `json:"remark"`
+		CreateTime    string `json:"createTime"`
+	}
+
+	WarehouseListReq {
+		Page          int64  `form:"page"`
+		PageSize      int64  `form:"pageSize"`
+		WarehouseCode string `form:"warehouseCode,optional"`
+		WarehouseName string `form:"warehouseName,optional"`
+		Status        int64  `form:"status,optional"`
+	}
+
+	WarehouseListResp {
+		Total int64           `json:"total"`
+		List  []WarehouseInfo `json:"list"`
+	}
+
+	WarehouseCreateReq {
+		WarehouseCode string `json:"warehouseCode"`
+		WarehouseName string `json:"warehouseName"`
+		Address       string `json:"address"`
+		Manager       string `json:"manager"`
+		Phone         string `json:"phone"`
+		Status        int64  `json:"status"`
+		Remark        string `json:"remark"`
+	}
+
+	WarehouseUpdateReq {
+		Id            int64  `json:"id"`
+		WarehouseCode string `json:"warehouseCode"`
+		WarehouseName string `json:"warehouseName"`
+		Address       string `json:"address"`
+		Manager       string `json:"manager"`
+		Phone         string `json:"phone"`
+		Status        int64  `json:"status"`
+		Remark        string `json:"remark"`
+	}
+
+	WarehouseDeleteReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	prefix: /api/warehouse
+	group: warehouse
+)
+service wms-api {
+	@doc "获取仓库列表"
+	@handler warehouseList
+	get /list (WarehouseListReq) returns (WarehouseListResp)
+
+	@doc "获取仓库详情"
+	@handler warehouseDetail
+	get /detail/:id returns (WarehouseInfo)
+
+	@doc "创建仓库"
+	@handler warehouseCreate
+	post /create (WarehouseCreateReq) returns (CommonResp)
+
+	@doc "更新仓库"
+	@handler warehouseUpdate
+	post /update (WarehouseUpdateReq) returns (CommonResp)
+
+	@doc "删除仓库"
+	@handler warehouseDelete
+	post /delete (WarehouseDeleteReq) returns (CommonResp)
+}
+
+type (
+	ShelfInfo {
+		Id          int64  `json:"id"`
+		WarehouseId int64  `json:"warehouseId"`
+		ShelfCode   string `json:"shelfCode"`
+		ShelfName   string `json:"shelfName"`
+		Rows        int    `json:"rows"`
+		Columns     int    `json:"columns"`
+		Status      int64  `json:"status"`
+		Remark      string `json:"remark"`
+		CreateTime  string `json:"createTime"`
+	}
+
+	ShelfListReq {
+		Page        int64  `form:"page"`
+		PageSize    int64  `form:"pageSize"`
+		WarehouseId int64  `form:"warehouseId,optional"`
+		ShelfCode   string `form:"shelfCode,optional"`
+		ShelfName   string `form:"shelfName,optional"`
+		Status      int64  `form:"status,optional"`
+	}
+
+	ShelfListResp {
+		Total int64       `json:"total"`
+		List  []ShelfInfo `json:"list"`
+	}
+
+	ShelfCreateReq {
+		WarehouseId int64  `json:"warehouseId"`
+		ShelfCode   string `json:"shelfCode"`
+		ShelfName   string `json:"shelfName"`
+		Rows        int    `json:"rows"`
+		Columns     int    `json:"columns"`
+		Status      int64  `json:"status"`
+		Remark      string `json:"remark"`
+	}
+
+	ShelfUpdateReq {
+		Id          int64  `json:"id"`
+		WarehouseId int64  `json:"warehouseId"`
+		ShelfCode   string `json:"shelfCode"`
+		ShelfName   string `json:"shelfName"`
+		Rows        int    `json:"rows"`
+		Columns     int    `json:"columns"`
+		Status      int64  `json:"status"`
+		Remark      string `json:"remark"`
+	}
+
+	ShelfDeleteReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	prefix: /api/shelf
+	group: shelf
+)
+service wms-api {
+	@doc "获取货架列表"
+	@handler shelfList
+	get /list (ShelfListReq) returns (ShelfListResp)
+
+	@doc "获取货架详情"
+	@handler shelfDetail
+	get /detail/:id returns (ShelfInfo)
+
+	@doc "创建货架"
+	@handler shelfCreate
+	post /create (ShelfCreateReq) returns (CommonResp)
+
+	@doc "更新货架"
+	@handler shelfUpdate
+	post /update (ShelfUpdateReq) returns (CommonResp)
+
+	@doc "删除货架"
+	@handler shelfDelete
+	post /delete (ShelfDeleteReq) returns (CommonResp)
+}
+
+type (
+	LocationInfo {
+		Id           int64  `json:"id"`
+		WarehouseId  int64  `json:"warehouseId"`
+		ShelfId      int64  `json:"shelfId"`
+		LocationCode string `json:"locationCode"`
+		RowNo        int    `json:"rowNo"`
+		ColNo        int    `json:"colNo"`
+		Capacity     int    `json:"capacity"`
+		UsedCapacity int    `json:"usedCapacity"`
+		Status       int64  `json:"status"`
+		Remark       string `json:"remark"`
+		CreateTime   string `json:"createTime"`
+	}
+
+	LocationListReq {
+		Page         int64  `form:"page"`
+		PageSize     int64  `form:"pageSize"`
+		WarehouseId  int64  `form:"warehouseId,optional"`
+		ShelfId      int64  `form:"shelfId,optional"`
+		LocationCode string `form:"locationCode,optional"`
+		Status       int64  `form:"status,optional"`
+	}
+
+	LocationListResp {
+		Total int64          `json:"total"`
+		List  []LocationInfo `json:"list"`
+	}
+
+	LocationCreateReq {
+		WarehouseId  int64  `json:"warehouseId"`
+		ShelfId      int64  `json:"shelfId"`
+		LocationCode string `json:"locationCode"`
+		RowNo        int    `json:"rowNo"`
+		ColNo        int    `json:"colNo"`
+		Capacity     int    `json:"capacity"`
+		UsedCapacity int    `json:"usedCapacity"`
+		Status       int64  `json:"status"`
+		Remark       string `json:"remark"`
+	}
+
+	LocationUpdateReq {
+		Id           int64  `json:"id"`
+		WarehouseId  int64  `json:"warehouseId"`
+		ShelfId      int64  `json:"shelfId"`
+		LocationCode string `json:"locationCode"`
+		RowNo        int    `json:"rowNo"`
+		ColNo        int    `json:"colNo"`
+		Capacity     int    `json:"capacity"`
+		UsedCapacity int    `json:"usedCapacity"`
+		Status       int64  `json:"status"`
+		Remark       string `json:"remark"`
+	}
+
+	LocationDeleteReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	prefix: /api/location
+	group: location
+)
+service wms-api {
+	@doc "获取库位列表"
+	@handler locationList
+	get /list (LocationListReq) returns (LocationListResp)
+
+	@doc "获取库位详情"
+	@handler locationDetail
+	get /detail/:id returns (LocationInfo)
+
+	@doc "创建库位"
+	@handler locationCreate
+	post /create (LocationCreateReq) returns (CommonResp)
+
+	@doc "更新库位"
+	@handler locationUpdate
+	post /update (LocationUpdateReq) returns (CommonResp)
+
+	@doc "删除库位"
+	@handler locationDelete
+	post /delete (LocationDeleteReq) returns (CommonResp)
+}
+
+type (
+	ProductInfo {
+		Id          int64   `json:"id"`
+		Sku         string  `json:"sku"`
+		ProductName string  `json:"productName"`
+		Category    string  `json:"category"`
+		Spec        string  `json:"spec"`
+		Unit        string  `json:"unit"`
+		Weight      float64 `json:"weight"`
+		Volume      float64 `json:"volume"`
+		MinStock    int     `json:"minStock"`
+		MaxStock    int     `json:"maxStock"`
+		Status      int64   `json:"status"`
+		Remark      string  `json:"remark"`
+		CreateTime  string  `json:"createTime"`
+	}
+
+	ProductListReq {
+		Page        int64  `form:"page"`
+		PageSize    int64  `form:"pageSize"`
+		Sku         string `form:"sku,optional"`
+		ProductName string `form:"productName,optional"`
+		Category    string `form:"category,optional"`
+		Status      int64  `form:"status,optional"`
+	}
+
+	ProductListResp {
+		Total int64         `json:"total"`
+		List  []ProductInfo `json:"list"`
+	}
+
+	ProductCreateReq {
+		Sku         string  `json:"sku"`
+		ProductName string  `json:"productName"`
+		Category    string  `json:"category"`
+		Spec        string  `json:"spec"`
+		Unit        string  `json:"unit"`
+		Weight      float64 `json:"weight"`
+		Volume      float64 `json:"volume"`
+		MinStock    int     `json:"minStock"`
+		MaxStock    int     `json:"maxStock"`
+		Status      int64   `json:"status"`
+		Remark      string  `json:"remark"`
+	}
+
+	ProductUpdateReq {
+		Id          int64   `json:"id"`
+		Sku         string  `json:"sku"`
+		ProductName string  `json:"productName"`
+		Category    string  `json:"category"`
+		Spec        string  `json:"spec"`
+		Unit        string  `json:"unit"`
+		Weight      float64 `json:"weight"`
+		Volume      float64 `json:"volume"`
+		MinStock    int     `json:"minStock"`
+		MaxStock    int     `json:"maxStock"`
+		Status      int64   `json:"status"`
+		Remark      string  `json:"remark"`
+	}
+
+	ProductDeleteReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	prefix: /api/product
+	group: product
+)
+service wms-api {
+	@doc "获取货品列表"
+	@handler productList
+	get /list (ProductListReq) returns (ProductListResp)
+
+	@doc "获取货品详情"
+	@handler productDetail
+	get /detail/:id returns (ProductInfo)
+
+	@doc "创建货品"
+	@handler productCreate
+	post /create (ProductCreateReq) returns (CommonResp)
+
+	@doc "更新货品"
+	@handler productUpdate
+	post /update (ProductUpdateReq) returns (CommonResp)
+
+	@doc "删除货品"
+	@handler productDelete
+	post /delete (ProductDeleteReq) returns (CommonResp)
+}
+
+type (
+	InventoryInfo {
+		Id             int64   `json:"id"`
+		WarehouseId    int64   `json:"warehouseId"`
+		LocationId     int64   `json:"locationId"`
+		ProductId      int64   `json:"productId"`
+		Sku            string  `json:"sku"`
+		Quantity       int64   `json:"quantity"`
+		AvailableQty   int64   `json:"availableQty"`
+		LockedQty      int64   `json:"lockedQty"`
+		Version        int64   `json:"version"`
+		BatchNo        string  `json:"batchNo"`
+		ProductionDate string  `json:"productionDate"`
+		ExpiryDate     string  `json:"expiryDate"`
+		CreateTime     string  `json:"createTime"`
+	}
+
+	InventoryListReq {
+		Page        int64  `form:"page"`
+		PageSize    int64  `form:"pageSize"`
+		WarehouseId int64  `form:"warehouseId,optional"`
+		LocationId  int64  `form:"locationId,optional"`
+		ProductId   int64  `form:"productId,optional"`
+		Sku         string `form:"sku,optional"`
+	}
+
+	InventoryListResp {
+		Total int64           `json:"total"`
+		List  []InventoryInfo `json:"list"`
+	}
+)
+
+@server(
+	prefix: /api/inventory
+	group: inventory
+)
+service wms-api {
+	@doc "获取库存列表"
+	@handler inventoryList
+	get /list (InventoryListReq) returns (InventoryListResp)
+
+	@doc "获取库存详情"
+	@handler inventoryDetail
+	get /detail/:id returns (InventoryInfo)
+}
+
+type (
+	InboundOrderInfo {
+		Id           int64  `json:"id"`
+		OrderNo      string `json:"orderNo"`
+		WarehouseId  int64  `json:"warehouseId"`
+		OrderType    int64  `json:"orderType"`
+		Supplier     string `json:"supplier"`
+		TotalQty     int64  `json:"totalQty"`
+		InboundQty   int64  `json:"inboundQty"`
+		Status       int64  `json:"status"`
+		Operator     string `json:"operator"`
+		AuditTime    string `json:"auditTime"`
+		CompleteTime string `json:"completeTime"`
+		Remark       string `json:"remark"`
+		CreateTime   string `json:"createTime"`
+	}
+
+	InboundOrderListReq {
+		Page        int64  `form:"page"`
+		PageSize    int64  `form:"pageSize"`
+		WarehouseId int64  `form:"warehouseId,optional"`
+		OrderType   int64  `form:"orderType,optional"`
+		Status      int64  `form:"status,optional"`
+		OrderNo     string `form:"orderNo,optional"`
+		Supplier    string `form:"supplier,optional"`
+	}
+
+	InboundOrderListResp {
+		Total int64               `json:"total"`
+		List  []InboundOrderInfo  `json:"list"`
+	}
+
+	InboundOrderCreateReq {
+		OrderNo     string `json:"orderNo"`
+		WarehouseId int64  `json:"warehouseId"`
+		OrderType   int64  `json:"orderType"`
+		Supplier    string `json:"supplier"`
+		TotalQty    int64  `json:"totalQty"`
+		Status      int64  `json:"status"`
+		Operator    string `json:"operator"`
+		Remark      string `json:"remark"`
+	}
+
+	InboundOrderUpdateReq {
+		Id          int64  `json:"id"`
+		OrderNo     string `json:"orderNo"`
+		WarehouseId int64  `json:"warehouseId"`
+		OrderType   int64  `json:"orderType"`
+		Supplier    string `json:"supplier"`
+		TotalQty    int64  `json:"totalQty"`
+		InboundQty  int64  `json:"inboundQty"`
+		Status      int64  `json:"status"`
+		Operator    string `json:"operator"`
+		Remark      string `json:"remark"`
+	}
+
+	InboundOrderDeleteReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	prefix: /api/inbound
+	group: inbound
+)
+service wms-api {
+	@doc "获取入库单列表"
+	@handler inboundOrderList
+	get /list (InboundOrderListReq) returns (InboundOrderListResp)
+
+	@doc "获取入库单详情"
+	@handler inboundOrderDetail
+	get /detail/:id returns (InboundOrderInfo)
+
+	@doc "创建入库单"
+	@handler inboundOrderCreate
+	post /create (InboundOrderCreateReq) returns (CommonResp)
+
+	@doc "更新入库单"
+	@handler inboundOrderUpdate
+	post /update (InboundOrderUpdateReq) returns (CommonResp)
+
+	@doc "删除入库单"
+	@handler inboundOrderDelete
+	post /delete (InboundOrderDeleteReq) returns (CommonResp)
+}
+
+type (
+	OutboundOrderInfo {
+		Id           int64  `json:"id"`
+		OrderNo      string `json:"orderNo"`
+		WarehouseId  int64  `json:"warehouseId"`
+		OrderType    int64  `json:"orderType"`
+		Customer     string `json:"customer"`
+		TotalQty     int64  `json:"totalQty"`
+		OutboundQty  int64  `json:"outboundQty"`
+		Status       int64  `json:"status"`
+		Operator     string `json:"operator"`
+		AuditTime    string `json:"auditTime"`
+		CompleteTime string `json:"completeTime"`
+		Remark       string `json:"remark"`
+		CreateTime   string `json:"createTime"`
+	}
+
+	OutboundOrderListReq {
+		Page        int64  `form:"page"`
+		PageSize    int64  `form:"pageSize"`
+		WarehouseId int64  `form:"warehouseId,optional"`
+		OrderType   int64  `form:"orderType,optional"`
+		Status      int64  `form:"status,optional"`
+		OrderNo     string `form:"orderNo,optional"`
+		Customer    string `form:"customer,optional"`
+	}
+
+	OutboundOrderListResp {
+		Total int64                `json:"total"`
+		List  []OutboundOrderInfo  `json:"list"`
+	}
+
+	OutboundOrderCreateReq {
+		OrderNo     string `json:"orderNo"`
+		WarehouseId int64  `json:"warehouseId"`
+		OrderType   int64  `json:"orderType"`
+		Customer    string `json:"customer"`
+		TotalQty    int64  `json:"totalQty"`
+		Status      int64  `json:"status"`
+		Operator    string `json:"operator"`
+		Remark      string `json:"remark"`
+	}
+
+	OutboundOrderUpdateReq {
+		Id          int64  `json:"id"`
+		OrderNo     string `json:"orderNo"`
+		WarehouseId int64  `json:"warehouseId"`
+		OrderType   int64  `json:"orderType"`
+		Customer    string `json:"customer"`
+		TotalQty    int64  `json:"totalQty"`
+		OutboundQty int64  `json:"outboundQty"`
+		Status      int64  `json:"status"`
+		Operator    string `json:"operator"`
+		Remark      string `json:"remark"`
+	}
+
+	OutboundOrderDeleteReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	prefix: /api/outbound
+	group: outbound
+)
+service wms-api {
+	@doc "获取出库单列表"
+	@handler outboundOrderList
+	get /list (OutboundOrderListReq) returns (OutboundOrderListResp)
+
+	@doc "获取出库单详情"
+	@handler outboundOrderDetail
+	get /detail/:id returns (OutboundOrderInfo)
+
+	@doc "创建出库单"
+	@handler outboundOrderCreate
+	post /create (OutboundOrderCreateReq) returns (CommonResp)
+
+	@doc "更新出库单"
+	@handler outboundOrderUpdate
+	post /update (OutboundOrderUpdateReq) returns (CommonResp)
+
+	@doc "删除出库单"
+	@handler outboundOrderDelete
+	post /delete (OutboundOrderDeleteReq) returns (CommonResp)
+}
+
+type (
+	PickingTaskInfo {
+		Id           int64  `json:"id"`
+		TaskNo       string `json:"taskNo"`
+		OrderId      int64  `json:"orderId"`
+		OrderItemId  int64  `json:"orderItemId"`
+		WarehouseId  int64  `json:"warehouseId"`
+		ProductId    int64  `json:"productId"`
+		Sku          string `json:"sku"`
+		LocationId   int64  `json:"locationId"`
+		PlanQty      int64  `json:"planQty"`
+		PickQty      int64  `json:"pickQty"`
+		SortOrder    int64  `json:"sortOrder"`
+		Status       int64  `json:"status"`
+		Operator     string `json:"operator"`
+		CompleteTime string `json:"completeTime"`
+		Remark       string `json:"remark"`
+		CreateTime   string `json:"createTime"`
+	}
+
+	PickingTaskListReq {
+		Page        int64  `form:"page"`
+		PageSize    int64  `form:"pageSize"`
+		TaskNo      string `form:"taskNo,optional"`
+		OrderId     int64  `form:"orderId,optional"`
+		WarehouseId int64  `form:"warehouseId,optional"`
+		ProductId   int64  `form:"productId,optional"`
+		Sku         string `form:"sku,optional"`
+		LocationId  int64  `form:"locationId,optional"`
+		Status      int64  `form:"status,optional"`
+		Operator    string `form:"operator,optional"`
+	}
+
+	PickingTaskListResp {
+		Total int64             `json:"total"`
+		List  []PickingTaskInfo `json:"list"`
+	}
+
+	PickingTaskCreateReq {
+		TaskNo      string `json:"taskNo"`
+		OrderId     int64  `json:"orderId"`
+		OrderItemId int64  `json:"orderItemId"`
+		WarehouseId int64  `json:"warehouseId"`
+		ProductId   int64  `json:"productId"`
+		Sku         string `json:"sku"`
+		LocationId  int64  `json:"locationId"`
+		PlanQty     int64  `json:"planQty"`
+		SortOrder   int64  `json:"sortOrder"`
+		Status      int64  `json:"status"`
+		Operator    string `json:"operator"`
+		Remark      string `json:"remark"`
+	}
+
+	PickingTaskUpdateReq {
+		Id           int64  `json:"id"`
+		TaskNo       string `json:"taskNo"`
+		OrderId      int64  `json:"orderId"`
+		OrderItemId  int64  `json:"orderItemId"`
+		WarehouseId  int64  `json:"warehouseId"`
+		ProductId    int64  `json:"productId"`
+		Sku          string `json:"sku"`
+		LocationId   int64  `json:"locationId"`
+		PlanQty      int64  `json:"planQty"`
+		PickQty      int64  `json:"pickQty"`
+		SortOrder    int64  `json:"sortOrder"`
+		Status       int64  `json:"status"`
+		Operator     string `json:"operator"`
+		Remark       string `json:"remark"`
+	}
+
+	PickingTaskDeleteReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	prefix: /api/picking
+	group: picking
+)
+service wms-api {
+	@doc "获取拣货任务列表"
+	@handler pickingTaskList
+	get /list (PickingTaskListReq) returns (PickingTaskListResp)
+
+	@doc "获取拣货任务详情"
+	@handler pickingTaskDetail
+	get /detail/:id returns (PickingTaskInfo)
+
+	@doc "创建拣货任务"
+	@handler pickingTaskCreate
+	post /create (PickingTaskCreateReq) returns (CommonResp)
+
+	@doc "更新拣货任务"
+	@handler pickingTaskUpdate
+	post /update (PickingTaskUpdateReq) returns (CommonResp)
+
+	@doc "删除拣货任务"
+	@handler pickingTaskDelete
+	post /delete (PickingTaskDeleteReq) returns (CommonResp)
+}
+
+type (
+	StocktakeTaskInfo {
+		Id          int64  `json:"id"`
+		TaskNo      string `json:"taskNo"`
+		WarehouseId int64  `json:"warehouseId"`
+		TaskName    string `json:"taskName"`
+		TaskType    int64  `json:"taskType"`
+		TotalSku    int64  `json:"totalSku"`
+		CheckedSku  int64  `json:"checkedSku"`
+		Status      int64  `json:"status"`
+		Operator    string `json:"operator"`
+		StartTime   string `json:"startTime"`
+		EndTime     string `json:"endTime"`
+		Remark      string `json:"remark"`
+		CreateTime  string `json:"createTime"`
+	}
+
+	StocktakeTaskListReq {
+		Page        int64  `form:"page"`
+		PageSize    int64  `form:"pageSize"`
+		TaskNo      string `form:"taskNo,optional"`
+		TaskName    string `form:"taskName,optional"`
+		WarehouseId int64  `form:"warehouseId,optional"`
+		TaskType    int64  `form:"taskType,optional"`
+		Status      int64  `form:"status,optional"`
+		Operator    string `form:"operator,optional"`
+	}
+
+	StocktakeTaskListResp {
+		Total int64                `json:"total"`
+		List  []StocktakeTaskInfo  `json:"list"`
+	}
+
+	StocktakeTaskCreateReq {
+		TaskNo      string `json:"taskNo"`
+		WarehouseId int64  `json:"warehouseId"`
+		TaskName    string `json:"taskName"`
+		TaskType    int64  `json:"taskType"`
+		TotalSku    int64  `json:"totalSku"`
+		Status      int64  `json:"status"`
+		Operator    string `json:"operator"`
+		Remark      string `json:"remark"`
+	}
+
+	StocktakeTaskUpdateReq {
+		Id          int64  `json:"id"`
+		TaskNo      string `json:"taskNo"`
+		WarehouseId int64  `json:"warehouseId"`
+		TaskName    string `json:"taskName"`
+		TaskType    int64  `json:"taskType"`
+		TotalSku    int64  `json:"totalSku"`
+		CheckedSku  int64  `json:"checkedSku"`
+		Status      int64  `json:"status"`
+		Operator    string `json:"operator"`
+		Remark      string `json:"remark"`
+	}
+
+	StocktakeTaskDeleteReq {
+		Id int64 `json:"id"`
+	}
+)
+
+@server(
+	prefix: /api/stocktake
+	group: stocktake
+)
+service wms-api {
+	@doc "获取盘点任务列表"
+	@handler stocktakeTaskList
+	get /list (StocktakeTaskListReq) returns (StocktakeTaskListResp)
+
+	@doc "获取盘点任务详情"
+	@handler stocktakeTaskDetail
+	get /detail/:id returns (StocktakeTaskInfo)
+
+	@doc "创建盘点任务"
+	@handler stocktakeTaskCreate
+	post /create (StocktakeTaskCreateReq) returns (CommonResp)
+
+	@doc "更新盘点任务"
+	@handler stocktakeTaskUpdate
+	post /update (StocktakeTaskUpdateReq) returns (CommonResp)
+
+	@doc "删除盘点任务"
+	@handler stocktakeTaskDelete
+	post /delete (StocktakeTaskDeleteReq) returns (CommonResp)
+}
+
+type (
+	DashboardResp {
+		TotalWarehouse int64 `json:"totalWarehouse"`
+		TotalProduct   int64 `json:"totalProduct"`
+		TotalInventory int64 `json:"totalInventory"`
+		InboundCount   int64 `json:"inboundCount"`
+		OutboundCount  int64 `json:"outboundCount"`
+		PendingTask    int64 `json:"pendingTask"`
+	}
+
+	InventoryReportReq {
+		WarehouseId int64  `form:"warehouseId,optional"`
+		Sku         string `form:"sku,optional"`
+	}
+
+	InventoryReportResp {
+		TotalSku      int64 `json:"totalSku"`
+		TotalQuantity int64 `json:"totalQuantity"`
+		LowStockCount int64 `json:"lowStockCount"`
+		OverStockCount int64 `json:"overStockCount"`
+	}
+
+	InOutReportReq {
+		StartDate string `form:"startDate"`
+		EndDate   string `form:"endDate"`
+	}
+
+	InOutReportItem {
+		Date        string `json:"date"`
+		InboundQty  int64  `json:"inboundQty"`
+		OutboundQty int64  `json:"outboundQty"`
+	}
+
+	InOutReportResp {
+		TotalInbound  int64            `json:"totalInbound"`
+		TotalOutbound int64            `json:"totalOutbound"`
+		List          []InOutReportItem `json:"list"`
+	}
+)
+
+@server(
+	prefix: /api/report
+	group: report
+)
+service wms-api {
+	@doc "仪表盘数据"
+	@handler dashboard
+	get /dashboard returns (DashboardResp)
+
+	@doc "库存报表"
+	@handler inventoryReport
+	get /inventory (InventoryReportReq) returns (InventoryReportResp)
+
+	@doc "出入库报表"
+	@handler inOutReport
+	get /inout (InOutReportReq) returns (InOutReportResp)
+}

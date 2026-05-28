@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +36,7 @@ public class QueueCallService {
 
     @Transactional
     public QueueCall callNext(Long scheduleId, Long doctorId) throws Exception {
-        Optional<QueueCall> nextCallOpt = queueCallRepository.findNextToCall(scheduleId, doctorId);
+        Optional<QueueCall> nextCallOpt = queueCallRepository.findTop1ByScheduleIdAndDoctorIdAndStatusInOrderByQueueNumberAsc(scheduleId, doctorId, Arrays.asList(0, 1));
         if (!nextCallOpt.isPresent()) {
             throw new Exception("没有等待叫号的患者");
         }

@@ -49,26 +49,13 @@ public class AnnouncementService extends ServiceImpl<AnnouncementMapper, Announc
                                             Long userId, Long departmentId) {
         Page<Announcement> page = new Page<>(pageNum, pageSize);
 
-        LambdaQueryWrapper<Announcement> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Announcement::getStatus, 1);
-
-        if (categoryId != null) {
-            wrapper.eq(Announcement::getCategoryId, categoryId);
-        }
-        if (type != null) {
-            wrapper.eq(Announcement::getType, type);
-        }
-        if (priority != null) {
-            wrapper.eq(Announcement::getPriority, priority);
-        }
-        if (keyword != null && !keyword.isEmpty()) {
-            wrapper.like(Announcement::getTitle, keyword);
-        }
-
-        wrapper.and(w -> w.eq(Announcement::getIsAllDepartments, 1)
-                .or(i -> i.apply("FIND_IN_SET({0}, target_departments)", departmentId)));
-
-        IPage<Announcement> resultPage = this.baseMapper.selectAnnouncementPage(page, wrapper, userId);
+        IPage<Announcement> resultPage = this.baseMapper.selectAnnouncementPage(page, 
+                userId != null ? userId : 0L, 
+                departmentId, 
+                categoryId, 
+                type, 
+                priority, 
+                keyword);
         return new PageResult<>(resultPage.getRecords(), resultPage.getTotal(), pageNum.longValue(), pageSize.longValue());
     }
 
@@ -79,42 +66,64 @@ public class AnnouncementService extends ServiceImpl<AnnouncementMapper, Announc
             return Result.error("公告不存在");
         }
 
-        boolean hasRead = readMapper.selectCount(new LambdaQueryWrapper<AnnouncementRead>()
-                .eq(AnnouncementRead::getAnnouncementId, id)
-                .eq(AnnouncementRead::getUserId, userId)) > 0;
+        if (userId != null) {
+            boolean hasRead = readMapper.selectCount(new LambdaQueryWrapper<AnnouncementRead>()
+                    .eq(AnnouncementRead::getAnnouncementId, id)
+                    .eq(AnnouncementRead::getUserId, userId)) > 0;
 
-        if (!hasRead) {
-            User user = userMapper.selectById(userId);
-            AnnouncementRead read = new AnnouncementRead();
-            read.setAnnouncementId(id);
-            read.setUserId(userId);
-            read.setUserName(user.getRealName());
-            read.setDepartmentId(user.getDepartmentId());
-            readMapper.insert(read);
+            if (!hasRead) {
+                User user = userMapper.selectById(userId);
+                if (user != null) {
+                    AnnouncementRead read = new AnnouncementRead();
+                    read.setAnnouncementId(id);
+                    read.setUserId(userId);
+                    read.setUserName(user.getRealName());
+                    read.setDepartmentId(user.getDepartmentId());
+                    readMapper.insert(read);
 
-            announcement.setReadCount(announcement.getReadCount() + 1);
-            this.updateById(announcement);
+                    announcement.setReadCount(announcement.getReadCount() + 1);
+                    this.updateById(announcement);
 
-            updateUnreadCountInRedis(user.getId(), user.getDepartmentId());
+                    updateUnreadCountInRedis(user.getId(), user.getDepartmentId());
+                }
+            }
+            announcement.setIsRead(1);
         }
 
         List<Attachment> attachments = attachmentMapper.selectList(new LambdaQueryWrapper<Attachment>()
                 .eq(Attachment::getAnnouncementId, id));
         announcement.setCategoryName(getCategoryName(announcement.getCategoryId()));
         announcement.setDepartmentName(getDepartmentName(announcement.getDepartmentId()));
-        announcement.setIsRead(1);
 
         return Result.success(announcement);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public Result<Announcement> publish(Announcement announcement, Long publisherId) {
+        if (publisherId == null) {
+            return Result.error("用户未登录");
+        }
         User publisher = userMapper.selectById(publisherId);
+        if (publisher == null) {
+            return Result.error("用户不存在");
+        }
         announcement.setPublisherId(publisherId);
         announcement.setPublisherName(publisher.getRealName());
         announcement.setDepartmentId(publisher.getDepartmentId());
         announcement.setPublishTime(LocalDateTime.now());
         announcement.setReadCount(0);
+        if (announcement.getStatus() == null) {
+            announcement.setStatus(1);
+        }
+        if (announcement.getType() == null) {
+            announcement.setType(1);
+        }
+        if (announcement.getPriority() == null) {
+            announcement.setPriority(0);
+        }
+        if (announcement.getIsAllDepartments() == null) {
+            announcement.setIsAllDepartments(1);
+        }
 
         int totalCount = calculateTargetCount(announcement);
         announcement.setTotalCount(totalCount);
@@ -144,27 +153,48 @@ public class AnnouncementService extends ServiceImpl<AnnouncementMapper, Announc
     }
 
     public Integer getUnreadCount(Long userId, Long departmentId) {
+        if (userId == null) {
+            return 0;
+        }
         String key = "unread:" + userId;
-        Object cached = redisTemplate.opsForValue().get(key);
-        if (cached != null) {
-            return (Integer) cached;
+        try {
+            Object cached = redisTemplate.opsForValue().get(key);
+            if (cached != null) {
+                return (Integer) cached;
+            }
+        } catch (Exception ignored) {
         }
 
         int count = calculateUnreadCount(userId, departmentId);
-        redisTemplate.opsForValue().set(key, count, 1, TimeUnit.HOURS);
+        try {
+            redisTemplate.opsForValue().set(key, count, 1, TimeUnit.HOURS);
+        } catch (Exception ignored) {
+        }
         return count;
     }
 
     private int calculateUnreadCount(Long userId, Long departmentId) {
+        if (userId == null) {
+            return 0;
+        }
         Integer countAll = this.baseMapper.countUnreadAll(userId);
-        Integer countDept = this.baseMapper.countUnreadByDepartment(userId, departmentId);
+        Integer countDept = 0;
+        if (departmentId != null) {
+            countDept = this.baseMapper.countUnreadByDepartment(userId, departmentId);
+        }
         return (countAll != null ? countAll : 0) + (countDept != null ? countDept : 0);
     }
 
     private void updateUnreadCountInRedis(Long userId, Long departmentId) {
+        if (userId == null) {
+            return;
+        }
         String key = "unread:" + userId;
         int count = calculateUnreadCount(userId, departmentId);
-        redisTemplate.opsForValue().set(key, count, 1, TimeUnit.HOURS);
+        try {
+            redisTemplate.opsForValue().set(key, count, 1, TimeUnit.HOURS);
+        } catch (Exception ignored) {
+        }
     }
 
     private void clearUnreadCountCache() {
@@ -175,17 +205,21 @@ public class AnnouncementService extends ServiceImpl<AnnouncementMapper, Announc
     }
 
     private int calculateTargetCount(Announcement announcement) {
-        if (announcement.getIsAllDepartments() == 1) {
+        if (announcement.getIsAllDepartments() != null && announcement.getIsAllDepartments() == 1) {
             return userMapper.selectCount(new LambdaQueryWrapper<User>()
                     .eq(User::getStatus, 1)).intValue();
         }
         if (announcement.getTargetDepartments() != null && !announcement.getTargetDepartments().isEmpty()) {
-            List<Long> deptIds = Arrays.stream(announcement.getTargetDepartments().split(","))
-                    .map(Long::parseLong)
-                    .collect(Collectors.toList());
-            return userMapper.selectCount(new LambdaQueryWrapper<User>()
-                    .eq(User::getStatus, 1)
-                    .in(User::getDepartmentId, deptIds)).intValue();
+            try {
+                List<Long> deptIds = Arrays.stream(announcement.getTargetDepartments().split(","))
+                        .map(Long::parseLong)
+                        .collect(Collectors.toList());
+                return userMapper.selectCount(new LambdaQueryWrapper<User>()
+                        .eq(User::getStatus, 1)
+                        .in(User::getDepartmentId, deptIds)).intValue();
+            } catch (Exception e) {
+                return 0;
+            }
         }
         return 0;
     }

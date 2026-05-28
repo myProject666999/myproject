@@ -44,7 +44,7 @@ public class AttachmentController {
         }
 
         Resource resource = new FileSystemResource(file);
-        String filename = URLEncoder.encode(attachment.getFileName(), StandardCharsets.UTF_8)
+        String filename = URLEncoder.encode(attachment.getFileName(), "UTF-8")
                 .replaceAll("\\+", "%20");
 
         return ResponseEntity.ok()

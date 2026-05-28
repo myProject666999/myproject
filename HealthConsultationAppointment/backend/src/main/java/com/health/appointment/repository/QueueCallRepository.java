@@ -15,6 +15,5 @@ public interface QueueCallRepository extends JpaRepository<QueueCall, Long> {
     List<QueueCall> findByScheduleIdAndDoctorIdAndStatusOrderByQueueNumberAsc(Long scheduleId, Long doctorId, Integer status);
     Optional<QueueCall> findByAppointmentId(Long appointmentId);
 
-    @Query("SELECT q FROM QueueCall q WHERE q.scheduleId = :scheduleId AND q.doctorId = :doctorId AND q.status IN (0, 1) ORDER BY q.queueNumber ASC LIMIT 1")
-    Optional<QueueCall> findNextToCall(@Param("scheduleId") Long scheduleId, @Param("doctorId") Long doctorId);
+    Optional<QueueCall> findTop1ByScheduleIdAndDoctorIdAndStatusInOrderByQueueNumberAsc(Long scheduleId, Long doctorId, List<Integer> statuses);
 }

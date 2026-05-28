@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科普资源 - 在线心理量表测评系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .resources-page {
+            padding: 40px 0;
+        }
+
+        .crisis-banner {
+            background: linear-gradient(135deg, #fff1f0 0%, #fff7e6 100%);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .crisis-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .crisis-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--danger);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .crisis-text h3 {
+            font-size: 18px;
+            color: var(--danger);
+            margin-bottom: 4px;
+        }
+
+        .crisis-text p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .hotline-display {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hotline-number-display {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .btn-call {
+            background: var(--danger);
+            color: white;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-call:hover {
+            background: #cf1322;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .filter-section {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        .filter-group {
+            margin-bottom: 16px;
+        }
+
+        .filter-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .resource-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+        }
+
+        .resource-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .resource-cover {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, var(--primary-light), #f0f5ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resource-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .resource-cover-icon {
+            font-size: 64px;
+            opacity: 0.5;
+        }
+
+        .type-tag {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+        }
+
+        .resource-content {
+            padding: 20px;
+        }
+
+        .resource-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .resource-summary {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .resource-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .resource-views {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .resource-category {
+            font-size: 12px;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+        }
+
+        .hotline-card {
+            border: 2px solid var(--danger);
+        }
+
+        .hotline-card .resource-cover {
+            background: linear-gradient(135deg, #fff1f0, #fff7e6);
+        }
+
+        .hotline-display-card {
+            padding: 16px 20px;
+            text-align: center;
+            background: var(--danger-light);
+        }
+
+        .hotline-display-card .number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--danger);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .hotline-display-card .desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.show .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--bg-white);
+            z-index: 1;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--border-light);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-cover {
+            width: 100%;
+            height: 240px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary-light), #f0f5ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-cover-icon {
+            font-size: 80px;
+            opacity: 0.5;
+        }
+
+        .modal-info {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .modal-info-item {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .modal-info-item .label {
+            color: var(--text-tertiary);
+        }
+
+        .modal-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+        }
+
+        .modal-content p {
+            margin-bottom: 16px;
+        }
+
+        .related-section {
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            padding: 20px;
+        }
+
+        .related-section h4 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .related-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .related-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-white);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .related-item:hover {
+            background: var(--primary-light);
+        }
+
+        .related-cover {
+            width: 80px;
+            height: 60px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--primary-light), #f0f5ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .related-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .related-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .related-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        @media (max-width: 768px) {
+            .crisis-banner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .hotline-display {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .hotline-number-display {
+                font-size: 24px;
+            }
+
+            .btn-call {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-header h3 {
+                font-size: 18px;
+            }
+
+            .modal-cover {
+                height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">❤</div>
+                <span>心理测评中心</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="scales.html">量表</a></li>
+                <li><a href="trend.html">趋势</a></li>
+                <li><a href="resources.html">资源</a></li>
+            </ul>
+            <div class="nav-actions"></div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <section class="page-header">
+        <div class="page-header-inner">
+            <h1>心理健康科普资源</h1>
+            <p>专业的心理健康知识，助您更好地了解和关爱自己</p>
+        </div>
+    </section>
+
+    <main class="container resources-page">
+        <div class="crisis-banner">
+            <div class="crisis-info">
+                <div class="crisis-icon">📞</div>
+                <div class="crisis-text">
+                    <h3>24小时心理援助热线</h3>
+                    <p>如果您正在经历心理危机，请立即拨打我们的免费援助热线</p>
+                </div>
+            </div>
+            <div class="hotline-display">
+                <div class="hotline-number-display">400-161-9995</div>
+                <button class="btn btn-call" onclick="window.location.href='tel:4001619995'">
+                    <span>📞</span>
+                    <span>立即拨打</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label class="filter-label">分类筛选</label>
+                <div class="filter-buttons" id="categoryFilters">
+                    <button class="filter-btn active" data-category="all">全部</button>
+                    <button class="filter-btn" data-category="crisis">危机干预</button>
+                    <button class="filter-btn" data-category="mental">心理健康科普</button>
+                    <button class="filter-btn" data-category="institution">专业机构</button>
+                    <button class="filter-btn" data-category="tool">自助工具</button>
+                    <button class="filter-btn" data-category="reading">推荐阅读</button>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">类型筛选</label>
+                <div class="filter-buttons" id="typeFilters">
+                    <button class="filter-btn active" data-type="all">全部</button>
+                    <button class="filter-btn" data-type="article">文章</button>
+                    <button class="filter-btn" data-type="video">视频</button>
+                    <button class="filter-btn" data-type="audio">音频</button>
+                    <button class="filter-btn" data-type="link">链接</button>
+                    <button class="filter-btn" data-type="hotline">热线</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="resources-grid" id="resourcesGrid"></div>
+    </main>
+
+    <div class="modal-overlay" id="resourceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">资源详情</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <div class="logo-icon">❤</div>
+                        <span>心理测评中心</span>
+                    </div>
+                    <p class="footer-desc">专业的在线心理量表测评系统，采用国际通用标准化工具，为您提供便捷、私密的心理健康评估服务。</p>
+                    <p style="font-size: 12px; color: #595959;">⚠️ 本平台测评结果仅供参考，不构成医学诊断。如有需要，请咨询专业心理医生。</p>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul>
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="scales.html">量表列表</a></li>
+                        <li><a href="trend.html">趋势分析</a></li>
+                        <li><a href="resources.html">科普资源</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>帮助中心</h4>
+                    <ul>
+                        <li><a href="#">使用指南</a></li>
+                        <li><a href="#">常见问题</a></li>
+                        <li><a href="privacy.html">隐私政策</a></li>
+                        <li><a href="#">用户协议</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系我们</h4>
+                    <ul>
+                        <li><a href="#">关于我们</a></li>
+                        <li><a href="#">意见反馈</a></li>
+                        <li><a href="#">合作洽谈</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 在线心理量表测评系统 版权所有 | 京ICP备XXXXXXXX号</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const mockResources = [
+            {
+                id: 1,
+                title: '如何识别和应对抑郁症',
+                summary: '了解抑郁症的常见症状、发病原因，以及有效的应对方法和专业治疗途径。',
+                type: 'article',
+                category: 'mental',
+                views: 12580,
+                author: '张明教授',
+                source: '中国心理学会',
+                publishDate: '2024-01-10',
+                icon: '📖',
+                hotline: null,
+                content: '抑郁症是一种常见的心理障碍，影响着全球数亿人的生活。本文将从多个角度帮助您了解和应对抑郁症。\n\n一、什么是抑郁症\n抑郁症不仅仅是心情不好，它是一种需要治疗的医学疾病。患者会经历持续的悲伤、绝望和对活动缺乏兴趣，这些症状会严重影响日常生活。\n\n二、常见症状\n1. 持续的悲伤、焦虑或"空虚"情绪\n2. 对活动缺乏兴趣或乐趣\n3. 食欲变化导致体重波动\n4. 睡眠困难或过度睡眠\n5. 精力下降、疲劳\n6. 感到无价值或内疚\n7. 注意力难以集中\n8. 出现自杀念头\n\n三、应对方法\n1. 寻求专业帮助：心理咨询和药物治疗都是有效的治疗方式\n2. 保持规律作息：充足的睡眠和规律的饮食对情绪稳定至关重要\n3. 适度运动：有氧运动可以显著改善抑郁症状\n4. 社交支持：与亲友保持联系，不要孤立自己\n5. 学习压力管理：正念冥想、深呼吸等放松技巧\n\n四、何时需要紧急帮助\n如果您或您认识的人有自杀念头，请立即寻求帮助。您可以拨打心理援助热线或前往最近的医院急诊科。\n\n记住：抑郁症是可以治疗的，寻求帮助是勇敢的表现。',
+                related: [2, 5]
+            },
+            {
+                id: 2,
+                title: '全国24小时心理危机干预热线',
+                summary: '7×24小时免费心理援助服务，由专业心理咨询师接听，严格保密。',
+                type: 'hotline',
+                category: 'crisis',
+                views: 56890,
+                author: '全国心理援助联盟',
+                source: '官方热线',
+                publishDate: '2023-06-01',
+                icon: '📞',
+                hotline: '400-161-9995',
+                hotlineDesc: '7×24小时 · 免费保密 · 专业接听',
+                content: '本热线由全国心理援助联盟设立，为有心理困扰的人群提供24小时免费、专业、保密的心理咨询服务。\n\n服务内容：\n• 心理危机干预\n• 情绪疏导\n• 心理健康咨询\n• 资源转介\n\n服务特点：\n• 24小时全天候服务，全年无休\n• 由持有专业资质的心理咨询师接听\n• 严格保密所有来电信息\n• 免费服务，无需承担任何费用\n• 支持普通话及多种方言\n\n如果您或您身边的人正在经历心理危机，请立即拨打：400-161-9995\n\n紧急情况请直接拨打120或前往最近医院急诊科。',
+                related: [3, 4]
+            },
+            {
+                id: 3,
+                title: '北京心理危机研究与干预中心',
+                summary: '专业的心理危机干预机构，提供24小时热线服务和面对面咨询。',
+                type: 'hotline',
+                category: 'crisis',
+                views: 32450,
+                author: '北京心理危机研究与干预中心',
+                source: '官方热线',
+                publishDate: '2023-03-15',
+                icon: '🏥',
+                hotline: '010-82951332',
+                hotlineDesc: '专业机构 · 24小时服务',
+                content: '北京心理危机研究与干预中心是国内首家心理危机专业干预机构，隶属于北京回龙观医院。\n\n服务范围：\n• 24小时心理危机干预热线\n• 门诊心理咨询与治疗\n• 自杀预防与干预\n• 心理危机干预人员培训\n• 相关科学研究\n\n中心拥有一支经验丰富的专业团队，包括精神科医生、护士、心理学家、社会工作者等。\n\n热线电话：010-82951332\n地址：北京市昌平区回龙观镇\n\n中心同时提供多种语言服务，包括普通话、英语等。',
+                related: [2, 6]
+            },
+            {
+                id: 4,
+                title: '青少年心理健康指导手册',
+                summary: '针对青少年常见心理问题的识别、预防和干预指南，适合家长和教育工作者阅读。',
+                type: 'article',
+                category: 'reading',
+                views: 18920,
+                author: '李华博士',
+                source: '教育部心理健康教育指导委员会',
+                publishDate: '2024-01-05',
+                icon: '📚',
+                hotline: null,
+                content: '青少年时期是心理发展的关键阶段，也是心理问题的高发期。本手册旨在帮助家长和教育工作者更好地了解和支持青少年的心理健康。\n\n第一章 青少年心理发展特点\n青少年期（12-18岁）是从儿童向成人过渡的时期，身体、认知和社会情感都在发生巨大变化。这一阶段的青少年开始形成自我认同，对同伴关系更加重视，情绪体验也更为强烈。\n\n第二章 常见心理问题识别\n1. 情绪问题：抑郁、焦虑、易怒\n2. 行为问题：攻击性、违纪、网络成瘾\n3. 人际问题：社交退缩、校园欺凌\n4. 自我伤害：自伤行为、自杀念头\n\n第三章 如何与青少年沟通\n1. 倾听不评判：给孩子表达的空间\n2. 尊重隐私：不随意翻看孩子的私人物品\n3. 保持耐心：沟通需要时间和信任\n4. 避免说教：以平等的姿态交流\n\n第四章 预防与干预\n1. 建立良好的家庭氛围\n2. 培养健康的生活习惯\n3. 教会情绪管理技巧\n4. 及时寻求专业帮助\n\n记住：关注孩子的心理健康和关注身体健康同样重要。',
+                related: [1, 7]
+            },
+            {
+                id: 5,
+                title: '5分钟呼吸放松训练',
+                summary: '简单易学的呼吸放松技巧，帮助您在焦虑和压力时快速平复情绪。',
+                type: 'audio',
+                category: 'tool',
+                views: 25670,
+                author: '王芳心理咨询师',
+                source: '原创音频',
+                publishDate: '2023-12-20',
+                icon: '🎧',
+                hotline: null,
+                content: '呼吸放松训练是一种简单而有效的压力管理技巧。通过调节呼吸节奏，我们可以激活副交感神经系统，降低心率和血压，带来放松的感觉。\n\n以下是5分钟呼吸放松训练的指导：\n\n准备工作：\n找一个安静舒适的地方坐下或躺下\n如果可能，闭上眼睛\n将一只手放在腹部，另一只手放在胸部\n\n训练步骤：\n1. 观察自然呼吸（1分钟）\n   不要刻意改变呼吸，只是观察\n   感受空气进入和离开身体\n\n2. 腹式呼吸练习（2分钟）\n   用鼻子慢慢吸气，数1-2-3-4\n   感受腹部隆起（放在腹部的手上升）\n   屏住呼吸，数1-2\n   用嘴巴慢慢呼气，数1-2-3-4-5-6\n   感受腹部回落\n\n3. 4-7-8呼吸法（2分钟）\n   用鼻子吸气4秒\n   屏住呼吸7秒\n   用嘴巴呼气8秒\n   重复循环\n\n训练结束后，慢慢睁开眼睛，花一点时间感受身体的变化。\n\n建议每天练习2-3次，特别是在感到压力或焦虑时。',
+                related: [8, 9]
+            },
+            {
+                id: 6,
+                title: '上海市精神卫生中心',
+                summary: '国内知名的精神卫生专业机构，提供全方位的心理健康服务。',
+                type: 'link',
+                category: 'institution',
+                views: 15340,
+                author: '上海市精神卫生中心',
+                source: '官方网站',
+                publishDate: '2023-09-10',
+                icon: '🏛️',
+                hotline: null,
+                content: '上海市精神卫生中心（Shanghai Mental Health Center）始建于1935年，是一所集医疗、教学、科研、防治、康复为一体的大型三级甲等精神卫生专科医院。\n\n科室设置：\n• 普通精神科\n• 心境障碍科\n• 焦虑障碍科\n• 儿童青少年精神科\n• 老年精神科\n• 心理咨询科\n• 睡眠障碍科\n• 成瘾科\n\n特色服务：\n• 专家门诊和特需门诊\n• 心理评估与测评\n• 个体和团体心理治疗\n• 家庭治疗\n• 危机干预\n• 远程医疗咨询\n\n地址：上海市徐汇区宛平南路600号\n电话：021-34773151\n\n中心拥有一支高素质的专业团队，致力于为患者提供优质的心理健康服务。',
+                related: [3, 10]
+            },
+            {
+                id: 7,
+                title: '正念冥想入门指导',
+                summary: '从零开始学习正念冥想，帮助您提升专注力，减轻压力和焦虑。',
+                type: 'video',
+                category: 'tool',
+                views: 31280,
+                author: '陈静冥想导师',
+                source: '原创视频',
+                publishDate: '2023-11-15',
+                icon: '🎬',
+                hotline: null,
+                content: '正念冥想（Mindfulness Meditation）源于东方禅修传统，现已被科学研究证实对心理健康有诸多益处。\n\n什么是正念？\n正念是一种有意地、不加评判地将注意力集中于当下体验的方法。通过正念练习，我们可以更清晰地觉察自己的思维和情绪模式。\n\n正念的益处：\n• 减轻压力和焦虑\n• 提升专注力和记忆力\n• 改善情绪调节能力\n• 增强自我觉察\n• 改善睡眠质量\n• 降低慢性疼痛\n\n基础正念练习步骤：\n1. 找一个安静舒适的地方坐下\n2. 设置一个5-10分钟的计时器\n3. 闭上眼睛或向下看\n4. 将注意力集中在呼吸上\n5. 当思绪飘走时，温和地将注意力带回到呼吸上\n6. 不要评判自己，只是持续练习\n\n常见的正念练习：\n• 呼吸觉察\n• 身体扫描\n• 正念行走\n• 正念进食\n• 慈心冥想\n\n建议从每天5分钟开始，逐渐增加练习时间。',
+                related: [5, 9]
+            },
+            {
+                id: 8,
+                title: '睡眠问题的自我调节',
+                summary: '了解睡眠的重要性，学习改善睡眠质量的实用方法。',
+                type: 'article',
+                category: 'mental',
+                views: 22150,
+                author: '刘伟医生',
+                source: '中国睡眠研究会',
+                publishDate: '2023-10-25',
+                icon: '😴',
+                hotline: null,
+                content: '睡眠对身心健康至关重要。良好的睡眠有助于恢复体力、巩固记忆、调节情绪。本文将介绍一些改善睡眠质量的实用方法。\n\n一、睡眠的重要性\n成年人每晚需要7-9小时的睡眠。睡眠不足或质量差会导致：\n• 注意力不集中\n• 情绪易怒\n• 免疫力下降\n• 体重增加\n• 焦虑抑郁风险增加\n\n二、常见睡眠问题\n1. 入睡困难：躺下30分钟以上无法入睡\n2. 睡眠维持困难：夜间频繁醒来\n3. 早醒：比预期时间早醒且无法再入睡\n4. 睡眠质量差：即使睡够时间也感到疲劳\n\n三、改善睡眠的方法\n\n1. 建立规律的睡眠时间表\n   每天同一时间上床和起床，包括周末\n\n2. 创建良好的睡眠环境\n   保持卧室安静、黑暗、凉爽（18-22°C）\n   选择舒适的床垫和枕头\n\n3. 睡前仪式\n   睡前30分钟避免使用电子设备\n   可以阅读、听轻音乐或泡个热水澡\n\n4. 注意饮食和运动\n   避免下午3点后摄入咖啡因\n   睡前2-3小时避免大量进食和饮酒\n   规律运动，但避免睡前3小时剧烈运动\n\n5. 管理压力\n   睡前写下待办事项，清空大脑\n   学习放松技巧，如深呼吸、正念\n\n四、何时需要专业帮助\n如果睡眠问题持续超过1个月，并且严重影响日常生活，建议咨询专业医生或睡眠专家。',
+                related: [1, 5]
+            },
+            {
+                id: 9,
+                title: '压力管理实用技巧',
+                summary: '认识压力的来源和影响，学习科学的压力管理方法。',
+                type: 'article',
+                category: 'reading',
+                views: 19870,
+                author: '赵雪心理咨询师',
+                source: '职场心理健康杂志',
+                publishDate: '2023-08-18',
+                icon: '💪',
+                hotline: null,
+                content: '在快节奏的现代生活中，压力已经成为我们不可避免的一部分。适度的压力可以激发潜能，但长期过度的压力会对身心健康造成负面影响。\n\n一、压力的来源\n• 工作压力：任务繁重、时间紧迫、职场关系\n• 生活压力：经济负担、家庭责任、重大变故\n• 社会压力：社交比较、信息过载\n• 内部压力：完美主义、自我要求过高\n\n二、压力对身体的影响\n长期压力会影响身体各个系统：\n• 神经系统：头痛、失眠、焦虑\n• 心血管系统：血压升高、心率加快\n• 消化系统：胃痛、消化不良\n• 免疫系统：免疫力下降\n• 内分泌系统：激素失衡\n\n三、压力管理四步法\n\n1. 觉察压力信号\n   识别压力早期症状：易怒、疲劳、睡眠问题\n\n2. 识别压力来源\n   记录压力日记，找出触发因素\n\n3. 采取应对策略\n   问题导向：解决问题本身\n   情绪导向：调节情绪反应\n\n四、实用压力管理技巧\n\n1. 时间管理\n   列待办清单，按优先级排序\n   学会说"不"，避免过度承诺\n\n2. 放松技巧\n   深呼吸、渐进式肌肉放松\n   冥想、瑜伽、正念\n\n3. 健康生活方式\n   规律运动、均衡饮食、充足睡眠\n   减少咖啡因和酒精摄入\n\n4. 社会支持\n   与亲友交流，分享感受\n   必要时寻求专业帮助\n\n记住：压力是生活的一部分，关键在于如何应对它。',
+                related: [5, 7]
+            },
+            {
+                id: 10,
+                title: '认知行为疗法(CBT)入门',
+                summary: '了解认知行为疗法的基本原理和核心技术，学习如何应用于日常生活。',
+                type: 'article',
+                category: 'reading',
+                views: 14560,
+                author: '孙明教授',
+                source: '临床心理学杂志',
+                publishDate: '2023-07-20',
+                icon: '🧠',
+                hotline: null,
+                content: '认知行为疗法（Cognitive Behavioral Therapy, CBT）是目前应用最广泛、研究证据最充分的心理治疗方法之一。\n\n一、什么是CBT\nCBT是一种短程、结构化的心理治疗方法，基于"认知影响情绪和行为"的基本原理。它认为，不是事件本身导致我们的情绪反应，而是我们对事件的看法和解释决定了我们的感受。\n\n二、CBT的核心原理\n1. 认知三角：思维-情绪-行为相互影响\n2. 自动思维：快速出现、未经过滤的想法\n3. 认知歪曲：非理性、不符合现实的思维模式\n4. 核心信念：深层的、关于自我和世界的信念\n\n三、常见的认知歪曲\n1. 全或无思维：非黑即白的极端思维\n2. 灾难化：放大负面结果\n3. 以偏概全：基于单一事件得出普遍结论\n4. 贴标签：给自己或他人贴上负面标签\n5. 读心术：假设知道别人在想什么\n6. 个性化：将不相关的事情归咎于自己\n\n四、CBT核心技术\n\n1. 认知重构\n   识别自动思维 → 评估其真实性 → 发展更平衡的思维\n\n2. 行为激活\n   增加积极活动，打破"不想做→不做→更不想做"的恶性循环\n\n3. 暴露疗法\n   逐渐面对害怕的场景，减少回避行为\n\n4. 放松训练\n   学习身体放松技巧，应对焦虑反应\n\n5. 问题解决\n   系统地分析问题，寻找解决方案\n\n五、在日常生活中应用CBT\n每天花5-10分钟记录自己的想法和情绪，练习识别和挑战非理性思维。\n\nCBT需要练习才能掌握，但只要坚持，就能有效改善情绪和生活质量。',
+                related: [1, 8]
+            }
+        ];
+
+        let currentCategory = 'all';
+        let currentType = 'all';
+
+        const typeLabels = {
+            article: '文章',
+            video: '视频',
+            audio: '音频',
+            link: '链接',
+            hotline: '热线'
+        };
+
+        const categoryLabels = {
+            crisis: '危机干预',
+            mental: '心理健康科普',
+            institution: '专业机构',
+            tool: '自助工具',
+            reading: '推荐阅读'
+        };
+
+        function renderResourceCard(resource) {
+            const isHotline = resource.type === 'hotline';
+            const imageUrl = `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(resource.title)}&image_size=landscape_16_9`;
+            
+            let cardClass = 'resource-card';
+            if (isHotline) cardClass += ' hotline-card';
+
+            return `
+                <div class="${cardClass}" onclick="openModal(${resource.id})">
+                    <div class="resource-cover">
+                        <img src="${imageUrl}" alt="${resource.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="resource-cover-icon" style="display: none;">${resource.icon}</div>
+                        <span class="type-tag">${typeLabels[resource.type]}</span>
+                    </div>
+                    ${isHotline && resource.hotline ? `
+                        <div class="hotline-display-card">
+                            <div class="number">${resource.hotline}</div>
+                            <div class="desc">${resource.hotlineDesc || ''}</div>
+                        </div>
+                    ` : ''}
+                    <div class="resource-content">
+                        <h4 class="resource-title">${resource.title}</h4>
+                        <p class="resource-summary">${resource.summary}</p>
+                        <div class="resource-meta">
+                            <span class="resource-category">${categoryLabels[resource.category]}</span>
+                            <span class="resource-views">
+                                <span>👁</span>
+                                <span>${resource.views.toLocaleString()} 次浏览</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResources() {
+            const container = document.getElementById('resourcesGrid');
+            let filtered = mockResources;
+
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(r => r.category === currentCategory);
+            }
+
+            if (currentType !== 'all') {
+                filtered = filtered.filter(r => r.type === currentType);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                        <p>暂无相关资源</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(renderResourceCard).join('');
+        }
+
+        function openModal(id) {
+            const resource = mockResources.find(r => r.id === id);
+            if (!resource) return;
+
+            const modal = document.getElementById('resourceModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = resource.title;
+
+            const imageUrl = `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(resource.title)}&image_size=landscape_16_9`;
+            
+            const relatedHtml = resource.related && resource.related.length > 0 ? `
+                <div class="related-section">
+                    <h4>相关资源推荐</h4>
+                    <div class="related-list">
+                        ${resource.related.map(relId => {
+                            const rel = mockResources.find(r => r.id === relId);
+                            if (!rel) return '';
+                            const relImageUrl = `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(rel.title)}&image_size=square`;
+                            return `
+                                <div class="related-item" onclick="openModal(${rel.id})">
+                                    <div class="related-cover">
+                                        <img src="${relImageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;" alt="${rel.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='${rel.icon}';">
+                                    </div>
+                                    <div class="related-info">
+                                        <div class="related-title">${rel.title}</div>
+                                        <div class="related-meta">${typeLabels[rel.type]} · ${rel.views.toLocaleString()} 次浏览</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            ` : '';
+
+            modalBody.innerHTML = `
+                <div class="modal-cover">
+                    <img src="${imageUrl}" alt="${resource.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="modal-cover-icon" style="display: none;">${resource.icon}</div>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-info-item">
+                        <span class="label">作者：</span>
+                        <span>${resource.author}</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="label">来源：</span>
+                        <span>${resource.source}</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="label">发布时间：</span>
+                        <span>${resource.publishDate}</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="label">类型：</span>
+                        <span>${typeLabels[resource.type]}</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="label">浏览：</span>
+                        <span>${resource.views.toLocaleString()} 次</span>
+                    </div>
+                </div>
+                ${resource.hotline ? `
+                    <div style="background: var(--danger-light); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--danger); margin-bottom: 4px;">${resource.hotline}</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">${resource.hotlineDesc || ''}</div>
+                    </div>
+                ` : ''}
+                <div class="modal-content">
+                    ${resource.content.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')}
+                </div>
+                ${relatedHtml}
+            `;
+
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('resourceModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderResources();
+
+            document.querySelectorAll('#categoryFilters .filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#categoryFilters .filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentCategory = btn.dataset.category;
+                    renderResources();
+                });
+            });
+
+            document.querySelectorAll('#typeFilters .filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#typeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentType = btn.dataset.type;
+                    renderResources();
+                });
+            });
+
+            document.getElementById('resourceModal').addEventListener('click', (e) => {
+                if (e.target.id === 'resourceModal') {
+                    closeModal();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

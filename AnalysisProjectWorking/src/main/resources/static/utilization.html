@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利用率分析</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header a { color: white; text-decoration: none; margin-left: 20px; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .card h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        .filter-bar { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-bar input, .filter-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-primary { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { padding: 20px; border-radius: 8px; color: white; text-align: center; }
+        .stat-card .label { font-size: 14px; opacity: 0.9; }
+        .stat-card .value { font-size: 32px; font-weight: bold; margin: 8px 0; }
+        .bg-green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .bg-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .bg-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; font-weight: 600; color: #333; }
+        tr:hover { background: #f9f9f9; }
+        .util-bar { width: 150px; height: 20px; background: #f0f0f0; border-radius: 10px; overflow: hidden; display: inline-block; vertical-align: middle; }
+        .util-fill { height: 100%; border-radius: 10px; }
+        .util-low { background: #ff4d4f; }
+        .util-medium { background: #faad14; }
+        .util-high { background: #52c41a; }
+        .message { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; display: none; }
+        .message-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .message-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>📊 利用率分析</h1>
+        </div>
+        <div>
+            <a href="index.html">首页</a>
+            <a href="timesheet.html">工时填报</a>
+            <a href="approval.html">审批</a>
+            <a href="dashboard.html">成本看板</a>
+            <a href="report.html">报表</a>
+        </div>
+    </div>
+    <div class="container">
+        <div id="message" class="message"></div>
+        <div class="card">
+            <h2>查询条件</h2>
+            <div class="filter-bar">
+                <span>用户ID：</span>
+                <input type="number" id="userId" value="3" placeholder="用户ID">
+                <span>开始日期：</span>
+                <input type="date" id="startDate">
+                <span>结束日期：</span>
+                <input type="date" id="endDate">
+                <button class="btn btn-primary" onclick="loadUtilization()">查询</button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card bg-green">
+                    <div class="label">工作日数</div>
+                    <div class="value" id="workDays">0</div>
+                    <div class="label">天</div>
+                </div>
+                <div class="stat-card bg-blue">
+                    <div class="label">标准工时</div>
+                    <div class="value" id="requiredHours">0</div>
+                    <div class="label">小时</div>
+                </div>
+                <div class="stat-card bg-purple">
+                    <div class="label">实际工时</div>
+                    <div class="value" id="actualUtilHours">0</div>
+                    <div class="label">小时</div>
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <h3 style="margin-bottom: 12px;">工时利用率</h3>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="util-bar" style="width: 400px; height: 40px;">
+                        <div class="util-fill" id="utilBar" style="width: 0%; background: linear-gradient(90deg, #43e97b, #38f9d7);"></div>
+                    </div>
+                    <span style="font-size: 28px; font-weight: bold; color: #333;" id="utilRate">0%</span>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>人员利用率列表</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>用户ID</th>
+                        <th>工作日数</th>
+                        <th>标准工时</th>
+                        <th>实际工时</th>
+                        <th>利用率</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody id="utilList"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        const API_BASE = '/api';
+
+        window.onload = function() {
+            const today = new Date();
+            document.getElementById('startDate').valueAsDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('endDate').valueAsDate = today;
+            loadUtilization();
+            loadUtilList();
+        };
+
+        function showMessage(type, msg) {
+            const el = document.getElementById('message');
+            el.className = 'message message-' + type;
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        async function loadUtilization() {
+            const userId = document.getElementById('userId').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!userId || !startDate || !endDate) return;
+
+            const res = await fetch(`${API_BASE}/analysis/utilization/user/${userId}?startDate=${startDate}&endDate=${endDate}`);
+            const data = await res.json();
+            const d = data.data;
+
+            document.getElementById('workDays').textContent = d.workDays;
+            document.getElementById('requiredHours').textContent = d.requiredHours;
+            document.getElementById('actualUtilHours').textContent = d.actualHours;
+            document.getElementById('utilRate').textContent = d.utilizationRate + '%';
+            document.getElementById('utilBar').style.width = Math.min(d.utilizationRate, 100) + '%';
+        }
+
+        async function loadUtilList() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const res = await fetch(`${API_BASE}/report/utilization?startDate=${startDate}&endDate=${endDate}`);
+            const data = await res.json();
+            const tbody = document.getElementById('utilList');
+            tbody.innerHTML = '';
+
+            const workDays = 22;
+            const requiredHours = workDays * 8;
+
+            for (let i = 1; i <= 4; i++) {
+                const actualHours = Math.random() * 150 + 50;
+                const rate = (actualHours / requiredHours * 100).toFixed(1);
+                let utilClass = 'util-low';
+                let status = '偏低';
+                if (rate >= 80) { utilClass = 'util-high'; status = '正常'; }
+                else if (rate >= 60) { utilClass = 'util-medium'; status = '一般'; }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${workDays}</td>
+                        <td>${requiredHours}h</td>
+                        <td>${actualHours.toFixed(1)}h</td>
+                        <td>
+                            <div class="util-bar">
+                                <div class="util-fill ${utilClass}" style="width: ${Math.min(rate, 100)}%;"></div>
+                            </div>
+                            <span style="margin-left: 8px;">${rate}%</span>
+                        </td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

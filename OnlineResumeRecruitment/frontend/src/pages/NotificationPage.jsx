@@ -30,8 +30,8 @@ const NotificationPage = () => {
     try {
       const data = await notificationApi.getNotifications({ pageNum: 1, pageSize: 50 })
       setNotifications(data.records || data || [])
-      const count = await notificationApi.getUnreadCount()
-      setUnreadCount(count)
+      const countRes = await notificationApi.getUnreadCount()
+      setUnreadCount(countRes?.count ?? 0)
     } catch (e) {
       console.error(e)
     } finally {

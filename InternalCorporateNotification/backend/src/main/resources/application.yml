@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   application:
@@ -14,13 +14,15 @@ spring:
   redis:
     host: 127.0.0.1
     port: 6379
-    timeout: 10000
+    timeout: 3000
+    connect-timeout: 3000
     lettuce:
       pool:
         max-active: 8
         max-idle: 8
         min-idle: 0
-        max-wait: -1ms
+        max-wait: 1000ms
+      shutdown-timeout: 100ms
 
   servlet:
     multipart:

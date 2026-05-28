@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菜谱公示 - 学校食堂明厨亮灶系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .nav { background: white; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .nav a { padding: 10px 20px; text-decoration: none; color: #667eea; border-radius: 5px; transition: all 0.3s; }
+        .nav a:hover, .nav a.active { background: #667eea; color: white; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .filter-bar { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .filter-bar label { font-weight: bold; color: #333; }
+        .filter-bar input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 150px; }
+        .filter-bar button { padding: 10px 25px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .meal-section { background: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .meal-title { font-size: 20px; color: #667eea; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
+        .dish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .dish-card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; transition: transform 0.3s; }
+        .dish-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .dish-img { height: 180px; background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%); display: flex; align-items: center; justify-content: center; font-size: 60px; }
+        .dish-info { padding: 15px; }
+        .dish-name { font-weight: bold; font-size: 16px; color: #333; margin-bottom: 10px; }
+        .dish-type { display: inline-block; padding: 3px 10px; background: #e8f0fe; color: #667eea; border-radius: 12px; font-size: 12px; margin-bottom: 10px; }
+        .dish-desc { color: #666; font-size: 14px; }
+        .dish-ingredients { margin-top: 10px; font-size: 12px; color: #999; }
+        .footer { text-align: center; padding: 30px; color: #999; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍳 每日菜谱公示</h1>
+        <p>营养搭配 · 健康饮食 · 透明公示</p>
+    </div>
+
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="menu.html" class="active">菜谱公示</a>
+        <a href="ingredient.html">食材溯源</a>
+        <a href="sample.html">留样记录</a>
+        <a href="accompany.html">陪餐评价</a>
+        <a href="inspection.html">卫生检查</a>
+        <a href="feedback.html">家长反馈</a>
+    </div>
+
+    <div class="container">
+        <div class="filter-bar">
+            <label>选择日期：</label>
+            <input type="date" id="menuDate" value="">
+            <button onclick="loadMenu()">查询</button>
+        </div>
+
+        <div id="menuContent">
+            <div style="text-align:center;padding:50px;color:#999;">请选择日期查看菜谱</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2024 学校食堂明厨亮灶与陪餐管理系统</p>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const dishEmojis = ['🍚', '🍜', '🍲', '🥗', '🍖', '🐟', '🥚', '🥬', '🍎', '🍌', '🥛', '🍞'];
+
+        document.getElementById('menuDate').valueAsDate = new Date();
+        loadMenu();
+
+        async function loadMenu() {
+            const date = document.getElementById('menuDate').value;
+            if (!date) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/menu/public/date/${date}`);
+                const result = await res.json();
+                const menu = result.data || [];
+                renderMenu(menu);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('menuContent').innerHTML = '<div style="text-align:center;padding:50px;color:#999;">加载失败</div>';
+            }
+        }
+
+        function renderMenu(menu) {
+            const container = document.getElementById('menuContent');
+            
+            if (menu.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:50px;color:#999;">当日暂无菜谱</div>';
+                return;
+            }
+
+            const mealMap = { BREAKFAST: '早餐', LUNCH: '午餐', DINNER: '晚餐' };
+            const typeMap = { '主食': '主食', '热菜': '热菜', '凉菜': '凉菜', '汤': '汤', '水果': '水果' };
+            const grouped = {};
+            
+            menu.forEach(m => {
+                if (!grouped[m.mealType]) grouped[m.mealType] = [];
+                grouped[m.mealType].push(m);
+            });
+
+            container.innerHTML = Object.entries(grouped).map(([type, dishes]) => `
+                <div class="meal-section">
+                    <h2 class="meal-title">${mealMap[type] || type}</h2>
+                    <div class="dish-grid">
+                        ${dishes.map((d, i) => `
+                            <div class="dish-card">
+                                <div class="dish-img">${dishEmojis[i % dishEmojis.length]}</div>
+                                <div class="dish-info">
+                                    <div class="dish-name">${d.dishName}</div>
+                                    <span class="dish-type">${typeMap[d.dishType] || d.dishType || '热菜'}</span>
+                                    <div class="dish-desc">${d.description || '美味可口，营养丰富'}</div>
+                                    ${d.ingredients ? `<div class="dish-ingredients">📝 食材：${d.ingredients}</div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

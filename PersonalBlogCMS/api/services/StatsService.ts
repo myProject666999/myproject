@@ -18,13 +18,17 @@ export class StatsService {
   async getOverview(): Promise<StatsOverview> {
     const cached = await redis.hgetall(cacheKeys.statsOverview);
     if (cached && Object.keys(cached).length > 0) {
-      return {
-        totalArticles: parseInt(cached.totalArticles || '0', 10),
-        totalComments: parseInt(cached.totalComments || '0', 10),
-        totalViews: parseInt(cached.totalViews || '0', 10),
-        todayViews: parseInt(cached.todayViews || '0', 10),
-        pendingComments: parseInt(cached.pendingComments || '0', 10),
-      };
+      try {
+        return {
+          totalArticles: parseInt(cached.totalArticles || '0', 10),
+          totalComments: parseInt(cached.totalComments || '0', 10),
+          totalViews: parseInt(cached.totalViews || '0', 10),
+          todayViews: parseInt(cached.todayViews || '0', 10),
+          pendingComments: parseInt(cached.pendingComments || '0', 10),
+        };
+      } catch {
+        // 缓存数据损坏，忽略缓存
+      }
     }
 
     const [

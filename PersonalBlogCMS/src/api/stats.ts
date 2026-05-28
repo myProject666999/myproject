@@ -6,7 +6,7 @@ export const statsApi = {
     api.get<never, StatsOverview>('/stats/overview'),
 
   getVisitTrend: (days = 7) =>
-    api.get<never, VisitTrendItem[]>('/stats/trend', { params: { days } }),
+    api.get<never, VisitTrendItem[]>('/stats/visits', { params: { days } }),
 
   getPopularArticles: (limit = 5) =>
     api.get<never, { id: number; title: string; viewCount: number }[]>('/stats/popular', { params: { limit } }),

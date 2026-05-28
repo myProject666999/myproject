@@ -76,6 +76,12 @@ public class StatisticsService extends ServiceImpl<AnnouncementReadMapper, Annou
     public Result<Map<String, Object>> getUserReadStats(Long userId) {
         Map<String, Object> result = new HashMap<>();
 
+        if (userId == null) {
+            result.put("totalRead", 0L);
+            result.put("recentReads", new ArrayList<>());
+            return Result.success(result);
+        }
+
         Long totalRead = this.count(new LambdaQueryWrapper<AnnouncementRead>()
                 .eq(AnnouncementRead::getUserId, userId));
 

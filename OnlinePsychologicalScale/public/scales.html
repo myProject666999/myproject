@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>量表列表 - 在线心理量表测评系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">❤</div>
+                <span>心理测评中心</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="scales.html">量表</a></li>
+                <li><a href="trend.html">趋势</a></li>
+                <li><a href="resources.html">资源</a></li>
+            </ul>
+            <div class="nav-actions"></div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <section class="page-header">
+        <div class="page-header-inner">
+            <h1>专业心理量表</h1>
+            <p>选择适合您的心理测评工具，开始专业评估</p>
+        </div>
+    </section>
+
+    <div class="filter-tabs" id="filterTabs"></div>
+
+    <section class="scales-section">
+        <div class="container">
+            <div class="scales-grid" id="scalesGrid"></div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <div class="logo-icon">❤</div>
+                        <span>心理测评中心</span>
+                    </div>
+                    <p class="footer-desc">专业的在线心理量表测评系统，采用国际通用标准化工具，为您提供便捷、私密的心理健康评估服务。</p>
+                    <p style="font-size: 12px; color: #595959;">⚠️ 本平台测评结果仅供参考，不构成医学诊断。如有需要，请咨询专业心理医生。</p>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul>
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="scales.html">量表列表</a></li>
+                        <li><a href="trend.html">趋势分析</a></li>
+                        <li><a href="resources.html">科普资源</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>帮助中心</h4>
+                    <ul>
+                        <li><a href="#">使用指南</a></li>
+                        <li><a href="#">常见问题</a></li>
+                        <li><a href="privacy.html">隐私政策</a></li>
+                        <li><a href="#">用户协议</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系我们</h4>
+                    <ul>
+                        <li><a href="#">关于我们</a></li>
+                        <li><a href="#">意见反馈</a></li>
+                        <li><a href="#">合作洽谈</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 在线心理量表测评系统 版权所有 | 京ICP备XXXXXXXX号</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const mockScales = [
+            { id: 1, code: 'PHQ-9', name: '患者健康问卷抑郁量表', short_name: 'PHQ-9', category: '抑郁', estimated_minutes: 3, description: 'PHQ-9是由Kroenke等人于2001年开发的自评量表，用于筛查和评估抑郁症状的严重程度。该量表基于DSM-IV抑郁诊断标准，共9个条目，广泛用于临床和科研。', source: 'Kroenke K, Spitzer RL, Williams JBW', reference: 'Kroenke K, Spitzer RL, Williams JBW. The PHQ-9: validity of a brief depression severity measure. J Gen Intern Med. 2001;16(9):606-613.', version: '1.0' },
+            { id: 2, code: 'GAD-7', name: '广泛性焦虑量表', short_name: 'GAD-7', category: '焦虑', estimated_minutes: 3, description: 'GAD-7是由Spitzer等人于2006年开发的自评量表，用于筛查和评估广泛性焦虑症状的严重程度。共7个条目，具有良好的信效度。', source: 'Spitzer RL, Kroenke K, Williams JBW, Löwe B', reference: 'Spitzer RL, Kroenke K, Williams JBW, Löwe B. A brief measure for assessing generalized anxiety disorder: the GAD-7. Arch Intern Med. 2006;166(10):1092-1097.', version: '1.0' },
+            { id: 3, code: 'PHQ-15', name: '患者健康问卷躯体症状量表', short_name: 'PHQ-15', category: '躯体症状', estimated_minutes: 5, description: 'PHQ-15用于评估躯体症状的严重程度，涵盖15个常见躯体症状，广泛用于初级保健和心身医学领域。', source: 'Kroenke K, Spitzer RL, Williams JBW', reference: 'Kroenke K, Spitzer RL, Williams JBW. The PHQ-15: validity of a brief symptom severity measure. Psychosom Med. 2002;64(2):258-266.', version: '1.0' },
+            { id: 4, code: 'PSQI', name: '匹兹堡睡眠质量指数', short_name: 'PSQI', category: '睡眠', estimated_minutes: 10, description: 'PSQI由Buysse等人于1989年开发，用于评估过去一个月的睡眠质量，包含7个因子，广泛用于睡眠障碍筛查。', source: 'Buysse DJ, Reynolds CF, Monk TH, Berman SR, Kupfer DJ', reference: 'Buysse DJ, et al. The Pittsburgh Sleep Quality Index: a new instrument for psychiatric practice and research. Psychiatry Res. 1989;28(2):193-213.', version: '1.0' },
+            { id: 5, code: 'PSS-10', name: '知觉压力量表', short_name: 'PSS-10', category: '压力', estimated_minutes: 5, description: 'PSS-10由Cohen等人于1983年开发，用于评估个体对生活压力的主观感受，共10个条目，是全球最常用的压力评估工具之一。', source: 'Cohen S, Kamarck T, Mermelstein R', reference: 'Cohen S, Kamarck T, Mermelstein R. A global measure of perceived stress. J Health Soc Behav. 1983;24(4):385-396.', version: '1.0' },
+            { id: 6, code: 'ISI', name: '失眠严重指数', short_name: 'ISI', category: '睡眠', estimated_minutes: 3, description: 'ISI由Morin等人于2011年开发，用于评估失眠症状的严重程度，共7个条目，简短高效，适合临床快速筛查。', source: 'Morin CM, Belleville G, Bélanger L, Ivers H', reference: 'Morin CM, et al. The Insomnia Severity Index: psychometric indicators to detect insomnia cases and evaluate treatment response. Sleep. 2011;34(5):601-608.', version: '1.0' }
+        ];
+
+        const categories = ['全部', '抑郁', '焦虑', '躯体症状', '睡眠', '压力'];
+
+        let state = {
+            currentCategory: '全部',
+            currentPage: 1,
+            pageSize: 6,
+            allScales: [],
+            filteredScales: []
+        };
+
+        function renderFilterTabs() {
+            const container = document.getElementById('filterTabs');
+            container.innerHTML = categories.map(cat =>
+                `<button class="filter-tab ${cat === state.currentCategory ? 'active' : ''}" onclick="filterByCategory('${cat}')">${cat}</button>`
+            ).join('');
+        }
+
+        function filterByCategory(category) {
+            state.currentCategory = category;
+            state.currentPage = 1;
+            if (category === '全部') {
+                state.filteredScales = [...state.allScales];
+            } else {
+                state.filteredScales = state.allScales.filter(s => s.category === category);
+            }
+            renderFilterTabs();
+            renderScales();
+            renderPagination();
+        }
+
+        function renderScaleDetailCard(scale) {
+            return `
+                <div class="scale-detail-card" id="scale-${scale.id}">
+                    <div class="scale-detail-header">
+                        <div class="scale-detail-info">
+                            <h3>${scale.name}</h3>
+                            <span class="scale-code">${scale.short_name || scale.code} · v${scale.version || '1.0'}</span>
+                            <div class="scale-detail-meta">
+                                <span class="scale-category">${scale.category}</span>
+                                <span>⏱ ${scale.estimated_minutes} 分钟</span>
+                                <span>📝 ${scale.code}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="scale-detail-desc">${scale.description}</p>
+                    <div class="scale-source">
+                        <h5>量表来源</h5>
+                        <p>${scale.source}</p>
+                    </div>
+                    <div class="scale-reference">
+                        📚 ${scale.reference}
+                    </div>
+                    <div class="scale-detail-footer">
+                        <button class="btn btn-outline btn-block" onclick="scrollToTop()">返回顶部</button>
+                        <button class="btn btn-primary btn-block" onclick="startScale(${scale.id})">开始测评</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderScales() {
+            const container = document.getElementById('scalesGrid');
+            const start = (state.currentPage - 1) * state.pageSize;
+            const end = start + state.pageSize;
+            const pageScales = state.filteredScales.slice(start, end);
+
+            if (pageScales.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 60px; color: #8c8c8c;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                    <p>暂无该分类的量表</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = pageScales.map(renderScaleDetailCard).join('');
+        }
+
+        function renderPagination() {
+            const container = document.getElementById('pagination');
+            const totalPages = Math.ceil(state.filteredScales.length / state.pageSize);
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += `<button onclick="changePage(${state.currentPage - 1})" ${state.currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= state.currentPage - 1 && i <= state.currentPage + 1)) {
+                    html += `<button class="${i === state.currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+                } else if (i === state.currentPage - 2 || i === state.currentPage + 2) {
+                    html += `<span style="padding: 0 8px; color: #8c8c8c;">...</span>`;
+                }
+            }
+
+            html += `<button onclick="changePage(${state.currentPage + 1})" ${state.currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+            container.innerHTML = html;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(state.filteredScales.length / state.pageSize);
+            if (page < 1 || page > totalPages) return;
+            state.currentPage = page;
+            renderScales();
+            renderPagination();
+            window.scrollTo({ top: document.querySelector('.filter-tabs').offsetTop - 64, behavior: 'smooth' });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function startScale(id) {
+            if (!Common.requireLogin()) return;
+            Common.showToast('即将开始测评...', 'info');
+        }
+
+        async function loadScales() {
+            try {
+                const data = await API.scales.list();
+                state.allScales = data.data || data.list || mockScales;
+            } catch (error) {
+                state.allScales = [...mockScales];
+            }
+            state.filteredScales = [...state.allScales];
+
+            const highlightId = Common.getQueryParam('highlight');
+            if (highlightId) {
+                setTimeout(() => {
+                    const element = document.getElementById(`scale-${highlightId}`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.style.boxShadow = '0 0 0 3px rgba(24, 144, 255, 0.3)';
+                        setTimeout(() => {
+                            element.style.boxShadow = '';
+                        }, 2000);
+                    }
+                }, 500);
+            }
+
+            renderScales();
+            renderPagination();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFilterTabs();
+            loadScales();
+        });
+    </script>
+</body>
+</html>

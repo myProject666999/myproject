@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卫生检查 - 学校食堂明厨亮灶系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .nav { background: white; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .nav a { padding: 10px 20px; text-decoration: none; color: #667eea; border-radius: 5px; transition: all 0.3s; }
+        .nav a:hover, .nav a.active { background: #667eea; color: white; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .stat-box .value { font-size: 32px; font-weight: bold; }
+        .stat-box .label { color: #666; font-size: 14px; margin-top: 5px; }
+        .status-pending .value { color: #f56c6c; }
+        .status-progress .value { color: #e6a23c; }
+        .status-completed .value { color: #67c23a; }
+        .status-verified .value { color: #667eea; }
+        .filter-bar { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .filter-bar input, .filter-bar select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 120px; }
+        .filter-bar button { padding: 10px 25px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .inspection-list { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .inspection-item { padding: 20px; border-bottom: 1px solid #eee; }
+        .inspection-item:last-child { border-bottom: none; }
+        .inspection-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .inspection-title { font-size: 18px; font-weight: bold; color: #333; }
+        .inspection-status { padding: 5px 12px; border-radius: 12px; font-size: 12px; }
+        .status-PENDING { background: #fef0f0; color: #f56c6c; }
+        .status-IN_PROGRESS { background: #fdf6ec; color: #e6a23c; }
+        .status-COMPLETED { background: #f0f9eb; color: #67c23a; }
+        .status-VERIFIED { background: #e8f0fe; color: #667eea; }
+        .inspection-meta { color: #666; font-size: 14px; display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
+        .result-pass { color: #67c23a; font-weight: bold; }
+        .result-fail { color: #f56c6c; font-weight: bold; }
+        .issue-section { background: #fef0f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .issue-title { color: #f56c6c; font-weight: bold; margin-bottom: 5px; }
+        .issue-content { color: #666; font-size: 14px; }
+        .rectification-section { background: #f0f9eb; padding: 15px; border-radius: 8px; }
+        .rectification-title { color: #67c23a; font-weight: bold; margin-bottom: 10px; }
+        .rectification-row { margin-bottom: 8px; font-size: 14px; color: #666; }
+        .footer { text-align: center; padding: 30px; color: #999; font-size: 14px; }
+        .empty { text-align: center; padding: 50px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧹 卫生检查与整改</h1>
+        <p>检查闭环 · 整改到位 · 复核通过</p>
+    </div>
+
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="menu.html">菜谱公示</a>
+        <a href="ingredient.html">食材溯源</a>
+        <a href="sample.html">留样记录</a>
+        <a href="accompany.html">陪餐评价</a>
+        <a href="inspection.html" class="active">卫生检查</a>
+        <a href="feedback.html">家长反馈</a>
+    </div>
+
+    <div class="container">
+        <div class="stats-row" id="statsRow">
+            <div class="stat-box status-pending">
+                <div class="value" id="pendingCount">0</div>
+                <div class="label">待整改</div>
+            </div>
+            <div class="stat-box status-progress">
+                <div class="value" id="progressCount">0</div>
+                <div class="label">整改中</div>
+            </div>
+            <div class="stat-box status-completed">
+                <div class="value" id="completedCount">0</div>
+                <div class="label">已完成</div>
+            </div>
+            <div class="stat-box status-verified">
+                <div class="value" id="verifiedCount">0</div>
+                <div class="label">已复核</div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <select id="rectifyStatus">
+                <option value="">全部状态</option>
+                <option value="PENDING">待整改</option>
+                <option value="IN_PROGRESS">整改中</option>
+                <option value="COMPLETED">已完成</option>
+                <option value="VERIFIED">已复核</option>
+            </select>
+            <button onclick="search()">搜索</button>
+        </div>
+
+        <div class="inspection-list" id="inspectionList">
+            <div class="empty">加载中...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2024 学校食堂明厨亮灶与陪餐管理系统</p>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        document.getElementById('startDate').valueAsDate = startDate;
+        document.getElementById('endDate').valueAsDate = endDate;
+
+        loadStatistics();
+        search();
+
+        async function loadStatistics() {
+            try {
+                const res = await fetch(`${API_BASE}/inspection/public/statistics`);
+                const result = await res.json();
+                const stats = result.data || {};
+                
+                document.getElementById('pendingCount').textContent = stats.pendingCount || 0;
+                document.getElementById('progressCount').textContent = stats.inProgressCount || 0;
+                document.getElementById('completedCount').textContent = stats.completedCount || 0;
+                document.getElementById('verifiedCount').textContent = stats.verifiedCount || 0;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function search() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const status = document.getElementById('rectifyStatus').value;
+
+            let url = `${API_BASE}/inspection/public/range?startDate=${start}&endDate=${end}`;
+            if (status) {
+                url = `${API_BASE}/inspection/public/status/${status}`;
+            }
+
+            try {
+                const res = await fetch(url);
+                const result = await res.json();
+                renderList(result.data || []);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('inspectionList').innerHTML = '<div class="empty">加载失败</div>';
+            }
+        }
+
+        function renderList(list) {
+            const container = document.getElementById('inspectionList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty">暂无检查记录</div>';
+                return;
+            }
+
+            const typeMap = { DAILY: '日常检查', WEEKLY: '周检', MONTHLY: '月检', SPECIAL: '专项检查' };
+            const statusMap = { PENDING: '待整改', IN_PROGRESS: '整改中', COMPLETED: '已完成', VERIFIED: '已复核' };
+            const resultMap = { PASS: '合格', NEED_RECTIFY: '需整改' };
+
+            container.innerHTML = list.map(item => {
+                const rect = item.rectification;
+                return `
+                <div class="inspection-item">
+                    <div class="inspection-header">
+                        <div class="inspection-title">📋 ${item.inspectionNo} - ${typeMap[item.inspectionType] || item.inspectionType}</div>
+                        <span class="inspection-status status-${item.rectifyStatus}">${statusMap[item.rectifyStatus] || item.rectifyStatus}</span>
+                    </div>
+                    <div class="inspection-meta">
+                        <span>📅 检查日期: ${item.inspectionDate}</span>
+                        <span>👤 检查人: ${item.inspector}</span>
+                        <span>🏆 结果: <span class="${item.overallResult === 'PASS' ? 'result-pass' : 'result-fail'}">${resultMap[item.overallResult] || item.overallResult}</span></span>
+                        ${item.totalScore ? `<span>📊 得分: ${item.totalScore}</span>` : ''}
+                    </div>
+                    ${item.issueDescription ? `
+                    <div class="issue-section">
+                        <div class="issue-title">⚠️ 存在问题</div>
+                        <div class="issue-content">${item.issueDescription}</div>
+                        ${item.rectifyDeadline ? `<div style="margin-top:8px;color:#f56c6c;">⏰ 整改期限: ${item.rectifyDeadline}</div>` : ''}
+                    </div>
+                    ` : ''}
+                    ${rect ? `
+                    <div class="rectification-section">
+                        <div class="rectification-title">✅ 整改记录</div>
+                        <div class="rectification-row">👤 整改责任人: ${rect.rectifyPerson}</div>
+                        <div class="rectification-row">📝 整改措施: ${rect.rectifyMeasure}</div>
+                        ${rect.rectifyDescription ? `<div class="rectification-row">💬 整改说明: ${rect.rectifyDescription}</div>` : ''}
+                        ${rect.rectifyStartDate ? `<div class="rectification-row">📅 开始日期: ${rect.rectifyStartDate}</div>` : ''}
+                        ${rect.rectifyEndDate ? `<div class="rectification-row">📅 完成日期: ${rect.rectifyEndDate}</div>` : ''}
+                        ${rect.verifyPerson ? `
+                        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #67c23a;">
+                            <div class="rectification-row">👤 复核人: ${rect.verifyPerson}</div>
+                            <div class="rectification-row">📅 复核日期: ${rect.verifyDate}</div>
+                            <div class="rectification-row">🏆 复核结果: ${rect.verifyResult === 'PASS' ? '通过' : '不通过'}</div>
+                            ${rect.verifyComment ? `<div class="rectification-row">💬 复核意见: ${rect.verifyComment}</div>` : ''}
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+                </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

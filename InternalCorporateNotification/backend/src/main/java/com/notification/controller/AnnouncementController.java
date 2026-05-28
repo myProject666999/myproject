@@ -4,6 +4,7 @@ import com.notification.common.PageResult;
 import com.notification.common.Result;
 import com.notification.entity.Announcement;
 import com.notification.entity.User;
+import com.notification.mapper.UserMapper;
 import com.notification.service.AnnouncementService;
 import com.notification.utils.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ public class AnnouncementController {
     @Autowired
     private AnnouncementService announcementService;
 
+    @Autowired
+    private UserMapper userMapper;
+
     @GetMapping
     public Result<PageResult<Announcement>> getList(
             @RequestParam(defaultValue = "1") Integer pageNum,
@@ -23,13 +27,15 @@ public class AnnouncementController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Integer type,
             @RequestParam(required = false) Integer priority,
-            @RequestParam(required = false) String keyword,
-            @RequestAttribute(required = false) User user) {
+            @RequestParam(required = false) String keyword) {
 
         Long userId = UserContext.getUserId();
         Long departmentId = 1L;
-        if (user != null) {
-            departmentId = user.getDepartmentId();
+        if (userId != null) {
+            User user = userMapper.selectById(userId);
+            if (user != null && user.getDepartmentId() != null) {
+                departmentId = user.getDepartmentId();
+            }
         }
         return Result.success(announcementService.getList(pageNum, pageSize, categoryId, type, priority, keyword, userId, departmentId));
     }
@@ -66,6 +72,12 @@ public class AnnouncementController {
     public Result<Integer> getUnreadCount() {
         Long userId = UserContext.getUserId();
         Long departmentId = 1L;
+        if (userId != null) {
+            User user = userMapper.selectById(userId);
+            if (user != null && user.getDepartmentId() != null) {
+                departmentId = user.getDepartmentId();
+            }
+        }
         return Result.success(announcementService.getUnreadCount(userId, departmentId));
     }
 }

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 在线心理量表测评系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">❤</div>
+                <span>心理测评中心</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="scales.html">量表</a></li>
+                <li><a href="trend.html">趋势</a></li>
+                <li><a href="resources.html">资源</a></li>
+            </ul>
+            <div class="nav-actions"></div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo">
+                    <div class="logo-icon">❤</div>
+                </div>
+                <h1>创建账号</h1>
+                <p>注册新账号，开启心理健康守护之旅</p>
+            </div>
+
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" placeholder="3-20个字符，字母数字下划线" autocomplete="username" required>
+                    <div class="error-message" id="usernameError"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" name="password" placeholder="至少6个字符" autocomplete="new-password" required>
+                        <div class="error-message" id="passwordError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">确认密码</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="再次输入密码" autocomplete="new-password" required>
+                        <div class="error-message" id="confirmPasswordError"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nickname">昵称</label>
+                        <input type="text" id="nickname" name="nickname" placeholder="显示的名称（可选）" autocomplete="nickname">
+                        <div class="error-message" id="nicknameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">邮箱</label>
+                        <input type="email" id="email" name="email" placeholder="用于找回密码（可选）" autocomplete="email">
+                        <div class="error-message" id="emailError"></div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="agreement" name="agreement" required>
+                        <span>我已阅读并同意 <a href="#" onclick="event.preventDefault();">《用户协议》</a> 和 <a href="#" onclick="event.preventDefault();">《隐私政策》</a></span>
+                    </label>
+                    <div class="error-message" id="agreementError"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="registerBtn">
+                    <span id="registerBtnText">注 册</span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>已有账号？<a href="login.html">立即登录</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('input.error').forEach(el => el.classList.remove('error'));
+        }
+
+        function showError(fieldId, message) {
+            const input = document.getElementById(fieldId);
+            const errorEl = document.getElementById(fieldId + 'Error');
+            if (input) input.classList.add('error');
+            if (errorEl) errorEl.textContent = message;
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('registerBtn');
+            const btnText = document.getElementById('registerBtnText');
+            btn.disabled = loading;
+            btnText.innerHTML = loading ? '<span class="loading"></span> 注册中...' : '注 册';
+        }
+
+        function validateEmail(email) {
+            if (!email) return true;
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function validateUsername(username) {
+            const re = /^[a-zA-Z0-9_]{3,20}$/;
+            return re.test(username);
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            clearErrors();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const nickname = document.getElementById('nickname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const agreement = document.getElementById('agreement').checked;
+
+            let hasError = false;
+
+            if (!username) {
+                showError('username', '请输入用户名');
+                hasError = true;
+            } else if (!validateUsername(username)) {
+                showError('username', '用户名需3-20个字符，支持字母、数字、下划线');
+                hasError = true;
+            }
+
+            if (!password) {
+                showError('password', '请输入密码');
+                hasError = true;
+            } else if (password.length < 6) {
+                showError('password', '密码至少6个字符');
+                hasError = true;
+            }
+
+            if (!confirmPassword) {
+                showError('confirmPassword', '请确认密码');
+                hasError = true;
+            } else if (password !== confirmPassword) {
+                showError('confirmPassword', '两次输入的密码不一致');
+                hasError = true;
+            }
+
+            if (nickname && nickname.length > 20) {
+                showError('nickname', '昵称最多20个字符');
+                hasError = true;
+            }
+
+            if (email && !validateEmail(email)) {
+                showError('email', '请输入有效的邮箱地址');
+                hasError = true;
+            }
+
+            if (!agreement) {
+                showError('agreement', '请阅读并同意用户协议和隐私政策');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            setLoading(true);
+
+            try {
+                const data = await API.auth.register({ username, password, nickname, email });
+                const token = data.token || data.data?.token;
+                const user = data.user || data.data?.user;
+
+                if (token) {
+                    Common.setToken(token);
+                }
+                if (user) {
+                    Common.setUser(user);
+                }
+
+                Common.showToast('注册成功', 'success');
+                Common.updateUserNav();
+
+                setTimeout(() => {
+                    location.href = 'index.html';
+                }, 1500);
+            } catch (error) {
+                if (error.message.includes('用户名') || error.message.includes('username')) {
+                    showError('username', error.message);
+                } else if (error.message.includes('邮箱') || error.message.includes('email')) {
+                    showError('email', error.message);
+                } else if (error.message.includes('密码') || error.message.includes('password')) {
+                    showError('password', error.message);
+                } else {
+                    showError('username', error.message || '注册失败，请重试');
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('username').focus();
+
+            if (Common.isLoggedIn()) {
+                Common.showToast('您已登录', 'info');
+                setTimeout(() => location.href = 'index.html', 1000);
+            }
+        });
+    </script>
+</body>
+</html>

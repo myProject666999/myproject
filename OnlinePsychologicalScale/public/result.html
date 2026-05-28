@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测评结果 - 心理测评中心</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">❤</div>
+                <span>心理测评中心</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="scales.html">量表</a></li>
+                <li><a href="trend.html">趋势</a></li>
+                <li><a href="resources.html">资源</a></li>
+            </ul>
+            <div class="nav-actions"></div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <div class="result-container">
+        <div class="container">
+            <div class="result-header">
+                <h1 id="scaleName">测评结果</h1>
+                <p id="testTime">测评时间：加载中...</p>
+            </div>
+
+            <div class="high-risk-alert" id="highRiskAlert" style="display: none;">
+                <div class="high-risk-icon">⚠️</div>
+                <div class="high-risk-content">
+                    <h3 id="highRiskTitle">高风险提示</h3>
+                    <p id="highRiskMessage">检测到需要关注的风险信号</p>
+                    <div class="high-risk-hotlines" id="highRiskHotlines"></div>
+                    <p class="high-risk-disclaimer" id="highRiskDisclaimer"></p>
+                </div>
+            </div>
+
+            <div class="result-overview">
+                <div class="score-card">
+                    <div class="gauge-container">
+                        <svg class="gauge" viewBox="0 0 200 120">
+                            <defs>
+                                <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#52c41a"/>
+                                    <stop offset="50%" stop-color="#faad14"/>
+                                    <stop offset="100%" stop-color="#f5222d"/>
+                                </linearGradient>
+                            </defs>
+                            <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#f0f0f0" stroke-width="16" stroke-linecap="round"/>
+                            <path class="gauge-fill" id="gaugeFill" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGradient)" stroke-width="16" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+                            <circle class="gauge-pointer" id="gaugePointer" cx="100" cy="100" r="8" fill="#262626"/>
+                            <line class="gauge-needle" id="gaugeNeedle" x1="100" y1="100" x2="100" y2="35" stroke="#262626" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                        <div class="gauge-score">
+                            <span id="totalScore">0</span>
+                            <span class="gauge-range">/ <span id="maxScore">27</span></span>
+                        </div>
+                        <div class="severity-badge" id="severityBadge">
+                            <span id="severityLevel">加载中</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interpretation-card">
+                    <h3>结果解读</h3>
+                    <p id="interpretationText" class="interpretation-text">加载中...</p>
+                    <div class="suggestions-section">
+                        <h4>建议</h4>
+                        <ul id="suggestionsList" class="suggestions-list"></ul>
+                    </div>
+                    <div id="referralSection" class="referral-section" style="display: none;">
+                        <div class="referral-icon">🏥</div>
+                        <div>
+                            <h4>转介建议</h4>
+                            <p id="referralPrompt"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="interpretation-ranges">
+                <h3>得分区间说明</h3>
+                <div class="ranges-list" id="rangesList"></div>
+            </div>
+
+            <div class="details-section">
+                <div class="details-header" onclick="Result.toggleDetails()">
+                    <h3>详细作答记录</h3>
+                    <span class="toggle-icon" id="toggleIcon">▼</span>
+                </div>
+                <div class="details-content" id="detailsContent" style="display: none;"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="Result.retakeTest()">重新测评</button>
+                <button class="btn btn-outline" onclick="Result.viewTrend()">查看历史趋势</button>
+                <button class="btn btn-outline" onclick="Result.shareResult()">分享结果</button>
+                <button class="btn btn-ghost" onclick="location.href='scales.html'">返回量表列表</button>
+            </div>
+
+            <div class="disclaimer-section">
+                <p>⚠️ <strong>免责声明：</strong>本测评结果仅供参考，不构成医学诊断。如有需要，请咨询专业心理医生或精神科医师。</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        const Result = {
+            sessionUuid: null,
+            resultData: null,
+            scaleDetail: null,
+            detailsExpanded: false,
+
+            async init() {
+                this.sessionUuid = Common.getQueryParam('session_uuid');
+                if (!this.sessionUuid) {
+                    Common.showToast('缺少会话ID', 'error');
+                    setTimeout(() => location.href = 'scales.html', 1500);
+                    return;
+                }
+
+                try {
+                    const result = await API.answers.getResult(this.sessionUuid);
+                    this.resultData = result.data;
+                    this.renderResult();
+                } catch (error) {
+                    Common.showToast('加载结果失败', 'error');
+                }
+            },
+
+            renderResult() {
+                const data = this.resultData;
+
+                document.getElementById('scaleName').textContent = data.scale_name;
+                const testDate = new Date(data.completed_at || data.started_at);
+                document.getElementById('testTime').textContent = `测评时间：${testDate.toLocaleString('zh-CN')}`;
+
+                const minScore = 0;
+                const maxScore = data.scale_code === 'PHQ-9' ? 27 : 
+                                data.scale_code === 'GAD-7' ? 21 : 
+                                data.scale_code === 'PHQ-15' ? 30 : 100;
+                document.getElementById('maxScore').textContent = maxScore;
+
+                this.animateGauge(data.total_score, minScore, maxScore);
+                this.renderSeverityBadge(data.severity_level, data.interpretation?.severity_color);
+
+                if (data.interpretation) {
+                    document.getElementById('interpretationText').textContent = data.interpretation.interpretation || data.interpretation.text || '暂无解读';
+                    this.renderSuggestions(data.interpretation.suggestion);
+                    if (data.referral_prompt || data.interpretation.referral_prompt) {
+                        document.getElementById('referralSection').style.display = 'flex';
+                        document.getElementById('referralPrompt').textContent = data.referral_prompt || data.interpretation.referral_prompt;
+                    }
+                }
+
+                if (data.special_alert || data.is_high_risk) {
+                    this.renderHighRiskAlert(data.special_alert || {
+                        type: 'high_risk',
+                        message: '检测到需要关注的心理健康风险信号',
+                        level: 'high',
+                        hotlines: [
+                            '全国24小时心理危机干预热线：400-161-9995',
+                            '北京心理危机研究与干预中心：010-82951332',
+                            '生命热线：400-821-1215'
+                        ],
+                        disclaimer: data.disclaimer || '请立即寻求专业帮助。'
+                    });
+                }
+
+                this.renderInterpretationRanges(data.scale_code);
+                this.renderDetails(data.details);
+            },
+
+            animateGauge(score, min, max) {
+                const percentage = (score - min) / (max - min);
+                const scoreEl = document.getElementById('totalScore');
+                const fillEl = document.getElementById('gaugeFill');
+                const needleEl = document.getElementById('gaugeNeedle');
+
+                const totalDash = 251.2;
+                const offset = totalDash * (1 - percentage);
+                fillEl.style.strokeDashoffset = offset;
+
+                const startAngle = -90;
+                const endAngle = 90;
+                const angle = startAngle + (endAngle - startAngle) * percentage;
+                needleEl.style.transform = `rotate(${angle}deg)`;
+                needleEl.style.transformOrigin = '100px 100px';
+
+                let current = 0;
+                const duration = 1500;
+                const increment = score / (duration / 16);
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= score) {
+                        current = score;
+                        clearInterval(timer);
+                    }
+                    scoreEl.textContent = Math.round(current);
+                }, 16);
+            },
+
+            renderSeverityBadge(level, color) {
+                const badge = document.getElementById('severityBadge');
+                const text = document.getElementById('severityLevel');
+                text.textContent = level || '未知';
+                badge.style.background = color || '#1890ff';
+            },
+
+            renderSuggestions(suggestion) {
+                const list = document.getElementById('suggestionsList');
+                if (!suggestion) {
+                    list.innerHTML = '<li>暂无特殊建议，请保持良好的生活习惯和心态。</li>';
+                    return;
+                }
+
+                const suggestions = suggestion.split(/[；;。.]/).filter(s => s.trim());
+                list.innerHTML = suggestions.map(s => `<li>${s.trim()}</li>`).join('');
+            },
+
+            renderHighRiskAlert(alert) {
+                const alertEl = document.getElementById('highRiskAlert');
+                alertEl.style.display = 'flex';
+                alertEl.classList.add('pulse-animation');
+
+                document.getElementById('highRiskTitle').textContent = alert.message || '高风险提示';
+                document.getElementById('highRiskMessage').textContent = 
+                    alert.level === 'high' ? '您的测评结果显示存在需要立即关注的风险，请尽快寻求专业帮助。' : 
+                    '您的测评结果显示存在需要关注的风险，建议您咨询专业人士。';
+
+                const hotlinesEl = document.getElementById('highRiskHotlines');
+                if (alert.hotlines) {
+                    hotlinesEl.innerHTML = alert.hotlines.map(h => `<div class="hotline-item">${h}</div>`).join('');
+                }
+
+                document.getElementById('highRiskDisclaimer').textContent = alert.disclaimer || 
+                    '⚠️ 如您或您身边的人有自伤或自杀的想法，请立即拨打危机干预热线或前往最近医院急诊科。';
+            },
+
+            renderInterpretationRanges(scaleCode) {
+                const ranges = this.getRangesByCode(scaleCode);
+                const container = document.getElementById('rangesList');
+                const currentScore = this.resultData.total_score;
+
+                container.innerHTML = ranges.map(r => `
+                    <div class="range-item ${currentScore >= r.min && currentScore <= r.max ? 'active' : ''}" style="border-left-color: ${r.color}">
+                        <div class="range-score">${r.min}-${r.max}分</div>
+                        <div class="range-info">
+                            <span class="range-level" style="background: ${r.color}">${r.level}</span>
+                            <span class="range-desc">${r.desc}</span>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            getRangesByCode(code) {
+                const ranges = {
+                    'PHQ-9': [
+                        { min: 0, max: 4, level: '无抑郁', color: '#52c41a', desc: '情绪状态良好，无明显抑郁症状' },
+                        { min: 5, max: 9, level: '轻度', color: '#faad14', desc: '可能有轻度抑郁情绪，建议关注自身状态' },
+                        { min: 10, max: 14, level: '中度', color: '#fa8c16', desc: '中度抑郁症状，建议咨询专业人士' },
+                        { min: 15, max: 19, level: '中重度', color: '#f5222d', desc: '中重度抑郁症状，强烈建议寻求专业帮助' },
+                        { min: 20, max: 27, level: '重度', color: '#a8071a', desc: '重度抑郁症状，请立即寻求专业医疗帮助' }
+                    ],
+                    'GAD-7': [
+                        { min: 0, max: 4, level: '无焦虑', color: '#52c41a', desc: '情绪状态良好，无明显焦虑症状' },
+                        { min: 5, max: 9, level: '轻度', color: '#faad14', desc: '可能有轻度焦虑，建议适当放松' },
+                        { min: 10, max: 14, level: '中度', color: '#fa8c16', desc: '中度焦虑症状，建议咨询专业人士' },
+                        { min: 15, max: 21, level: '重度', color: '#f5222d', desc: '重度焦虑症状，请寻求专业医疗帮助' }
+                    ],
+                    'PHQ-15': [
+                        { min: 0, max: 4, level: '无', color: '#52c41a', desc: '无明显躯体症状' },
+                        { min: 5, max: 9, level: '轻度', color: '#faad14', desc: '轻度躯体症状，可能与心理因素相关' },
+                        { min: 10, max: 14, level: '中度', color: '#fa8c16', desc: '中度躯体症状，建议进一步评估' },
+                        { min: 15, max: 30, level: '重度', color: '#f5222d', desc: '重度躯体症状，建议寻求专业帮助' }
+                    ],
+                    'default': [
+                        { min: 0, max: 25, level: '低', color: '#52c41a', desc: '状态良好' },
+                        { min: 26, max: 50, level: '轻度', color: '#faad14', desc: '轻度问题' },
+                        { min: 51, max: 75, level: '中度', color: '#fa8c16', desc: '中度问题' },
+                        { min: 76, max: 100, level: '重度', color: '#f5222d', desc: '重度问题' }
+                    ]
+                };
+                return ranges[code] || ranges['default'];
+            },
+
+            renderDetails(details) {
+                const container = document.getElementById('detailsContent');
+                if (!details || details.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-tertiary); text-align: center; padding: 20px;">暂无详细记录</p>';
+                    return;
+                }
+
+                container.innerHTML = details.map(d => `
+                    <div class="detail-item">
+                        <div class="detail-question">
+                            <span class="detail-number">${d.question_number}.</span>
+                            <span>${d.question_text}</span>
+                        </div>
+                        <div class="detail-answer">
+                            <span class="detail-option">${d.option_text || '未作答'}</span>
+                            <span class="detail-score">得分：${d.option_value || 0}</span>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            toggleDetails() {
+                this.detailsExpanded = !this.detailsExpanded;
+                const content = document.getElementById('detailsContent');
+                const icon = document.getElementById('toggleIcon');
+                content.style.display = this.detailsExpanded ? 'block' : 'none';
+                icon.textContent = this.detailsExpanded ? '▲' : '▼';
+            },
+
+            retakeTest() {
+                const scaleId = this.resultData.scale_id || Common.getQueryParam('scale_id');
+                if (scaleId) {
+                    location.href = `answer.html?scale_id=${scaleId}`;
+                } else {
+                    location.href = 'scales.html';
+                }
+            },
+
+            viewTrend() {
+                if (!Common.requireLogin()) return;
+                Common.showToast('历史趋势功能开发中...', 'info');
+            },
+
+            shareResult() {
+                if (confirm('分享前请注意：测评结果包含您的个人健康信息，请确保在安全的环境下分享，并注意保护隐私。是否继续？')) {
+                    Common.showToast('分享功能开发中...', 'info');
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => Result.init());
+    </script>
+</body>
+</html>

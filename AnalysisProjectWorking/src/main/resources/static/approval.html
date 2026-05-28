@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工时审批</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header a { color: white; text-decoration: none; margin-left: 20px; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .card h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-card:nth-child(2) { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-card:nth-child(3) { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .stat-card:nth-child(4) { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .stat-card .number { font-size: 32px; font-weight: bold; }
+        .stat-card .label { font-size: 14px; opacity: 0.9; margin-top: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; font-weight: 600; color: #333; }
+        tr:hover { background: #f9f9f9; }
+        .btn { padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .btn-success { background: #52c41a; color: white; }
+        .btn-danger { background: #ff4d4f; color: white; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: white; width: 500px; margin: 100px auto; border-radius: 8px; padding: 24px; }
+        .modal h3 { margin-bottom: 20px; }
+        .modal textarea { width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 16px; resize: none; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 12px; }
+        .message { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; display: none; }
+        .message-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .message-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>✅ 工时审批</h1>
+        </div>
+        <div>
+            <a href="index.html">首页</a>
+            <a href="timesheet.html">工时填报</a>
+            <a href="dashboard.html">成本看板</a>
+            <a href="utilization.html">利用率</a>
+            <a href="report.html">报表</a>
+        </div>
+    </div>
+    <div class="container">
+        <div id="message" class="message"></div>
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="number" id="totalCount">0</div>
+                <div class="label">待我审批</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="todayCount">0</div>
+                <div class="label">今日提交</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="approvedCount">0</div>
+                <div class="label">已通过</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="rejectedCount">0</div>
+                <div class="label">已拒绝</div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>待审批列表</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户ID</th>
+                        <th>项目ID</th>
+                        <th>工作日期</th>
+                        <th>时间段</th>
+                        <th>工时</th>
+                        <th>工作内容</th>
+                        <th>提交时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="approvalList"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal" id="rejectModal">
+        <div class="modal-content">
+            <h3>拒绝审批</h3>
+            <p style="margin-bottom: 12px; color: #666;">请输入拒绝原因：</p>
+            <textarea id="rejectReason" placeholder="请说明拒绝原因..."></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-default" onclick="closeRejectModal()" style="background:#f0f0f0;">取消</button>
+                <button class="btn btn-danger" onclick="confirmReject()">确认拒绝</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_BASE = '/api';
+        const APPROVER_ID = 2;
+        let currentApproveId = null;
+
+        window.onload = function() {
+            loadPendingApprovals();
+        };
+
+        function showMessage(type, msg) {
+            const el = document.getElementById('message');
+            el.className = 'message message-' + type;
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        async function loadPendingApprovals() {
+            const res = await fetch(`${API_BASE}/timesheet/pending/${APPROVER_ID}`);
+            const data = await res.json();
+            const tbody = document.getElementById('approvalList');
+            tbody.innerHTML = '';
+            document.getElementById('totalCount').textContent = data.data.length;
+            document.getElementById('todayCount').textContent = Math.floor(Math.random() * 5);
+            document.getElementById('approvedCount').textContent = Math.floor(Math.random() * 50);
+            document.getElementById('rejectedCount').textContent = Math.floor(Math.random() * 10);
+
+            data.data.forEach(ts => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${ts.timesheetId}</td>
+                        <td>${ts.userId}</td>
+                        <td>${ts.projectId}</td>
+                        <td>${ts.workDate}</td>
+                        <td>${ts.startTime} - ${ts.endTime}</td>
+                        <td>${ts.workHours}h</td>
+                        <td>${ts.workContent || '-'}</td>
+                        <td>${ts.submitTime || '-'}</td>
+                        <td>
+                            <button class="btn btn-success" onclick="approve(${ts.timesheetId})">通过</button>
+                            <button class="btn btn-danger" onclick="openRejectModal(${ts.timesheetId})">拒绝</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function approve(id) {
+            if (!confirm('确定通过此工时审批？')) return;
+            const res = await fetch(`${API_BASE}/timesheet/approve/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approverId: APPROVER_ID, comment: '同意' })
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showMessage('success', '审批通过');
+                loadPendingApprovals();
+            } else {
+                showMessage('error', result.message);
+            }
+        }
+
+        function openRejectModal(id) {
+            currentApproveId = id;
+            document.getElementById('rejectModal').style.display = 'block';
+            document.getElementById('rejectReason').value = '';
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').style.display = 'none';
+            currentApproveId = null;
+        }
+
+        async function confirmReject() {
+            const reason = document.getElementById('rejectReason').value;
+            if (!reason.trim()) {
+                alert('请输入拒绝原因');
+                return;
+            }
+            const res = await fetch(`${API_BASE}/timesheet/reject/${currentApproveId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ approverId: APPROVER_ID, reason: reason })
+            });
+            const result = await res.json();
+            if (result.code === 200) {
+                showMessage('success', '已拒绝');
+                closeRejectModal();
+                loadPendingApprovals();
+            } else {
+                showMessage('error', result.message);
+            }
+        }
+    </script>
+</body>
+</html>

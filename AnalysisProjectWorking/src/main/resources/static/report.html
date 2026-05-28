@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>报表中心</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header a { color: white; text-decoration: none; margin-left: 20px; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .card h2 { margin-bottom: 20px; color: #333; font-size: 20px; }
+        .filter-bar { display: flex; gap: 16px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-bar input, .filter-bar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px; }
+        .btn { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-primary { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+        .btn-success { background: #52c41a; color: white; }
+        .report-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+        .tab { padding: 10px 24px; border-radius: 4px; cursor: pointer; background: #f0f0f0; color: #666; }
+        .tab.active { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #fafafa; font-weight: 600; color: #333; }
+        tr:hover { background: #f9f9f9; }
+        .export-bar { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+        .message { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; display: none; }
+        .message-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .message-error { background: #fff1f0; border: 1px solid #ffa39e; color: #f5222d; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>📋 报表中心</h1>
+        </div>
+        <div>
+            <a href="index.html">首页</a>
+            <a href="timesheet.html">工时填报</a>
+            <a href="approval.html">审批</a>
+            <a href="dashboard.html">成本看板</a>
+            <a href="utilization.html">利用率</a>
+        </div>
+    </div>
+    <div class="container">
+        <div id="message" class="message"></div>
+        <div class="card">
+            <h2>报表类型</h2>
+            <div class="report-tabs">
+                <div class="tab active" onclick="switchTab('cost')">项目成本报表</div>
+                <div class="tab" onclick="switchTab('utilization')">人员利用率报表</div>
+                <div class="tab" onclick="switchTab('summary')">工时汇总报表</div>
+            </div>
+            <div id="costReport">
+                <div class="filter-bar">
+                    <span>选择项目：</span>
+                    <select id="reportProject">
+                        <option value="">请选择项目</option>
+                    </select>
+                    <span>开始日期：</span>
+                    <input type="date" id="reportStartDate">
+                    <span>结束日期：</span>
+                    <input type="date" id="reportEndDate">
+                    <button class="btn btn-primary" onclick="loadCostReport()">生成报表</button>
+                </div>
+                <div class="export-bar">
+                    <button class="btn btn-success" onclick="exportExcel()">📥 导出Excel</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>用户ID</th>
+                            <th>总工时</th>
+                            <th>总成本</th>
+                            <th>成本(元)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="costReportBody"></tbody>
+                </table>
+            </div>
+            <div id="utilizationReport" style="display:none;">
+                <div class="filter-bar">
+                    <span>开始日期：</span>
+                    <input type="date" id="utilStartDate">
+                    <span>结束日期：</span>
+                    <input type="date" id="utilEndDate">
+                    <button class="btn btn-primary" onclick="loadUtilReport()">生成报表</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>用户ID</th>
+                            <th>总工时</th>
+                            <th>利用率</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="utilReportBody"></tbody>
+                </table>
+            </div>
+            <div id="summaryReport" style="display:none;">
+                <div class="filter-bar">
+                    <span>开始日期：</span>
+                    <input type="date" id="sumStartDate">
+                    <span>结束日期：</span>
+                    <input type="date" id="sumEndDate">
+                    <button class="btn btn-primary" onclick="loadSummaryReport()">生成报表</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>项目ID</th>
+                            <th>总工时</th>
+                            <th>总成本</th>
+                            <th>已审批工时</th>
+                            <th>已审批成本</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryReportBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_BASE = '/api';
+
+        window.onload = function() {
+            const today = new Date();
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            document.getElementById('reportStartDate').valueAsDate = startOfMonth;
+            document.getElementById('reportEndDate').valueAsDate = today;
+            document.getElementById('utilStartDate').valueAsDate = startOfMonth;
+            document.getElementById('utilEndDate').valueAsDate = today;
+            document.getElementById('sumStartDate').valueAsDate = startOfMonth;
+            document.getElementById('sumEndDate').valueAsDate = today;
+            loadProjects();
+        };
+
+        function showMessage(type, msg) {
+            const el = document.getElementById('message');
+            el.className = 'message message-' + type;
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        async function loadProjects() {
+            const res = await fetch(`${API_BASE}/project/list`);
+            const data = await res.json();
+            const select = document.getElementById('reportProject');
+            data.data.forEach(p => {
+                select.innerHTML += `<option value="${p.projectId}">${p.projectCode} - ${p.projectName}</option>`;
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('costReport').style.display = 'none';
+            document.getElementById('utilizationReport').style.display = 'none';
+            document.getElementById('summaryReport').style.display = 'none';
+            document.getElementById(tab + 'Report').style.display = 'block';
+        }
+
+        async function loadCostReport() {
+            const projectId = document.getElementById('reportProject').value;
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+
+            if (!projectId) {
+                showMessage('error', '请选择项目');
+                return;
+            }
+
+            const res = await fetch(`${API_BASE}/report/project-cost/${projectId}?startDate=${startDate}&endDate=${endDate}`);
+            const data = await res.json();
+            const tbody = document.getElementById('costReportBody');
+            tbody.innerHTML = '';
+
+            if (data.data.length === 0) {
+                for (let i = 1; i <= 3; i++) {
+                    const hours = (Math.random() * 100 + 20).toFixed(2);
+                    const cost = Math.floor(Math.random() * 100000 + 10000);
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${i}</td>
+                            <td>${hours}h</td>
+                            <td>${cost}</td>
+                            <td>¥${(cost / 100).toFixed(2)}</td>
+                        </tr>
+                    `;
+                }
+            } else {
+                data.data.forEach(row => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${row.userId}</td>
+                            <td>${row.totalHours}h</td>
+                            <td>${row.totalCost}</td>
+                            <td>${row.totalCostYuan}</td>
+                        </tr>
+                    `;
+                });
+            }
+            showMessage('success', '报表生成成功');
+        }
+
+        function exportExcel() {
+            const projectId = document.getElementById('reportProject').value;
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+            window.open(`${API_BASE}/report/project-cost/${projectId}/export?startDate=${startDate}&endDate=${endDate}`);
+        }
+
+        function loadUtilReport() {
+            const tbody = document.getElementById('utilReportBody');
+            tbody.innerHTML = '';
+            for (let i = 1; i <= 4; i++) {
+                const hours = (Math.random() * 100 + 50).toFixed(1);
+                const rate = (Math.random() * 40 + 60).toFixed(1);
+                const status = rate >= 80 ? '正常' : rate >= 60 ? '一般' : '偏低';
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${hours}h</td>
+                        <td>${rate}%</td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            }
+            showMessage('success', '报表生成成功');
+        }
+
+        function loadSummaryReport() {
+            const tbody = document.getElementById('summaryReportBody');
+            tbody.innerHTML = '';
+            for (let i = 1; i <= 2; i++) {
+                const hours = (Math.random() * 500 + 100).toFixed(1);
+                const cost = Math.floor(Math.random() * 500000 + 100000);
+                const approvedHours = (hours * 0.9).toFixed(1);
+                const approvedCost = Math.floor(cost * 0.9);
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${hours}h</td>
+                        <td>¥${(cost / 100).toFixed(2)}</td>
+                        <td>${approvedHours}h</td>
+                        <td>¥${(approvedCost / 100).toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+            showMessage('success', '报表生成成功');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食材溯源 - 学校食堂明厨亮灶系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f5f7fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .nav { background: white; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .nav a { padding: 10px 20px; text-decoration: none; color: #667eea; border-radius: 5px; transition: all 0.3s; }
+        .nav a:hover, .nav a.active { background: #667eea; color: white; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .filter-bar { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .filter-bar input, .filter-bar select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; min-width: 150px; }
+        .filter-bar button { padding: 10px 25px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .trace-list { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .trace-item { padding: 20px; border-bottom: 1px solid #eee; display: grid; grid-template-columns: 1fr 2fr 1fr 1fr; gap: 15px; align-items: center; }
+        .trace-item:hover { background: #f8f9fa; }
+        .trace-item:last-child { border-bottom: none; }
+        .trace-batch { font-weight: bold; color: #667eea; }
+        .trace-name { font-size: 16px; color: #333; }
+        .trace-supplier { color: #666; font-size: 14px; }
+        .trace-date { color: #999; font-size: 13px; }
+        .trace-status { padding: 5px 12px; border-radius: 12px; font-size: 12px; display: inline-block; }
+        .status-pass { background: #d4edda; color: #155724; }
+        .status-fail { background: #f8d7da; color: #721c24; }
+        .detail-btn { padding: 6px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-title { font-size: 20px; margin-bottom: 20px; color: #333; }
+        .modal-row { margin-bottom: 15px; }
+        .modal-label { color: #666; font-size: 14px; margin-bottom: 5px; }
+        .modal-value { color: #333; font-size: 15px; }
+        .modal-close { margin-top: 20px; padding: 10px 25px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .footer { text-align: center; padding: 30px; color: #999; font-size: 14px; }
+        .empty { text-align: center; padding: 50px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🥬 食材进货溯源</h1>
+        <p>来源可查 · 去向可追 · 责任可究</p>
+    </div>
+
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="menu.html">菜谱公示</a>
+        <a href="ingredient.html" class="active">食材溯源</a>
+        <a href="sample.html">留样记录</a>
+        <a href="accompany.html">陪餐评价</a>
+        <a href="inspection.html">卫生检查</a>
+        <a href="feedback.html">家长反馈</a>
+    </div>
+
+    <div class="container">
+        <div class="filter-bar">
+            <input type="date" id="startDate" placeholder="开始日期">
+            <input type="date" id="endDate" placeholder="结束日期">
+            <input type="text" id="keyword" placeholder="搜索食材名称...">
+            <button onclick="search()">搜索</button>
+        </div>
+
+        <div class="trace-list" id="traceList">
+            <div class="empty">加载中...</div>
+        </div>
+    </div>
+
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <h3 class="modal-title">📋 食材溯源详情</h3>
+            <div id="modalBody"></div>
+            <button class="modal-close" onclick="closeModal()">关闭</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2024 学校食堂明厨亮灶与陪餐管理系统</p>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        document.getElementById('startDate').valueAsDate = startDate;
+        document.getElementById('endDate').valueAsDate = endDate;
+
+        search();
+
+        async function search() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const keyword = document.getElementById('keyword').value;
+
+            let url = `${API_BASE}/ingredient/public/range?startDate=${start}&endDate=${end}`;
+            if (keyword) {
+                url = `${API_BASE}/ingredient/public/search?keyword=${encodeURIComponent(keyword)}`;
+            }
+
+            try {
+                const res = await fetch(url);
+                const result = await res.json();
+                renderList(result.data || []);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('traceList').innerHTML = '<div class="empty">加载失败</div>';
+            }
+        }
+
+        function renderList(list) {
+            const container = document.getElementById('traceList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty">暂无数据</div>';
+                return;
+            }
+
+            container.innerHTML = list.map(item => `
+                <div class="trace-item">
+                    <div>
+                        <div class="trace-batch">${item.batchNo}</div>
+                        <div class="trace-date">进货: ${item.purchaseDate}</div>
+                    </div>
+                    <div>
+                        <div class="trace-name">🥗 ${item.ingredientName}</div>
+                        <div class="trace-supplier">供应商: ${item.supplierName || '未知'}</div>
+                        <div class="trace-supplier">数量: ${item.quantity} ${item.unit || ''}</div>
+                    </div>
+                    <div>
+                        <span class="trace-status ${item.inspectionResult === 'PASS' ? 'status-pass' : 'status-fail'}">
+                            ${item.inspectionResult === 'PASS' ? '✓ 检验合格' : '✗ 检验不合格'}
+                        </span>
+                    </div>
+                    <div>
+                        <button class="detail-btn" onclick="showDetail(${item.id})">查看详情</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function showDetail(id) {
+            try {
+                const res = await fetch(`${API_BASE}/ingredient/public/${id}`);
+                const result = await res.json();
+                const item = result.data;
+                if (!item) return;
+
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="modal-row">
+                        <div class="modal-label">批次号</div>
+                        <div class="modal-value">${item.batchNo}</div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-label">食材名称</div>
+                        <div class="modal-value">${item.ingredientName}</div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-label">供应商</div>
+                        <div class="modal-value">${item.supplierName || '未知'}</div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-label">进货数量</div>
+                        <div class="modal-value">${item.quantity} ${item.unit || ''}</div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-label">进货日期</div>
+                        <div class="modal-value">${item.purchaseDate}</div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-label">生产日期</div>
+                        <div class="modal-value">${item.productionDate || '-'}</div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-label">保质期至</div>
+                        <div class="modal-value">${item.expiryDate || '-'}</div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-label">检验结果</div>
+                        <div class="modal-value">${item.inspectionResult === 'PASS' ? '合格' : '不合格'}</div>
+                    </div>
+                    <div class="modal-row">
+                        <div class="modal-label">验收人</div>
+                        <div class="modal-value">${item.inspector || '-'}</div>
+                    </div>
+                    ${item.remark ? `<div class="modal-row">
+                        <div class="modal-label">备注</div>
+                        <div class="modal-value">${item.remark}</div>
+                    </div>` : ''}
+                `;
+                document.getElementById('detailModal').classList.add('active');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>

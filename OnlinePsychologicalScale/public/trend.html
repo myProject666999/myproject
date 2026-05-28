@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史趋势 - 在线心理量表测评系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .trend-page {
+            padding: 40px 0;
+        }
+
+        .scale-selector {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        .scale-selector label {
+            font-weight: 500;
+            margin-right: 12px;
+            color: var(--text-primary);
+        }
+
+        .scale-selector select {
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            min-width: 280px;
+            background: var(--bg-white);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .scale-selector select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+        }
+
+        .trend-analysis {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .trend-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .trend-card h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .trend-direction {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .trend-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .trend-icon.up {
+            background: #fff1f0;
+            color: var(--danger);
+        }
+
+        .trend-icon.down {
+            background: #f6ffed;
+            color: var(--success);
+        }
+
+        .trend-icon.stable {
+            background: #e6f7ff;
+            color: var(--primary);
+        }
+
+        .trend-info h4 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .trend-info p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .score-comparison {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            flex: 1;
+            text-align: center;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: var(--radius-md);
+        }
+
+        .score-item .label {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+        }
+
+        .score-item .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .score-item .date {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        .score-change {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .score-change.up {
+            color: var(--danger);
+        }
+
+        .score-change.down {
+            color: var(--success);
+        }
+
+        .analysis-advice {
+            background: var(--primary-light);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary);
+        }
+
+        .analysis-advice p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        .chart-section {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        .chart-section h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 360px;
+        }
+
+        .severity-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .multi-scale-section {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        .multi-scale-section h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .multi-scale-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .radar-container {
+            position: relative;
+            height: 320px;
+        }
+
+        .score-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .score-row .name {
+            width: 120px;
+            font-size: 14px;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+
+        .score-row .bar-container {
+            flex: 1;
+            height: 24px;
+            background: var(--bg);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .score-row .bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 1s ease;
+        }
+
+        .score-row .percent {
+            width: 50px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .history-section {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .history-section h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        tbody tr:hover {
+            background: var(--primary-light);
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .severity-badge.normal {
+            background: #f6ffed;
+            color: var(--success);
+        }
+
+        .severity-badge.mild {
+            background: #fffbe6;
+            color: var(--warning);
+        }
+
+        .severity-badge.moderate {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+
+        .severity-badge.severe {
+            background: #fff1f0;
+            color: var(--danger);
+        }
+
+        .btn-link {
+            background: none;
+            color: var(--primary);
+            padding: 4px 8px;
+            font-size: 13px;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 992px) {
+            .trend-analysis,
+            .multi-scale-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .scale-selector select {
+                min-width: 100%;
+                margin-top: 12px;
+            }
+
+            .scale-selector {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .score-comparison {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">❤</div>
+                <span>心理测评中心</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="scales.html">量表</a></li>
+                <li><a href="trend.html">趋势</a></li>
+                <li><a href="resources.html">资源</a></li>
+            </ul>
+            <div class="nav-actions"></div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <section class="page-header">
+        <div class="page-header-inner">
+            <h1>历史趋势分析</h1>
+            <p>追踪您的心理健康变化，了解心理状态发展趋势</p>
+        </div>
+    </section>
+
+    <main class="container trend-page">
+        <div class="scale-selector">
+            <label for="scaleSelect">选择量表：</label>
+            <select id="scaleSelect">
+                <option value="">全部量表</option>
+                <option value="1">PHQ-9 患者健康问卷抑郁量表</option>
+                <option value="2">GAD-7 广泛性焦虑量表</option>
+                <option value="3">PHQ-15 患者健康问卷躯体症状量表</option>
+                <option value="4">PSQI 匹兹堡睡眠质量指数</option>
+                <option value="5">PSS-10 知觉压力量表</option>
+                <option value="6">ISI 失眠严重指数</option>
+            </select>
+        </div>
+
+        <div class="trend-analysis">
+            <div class="trend-card">
+                <h3>趋势分析</h3>
+                <div class="trend-direction">
+                    <div class="trend-icon down">↓</div>
+                    <div class="trend-info">
+                        <h4>整体呈下降趋势</h4>
+                        <p>症状有所缓解，心理状态正在改善</p>
+                    </div>
+                </div>
+                <div class="score-comparison">
+                    <div class="score-item">
+                        <div class="label">最近一次</div>
+                        <div class="value">8</div>
+                        <div class="date">2024-01-15</div>
+                        <div class="score-change down">
+                            <span>↓</span>
+                            <span>4分</span>
+                        </div>
+                    </div>
+                    <div class="score-item">
+                        <div class="label">上一次</div>
+                        <div class="value">12</div>
+                        <div class="date">2024-01-01</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="trend-card">
+                <h3>分析建议</h3>
+                <div class="analysis-advice">
+                    <p>您的抑郁症状评分在过去一个月内有所下降，从轻度抑郁范围进入正常范围。这表明您目前的心理状态正在改善。建议继续保持良好的生活作息，规律运动，保持社交活动。如果症状出现反复，请及时寻求专业帮助。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h3>历史得分趋势</h3>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+            <div class="severity-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #52c41a;"></div>
+                    <span>正常 (0-4)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #faad14;"></div>
+                    <span>轻度 (5-9)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #fa8c16;"></div>
+                    <span>中度 (10-14)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f5222d;"></div>
+                    <span>重度 (15-27)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="multi-scale-section">
+            <h3>多量表对比分析</h3>
+            <div class="multi-scale-grid">
+                <div class="radar-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+                <div class="score-list" id="scoreList"></div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <h3>历史测评记录</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>测评日期</th>
+                            <th>量表名称</th>
+                            <th>得分</th>
+                            <th>严重程度</th>
+                            <th>用时</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                        <tr>
+                            <td>2024-01-15 14:30</td>
+                            <td>PHQ-9 患者健康问卷抑郁量表</td>
+                            <td><strong>8</strong></td>
+                            <td><span class="severity-badge mild">轻度</span></td>
+                            <td>3分20秒</td>
+                            <td><button class="btn btn-link">查看详情</button></td>
+                        </tr>
+                        <tr>
+                            <td>2024-01-01 10:15</td>
+                            <td>PHQ-9 患者健康问卷抑郁量表</td>
+                            <td><strong>12</strong></td>
+                            <td><span class="severity-badge moderate">中度</span></td>
+                            <td>2分50秒</td>
+                            <td><button class="btn btn-link">查看详情</button></td>
+                        </tr>
+                        <tr>
+                            <td>2023-12-18 16:45</td>
+                            <td>GAD-7 广泛性焦虑量表</td>
+                            <td><strong>6</strong></td>
+                            <td><span class="severity-badge mild">轻度</span></td>
+                            <td>3分10秒</td>
+                            <td><button class="btn btn-link">查看详情</button></td>
+                        </tr>
+                        <tr>
+                            <td>2023-12-05 09:20</td>
+                            <td>PHQ-9 患者健康问卷抑郁量表</td>
+                            <td><strong>15</strong></td>
+                            <td><span class="severity-badge severe">重度</span></td>
+                            <td>4分05秒</td>
+                            <td><button class="btn btn-link">查看详情</button></td>
+                        </tr>
+                        <tr>
+                            <td>2023-11-20 11:30</td>
+                            <td>PSQI 匹兹堡睡眠质量指数</td>
+                            <td><strong>12</strong></td>
+                            <td><span class="severity-badge moderate">中度</span></td>
+                            <td>8分45秒</td>
+                            <td><button class="btn btn-link">查看详情</button></td>
+                        </tr>
+                        <tr>
+                            <td>2023-11-08 15:00</td>
+                            <td>PSS-10 知觉压力量表</td>
+                            <td><strong>22</strong></td>
+                            <td><span class="severity-badge moderate">中度</span></td>
+                            <td>4分30秒</td>
+                            <td><button class="btn btn-link">查看详情</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <div class="logo-icon">❤</div>
+                        <span>心理测评中心</span>
+                    </div>
+                    <p class="footer-desc">专业的在线心理量表测评系统，采用国际通用标准化工具，为您提供便捷、私密的心理健康评估服务。</p>
+                    <p style="font-size: 12px; color: #595959;">⚠️ 本平台测评结果仅供参考，不构成医学诊断。如有需要，请咨询专业心理医生。</p>
+                </div>
+                <div class="footer-section">
+                    <h4>快速链接</h4>
+                    <ul>
+                        <li><a href="index.html">首页</a></li>
+                        <li><a href="scales.html">量表列表</a></li>
+                        <li><a href="trend.html">趋势分析</a></li>
+                        <li><a href="resources.html">科普资源</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>帮助中心</h4>
+                    <ul>
+                        <li><a href="#">使用指南</a></li>
+                        <li><a href="#">常见问题</a></li>
+                        <li><a href="privacy.html">隐私政策</a></li>
+                        <li><a href="#">用户协议</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>联系我们</h4>
+                    <ul>
+                        <li><a href="#">关于我们</a></li>
+                        <li><a href="#">意见反馈</a></li>
+                        <li><a href="#">合作洽谈</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 在线心理量表测评系统 版权所有 | 京ICP备XXXXXXXX号</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let trendChart = null;
+        let radarChart = null;
+
+        const mockTrendData = {
+            labels: ['2023-09-01', '2023-09-15', '2023-10-01', '2023-10-15', '2023-11-01', '2023-11-15', '2023-12-01', '2023-12-15', '2024-01-01', '2024-01-15'],
+            scores: [18, 17, 16, 14, 15, 13, 14, 12, 12, 8]
+        };
+
+        const mockMultiScaleData = [
+            { name: 'PHQ-9', score: 8, max: 27, color: '#1890ff' },
+            { name: 'GAD-7', score: 6, max: 21, color: '#52c41a' },
+            { name: 'PHQ-15', score: 10, max: 30, color: '#faad14' },
+            { name: 'PSQI', score: 12, max: 21, color: '#722ed1' },
+            { name: 'PSS-10', score: 22, max: 40, color: '#eb2f96' },
+            { name: 'ISI', score: 8, max: 28, color: '#13c2c2' }
+        ];
+
+        function initTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (trendChart) {
+                trendChart.destroy();
+            }
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: mockTrendData.labels,
+                    datasets: [{
+                        label: '得分',
+                        data: mockTrendData.scores,
+                        borderColor: '#1890ff',
+                        backgroundColor: 'rgba(24, 144, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#1890ff',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 27,
+                            ticks: {
+                                stepSize: 5
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'severityZones',
+                    beforeDatasetsDraw: (chart) => {
+                        const { ctx, chartArea: { left, right, top, bottom }, scales: { y } } = chart;
+                        
+                        const zones = [
+                            { min: 0, max: 4, color: 'rgba(82, 196, 26, 0.1)' },
+                            { min: 5, max: 9, color: 'rgba(250, 173, 20, 0.1)' },
+                            { min: 10, max: 14, color: 'rgba(250, 140, 22, 0.1)' },
+                            { min: 15, max: 27, color: 'rgba(245, 34, 45, 0.1)' }
+                        ];
+
+                        zones.forEach(zone => {
+                            const yTop = y.getPixelForValue(zone.max);
+                            const yBottom = y.getPixelForValue(zone.min);
+                            
+                            ctx.fillStyle = zone.color;
+                            ctx.fillRect(left, yTop, right - left, yBottom - yTop);
+                        });
+
+                        ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                        ctx.lineWidth = 1;
+                        [4, 9, 14].forEach(val => {
+                            const yPos = y.getPixelForValue(val);
+                            ctx.beginPath();
+                            ctx.moveTo(left, yPos);
+                            ctx.lineTo(right, yPos);
+                            ctx.stroke();
+                        });
+                    }
+                }]
+            });
+        }
+
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            if (radarChart) {
+                radarChart.destroy();
+            }
+
+            const labels = mockMultiScaleData.map(d => d.name);
+            const data = mockMultiScaleData.map(d => Math.round((d.score / d.max) * 100));
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '得分百分比',
+                        data: data,
+                        borderColor: '#1890ff',
+                        backgroundColor: 'rgba(24, 144, 255, 0.2)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#1890ff',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                callback: (value) => value + '%'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderScoreList() {
+            const container = document.getElementById('scoreList');
+            container.innerHTML = mockMultiScaleData.map(item => {
+                const percent = Math.round((item.score / item.max) * 100);
+                return `
+                    <div class="score-row">
+                        <div class="name">${item.name}</div>
+                        <div class="bar-container">
+                            <div class="bar-fill" style="width: ${percent}%; background: ${item.color};"></div>
+                        </div>
+                        <div class="percent">${percent}%</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!Common.requireLogin()) return;
+            
+            initTrendChart();
+            initRadarChart();
+            renderScoreList();
+
+            document.getElementById('scaleSelect').addEventListener('change', (e) => {
+                Common.showToast('已切换量表', 'info');
+            });
+        });
+    </script>
+</body>
+</html>

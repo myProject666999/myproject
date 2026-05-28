@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 在线心理量表测评系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">❤</div>
+                <span>心理测评中心</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">首页</a></li>
+                <li><a href="scales.html">量表</a></li>
+                <li><a href="trend.html">趋势</a></li>
+                <li><a href="resources.html">资源</a></li>
+            </ul>
+            <div class="nav-actions"></div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo">
+                    <div class="logo-icon">❤</div>
+                </div>
+                <h1>欢迎回来</h1>
+                <p>登录您的账号，开始心理测评</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" placeholder="请输入用户名" autocomplete="username" required>
+                    <div class="error-message" id="usernameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" placeholder="请输入密码" autocomplete="current-password" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="remember" name="remember">
+                        <span>记住我</span>
+                    </label>
+                    <a href="#" class="forgot-link">忘记密码？</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">
+                    <span id="loginBtnText">登 录</span>
+                </button>
+            </form>
+
+            <div class="privacy-note">
+                登录即表示您同意我们的 <a href="#">用户协议</a> 和 <a href="#">隐私政策</a>
+            </div>
+
+            <div class="auth-footer">
+                <p>还没有账号？<a href="register.html">立即注册</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+            document.querySelectorAll('input.error').forEach(el => el.classList.remove('error'));
+        }
+
+        function showError(fieldId, message) {
+            const input = document.getElementById(fieldId);
+            const errorEl = document.getElementById(fieldId + 'Error');
+            if (input) input.classList.add('error');
+            if (errorEl) errorEl.textContent = message;
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('loginBtnText');
+            btn.disabled = loading;
+            btnText.innerHTML = loading ? '<span class="loading"></span> 登录中...' : '登 录';
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            clearErrors();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+
+            let hasError = false;
+
+            if (!username) {
+                showError('username', '请输入用户名');
+                hasError = true;
+            } else if (username.length < 3) {
+                showError('username', '用户名至少3个字符');
+                hasError = true;
+            }
+
+            if (!password) {
+                showError('password', '请输入密码');
+                hasError = true;
+            } else if (password.length < 6) {
+                showError('password', '密码至少6个字符');
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            setLoading(true);
+
+            try {
+                const data = await API.auth.login({ username, password });
+                const token = data.token || data.data?.token;
+                const user = data.user || data.data?.user;
+
+                if (token) {
+                    Common.setToken(token);
+                }
+                if (user) {
+                    Common.setUser(user);
+                }
+
+                if (remember) {
+                    localStorage.setItem('rememberUsername', username);
+                } else {
+                    localStorage.removeItem('rememberUsername');
+                }
+
+                Common.showToast('登录成功', 'success');
+                Common.updateUserNav();
+
+                const redirect = Common.getQueryParam('redirect');
+                setTimeout(() => {
+                    location.href = redirect || 'index.html';
+                }, 1000);
+            } catch (error) {
+                if (error.message.includes('密码') || error.message.includes('password')) {
+                    showError('password', error.message);
+                } else if (error.message.includes('用户') || error.message.includes('username')) {
+                    showError('username', error.message);
+                } else {
+                    showError('password', error.message || '登录失败，请重试');
+                }
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const rememberedUsername = localStorage.getItem('rememberUsername');
+            if (rememberedUsername) {
+                document.getElementById('username').value = rememberedUsername;
+                document.getElementById('remember').checked = true;
+                document.getElementById('password').focus();
+            } else {
+                document.getElementById('username').focus();
+            }
+
+            if (Common.isLoggedIn()) {
+                Common.showToast('您已登录', 'info');
+                setTimeout(() => location.href = 'index.html', 1000);
+            }
+        });
+    </script>
+</body>
+</html>

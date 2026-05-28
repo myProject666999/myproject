@@ -5,6 +5,13 @@ function toSnakeCase(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
+function convertValue(value: unknown): unknown {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  return value;
+}
+
 export abstract class BaseRepository<T extends { id: number }> {
   protected tableName: string;
 
@@ -65,7 +72,7 @@ export abstract class BaseRepository<T extends { id: number }> {
     const keys = Object.keys(data).filter((k) => data[k] !== undefined);
     const columns = keys.map((k) => toSnakeCase(k));
     const placeholders = columns.map(() => '?').join(', ');
-    const values = keys.map((k) => data[k]);
+    const values = keys.map((k) => convertValue(data[k]));
 
     const sql = `INSERT INTO ${this.tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
     const result = db.prepare(sql).run(...values);
@@ -78,7 +85,7 @@ export abstract class BaseRepository<T extends { id: number }> {
     if (keys.length === 0) return this.findById(id);
 
     const setClause = keys.map((k) => `${toSnakeCase(k)} = ?`).join(', ');
-    const values = keys.map((k) => data[k]);
+    const values = keys.map((k) => convertValue(data[k]));
 
     const sql = `UPDATE ${this.tableName} SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
     db.prepare(sql).run(...values, id);

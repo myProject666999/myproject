@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电动自行车换电柜运营管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body, #app { height: 100%; }
+        .el-container { height: 100%; }
+        .el-aside { background-color: #304156; color: #fff; }
+        .el-header { background-color: #fff; border-bottom: 1px solid #e6e6e6; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+        .el-main { background-color: #f0f2f5; padding: 20px; overflow-y: auto; }
+        .logo { height: 60px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #fff; background-color: #2b2f3a; }
+        .el-menu { border-right: none; }
+        .el-menu-item, .el-submenu__title { color: #bfcbd9 !important; }
+        .el-menu-item:hover, .el-submenu__title:hover { background-color: #263445 !important; color: #fff !important; }
+        .el-menu-item.is-active { background-color: #409eff !important; color: #fff !important; }
+        .page-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .stat-card { padding: 20px; border-radius: 8px; color: #fff; margin-bottom: 20px; }
+        .stat-card .number { font-size: 32px; font-weight: bold; }
+        .stat-card .label { font-size: 14px; opacity: 0.9; }
+        .card-bg-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-bg-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .card-bg-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .card-bg-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .card-bg-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .card-bg-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+        #map { height: 600px; border-radius: 8px; }
+        .marker-popup { padding: 10px; }
+        .marker-popup h4 { margin-bottom: 8px; font-size: 14px; font-weight: bold; }
+        .marker-popup p { margin: 4px 0; font-size: 12px; }
+        .soc-bar { height: 8px; border-radius: 4px; background-color: #e0e0e0; overflow: hidden; }
+        .soc-bar-inner { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .soc-high { background-color: #67c23a; }
+        .soc-medium { background-color: #e6a23c; }
+        .soc-low { background-color: #f56c6c; }
+        .battery-item { padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px; background-color: #fff; }
+        .battery-item.online { border-color: #67c23a; }
+        .battery-item.using { border-color: #409eff; }
+        .battery-item.charging { border-color: #e6a23c; }
+        .battery-item.abnormal { border-color: #f56c6c; }
+        .battery-item.offline { border-color: #909399; background-color: #f5f7fa; }
+        .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; }
+        .slot-item { aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; cursor: pointer; transition: transform 0.2s; }
+        .slot-item:hover { transform: scale(1.1); }
+        .slot-empty { background-color: #909399; }
+        .slot-full { background-color: #67c23a; }
+        .slot-medium { background-color: #e6a23c; }
+        .slot-low { background-color: #f56c6c; }
+        .gap-item { padding: 15px; border-left: 4px solid; margin-bottom: 10px; background-color: #fff; border-radius: 4px; }
+        .gap-high { border-left-color: #f56c6c; }
+        .gap-medium { border-left-color: #e6a23c; }
+        .gap-low { border-left-color: #67c23a; }
+        .alert-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; color: #fff; }
+        .alert-urgent { background-color: #f56c6c; }
+        .alert-important { background-color: #e6a23c; }
+        .alert-normal { background-color: #909399; }
+        .chart-container { width: 100%; height: 300px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-aside width="220px">
+            <div class="logo">🔋 换电柜管理</div>
+            <el-menu
+                default-active="dashboard"
+                background-color="#304156"
+                text-color="#bfcbd9"
+                active-text-color="#409eff"
+                @select="handleMenuSelect">
+                <el-menu-item index="dashboard">
+                    <i class="el-icon-s-data"></i>
+                    <span>数据概览</span>
+                </el-menu-item>
+                <el-menu-item index="map">
+                    <i class="el-icon-location"></i>
+                    <span>换电柜地图</span>
+                </el-menu-item>
+                <el-menu-item index="battery">
+                    <i class="el-icon-lightning"></i>
+                    <span>电池监控</span>
+                </el-menu-item>
+                <el-menu-item index="order">
+                    <i class="el-icon-document"></i>
+                    <span>换电订单</span>
+                </el-menu-item>
+                <el-menu-item index="dispatch">
+                    <i class="el-icon-truck"></i>
+                    <span>调度补给</span>
+                </el-menu-item>
+                <el-menu-item index="package">
+                    <i class="el-icon-wallet"></i>
+                    <span>套餐钱包</span>
+                </el-menu-item>
+                <el-menu-item index="alert">
+                    <i class="el-icon-bell"></i>
+                    <span>异常告警</span>
+                </el-menu-item>
+            </el-menu>
+        </el-aside>
+        <el-container>
+            <el-header>
+                <div class="page-title">{{ pageTitle }}</div>
+                <div>
+                    <el-button type="primary" size="small" @click="refresh">
+                        <i class="el-icon-refresh"></i> 刷新
+                    </el-button>
+                    <el-dropdown>
+                        <span style="cursor: pointer;">
+                            <i class="el-icon-user-solid"></i> 管理员
+                            <i class="el-icon-arrow-down el-icon--right"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item>个人中心</el-dropdown-item>
+                            <el-dropdown-item>退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </el-header>
+            <el-main>
+                <div v-if="currentPage === 'dashboard'" v-loading="loading">
+                    <div class="dashboard-grid">
+                        <div class="stat-card card-bg-1">
+                            <div class="number">{{ stats.cabinet ? stats.cabinet.total : 0 }}</div>
+                            <div class="label">换电柜总数</div>
+                            <div style="font-size: 12px; margin-top: 5px;">
+                                正常 {{ stats.cabinet ? stats.cabinet.normal : 0 }} / 
+                                离线 {{ stats.cabinet ? stats.cabinet.offline : 0 }}
+                            </div>
+                        </div>
+                        <div class="stat-card card-bg-2">
+                            <div class="number">{{ stats.battery ? stats.battery.TotalCount : 0 }}</div>
+                            <div class="label">电池总数</div>
+                            <div style="font-size: 12px; margin-top: 5px;">
+                                可用 {{ stats.battery ? stats.battery.AvailableCount : 0 }} / 
+                                异常 {{ stats.battery ? stats.battery.AbnormalCount : 0 }}
+                            </div>
+                        </div>
+                        <div class="stat-card card-bg-3">
+                            <div class="number">{{ stats.order ? stats.order.TodayOrders : 0 }}</div>
+                            <div class="label">今日订单</div>
+                            <div style="font-size: 12px; margin-top: 5px;">
+                                营收 ¥{{ formatNumber(stats.order ? stats.order.TodayAmount : 0) }}
+                            </div>
+                        </div>
+                        <div class="stat-card card-bg-4">
+                            <div class="number">{{ stats.alert ? stats.alert.TodayCount : 0 }}</div>
+                            <div class="label">今日告警</div>
+                            <div style="font-size: 12px; margin-top: 5px;">
+                                待处理 {{ stats.alert ? stats.alert.PendingCount : 0 }}
+                            </div>
+                        </div>
+                        <div class="stat-card card-bg-5">
+                            <div class="number">{{ stats.order ? stats.order.TotalOrders : 0 }}</div>
+                            <div class="label">累计订单</div>
+                            <div style="font-size: 12px; margin-top: 5px;">
+                                营收 ¥{{ formatNumber(stats.order ? stats.order.TotalAmount : 0) }}
+                            </div>
+                        </div>
+                        <div class="stat-card card-bg-6">
+                            <div class="number">{{ stats.battery ? stats.battery.LowSocCount : 0 }}</div>
+                            <div class="label">低电量电池</div>
+                            <div style="font-size: 12px; margin-top: 5px;">
+                                低健康度 {{ stats.battery ? stats.battery.LowHealthCount : 0 }}
+                            </div>
+                        </div>
+                    </div>
+                    <el-row :gutter="20" style="margin-top: 20px;">
+                        <el-col :span="12">
+                            <el-card>
+                                <div slot="header">电池状态分布</div>
+                                <div id="batteryChart" class="chart-container"></div>
+                            </el-card>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-card>
+                                <div slot="header">近7日订单趋势</div>
+                                <div id="orderChart" class="chart-container"></div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="20" style="margin-top: 20px;">
+                        <el-col :span="12">
+                            <el-card>
+                                <div slot="header">
+                                    <span>最新订单</span>
+                                    <el-button type="text" size="small" style="float: right;" @click="currentPage='order'">查看全部</el-button>
+                                </div>
+                                <el-table :data="recentOrders" size="small">
+                                    <el-table-column prop="order_no" label="订单号" width="160"></el-table-column>
+                                    <el-table-column prop="user_name" label="用户" width="100"></el-table-column>
+                                    <el-table-column prop="cabinet_name" label="换电柜" show-overflow-tooltip></el-table-column>
+                                    <el-table-column prop="pay_amount" label="金额" width="80">
+                                        <template slot-scope="scope">¥{{ formatNumber(scope.row.pay_amount) }}</template>
+                                    </el-table-column>
+                                    <el-table-column prop="order_status" label="状态" width="80">
+                                        <template slot-scope="scope">
+                                            <el-tag v-if="scope.row.order_status === 2" type="success" size="mini">已完成</el-tag>
+                                            <el-tag v-else type="info" size="mini">进行中</el-tag>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
+                            </el-card>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-card>
+                                <div slot="header">
+                                    <span>最新告警</span>
+                                    <el-button type="text" size="small" style="float: right;" @click="currentPage='alert'">查看全部</el-button>
+                                </div>
+                                <el-table :data="recentAlerts" size="small">
+                                    <el-table-column prop="title" label="告警标题" show-overflow-tooltip></el-table-column>
+                                    <el-table-column prop="level" label="级别" width="80">
+                                        <template slot-scope="scope">
+                                            <span v-if="scope.row.level === 1" class="alert-badge alert-urgent">紧急</span>
+                                            <span v-else-if="scope.row.level === 2" class="alert-badge alert-important">重要</span>
+                                            <span v-else class="alert-badge alert-normal">一般</span>
+                                        </template>
+                                    </el-table-column>
+                                    <el-table-column prop="status" label="状态" width="80">
+                                        <template slot-scope="scope">
+                                            <el-tag v-if="scope.row.status === 1" type="danger" size="mini">未处理</el-tag>
+                                            <el-tag v-else-if="scope.row.status === 2" type="warning" size="mini">处理中</el-tag>
+                                            <el-tag v-else type="success" size="mini">已处理</el-tag>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                </div>
+
+                <div v-if="currentPage === 'map'" v-loading="loading">
+                    <el-card>
+                        <div slot="header">
+                            <span>换电柜分布地图</span>
+                            <div style="float: right;">
+                                <el-tag type="success">正常</el-tag>
+                                <el-tag type="info" style="margin-left: 10px;">维护中</el-tag>
+                                <el-tag type="danger" style="margin-left: 10px;">离线</el-tag>
+                            </div>
+                        </div>
+                        <div id="map"></div>
+                    </el-card>
+                    <el-card style="margin-top: 20px;">
+                        <div slot="header">换电柜列表</div>
+                        <el-row :gutter="20">
+                            <el-col :span="8" v-for="cabinet in cabinets" :key="cabinet.id" style="margin-bottom: 20px;">
+                                <div class="battery-item" :class="{
+                                    'online': cabinet.status === 1,
+                                    'abnormal': cabinet.status === 3
+                                }">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <strong>{{ cabinet.name }}</strong>
+                                        <el-tag v-if="cabinet.status === 1" type="success" size="mini">正常</el-tag>
+                                        <el-tag v-else-if="cabinet.status === 2" type="info" size="mini">维护中</el-tag>
+                                        <el-tag v-else type="danger" size="mini">离线</el-tag>
+                                    </div>
+                                    <p style="font-size: 12px; color: #666; margin-bottom: 8px;">{{ cabinet.address }}</p>
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+                                        <span>空槽位: <strong style="color: #909399;">{{ cabinet.empty_slots }}</strong></span>
+                                        <span>满电: <strong style="color: #67c23a;">{{ cabinet.full_batteries }}</strong></span>
+                                        <span>低电量: <strong style="color: #f56c6c;">{{ cabinet.low_batteries }}</strong></span>
+                                    </div>
+                                    <el-button type="primary" size="mini" @click="showCabinetDetail(cabinet)" style="width: 100%;">查看详情</el-button>
+                                </div>
+                            </el-col>
+                        </el-row>
+                    </el-card>
+                </div>
+
+                <div v-if="currentPage === 'battery'" v-loading="loading">
+                    <el-card>
+                        <div slot="header">
+                            <span>电池监控</span>
+                            <el-button type="primary" size="small" style="margin-left: 20px;" @click="autoCheckAlerts">自动检测告警</el-button>
+                        </div>
+                        <el-form :inline="true" style="margin-bottom: 20px;">
+                            <el-form-item label="电池编号">
+                                <el-input v-model="batteryFilter.battery_no" placeholder="请输入" clearable></el-input>
+                            </el-form-item>
+                            <el-form-item label="状态">
+                                <el-select v-model="batteryFilter.status" placeholder="全部" clearable>
+                                    <el-option label="可用" :value="1"></el-option>
+                                    <el-option label="使用中" :value="2"></el-option>
+                                    <el-option label="充电中" :value="3"></el-option>
+                                    <el-option label="异常" :value="4"></el-option>
+                                    <el-option label="下线" :value="5"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="最低电量">
+                                <el-input-number v-model="batteryFilter.min_soc" :min="0" :max="100" controls-position="right"></el-input-number>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="loadBatteries">查询</el-button>
+                            </el-form-item>
+                        </el-form>
+                        <el-row :gutter="20">
+                            <el-col :span="6" v-for="battery in batteries" :key="battery.id" style="margin-bottom: 15px;">
+                                <div class="battery-item" :class="{
+                                    'online': battery.status === 1,
+                                    'using': battery.status === 2,
+                                    'charging': battery.status === 3,
+                                    'abnormal': battery.status === 4,
+                                    'offline': battery.status === 5
+                                }">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <strong>{{ battery.battery_no }}</strong>
+                                        <el-tag v-if="battery.status === 1" type="success" size="mini">可用</el-tag>
+                                        <el-tag v-else-if="battery.status === 2" type="primary" size="mini">使用中</el-tag>
+                                        <el-tag v-else-if="battery.status === 3" type="warning" size="mini">充电中</el-tag>
+                                        <el-tag v-else-if="battery.status === 4" type="danger" size="mini">异常</el-tag>
+                                        <el-tag v-else type="info" size="mini">下线</el-tag>
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                                            <span>电量</span>
+                                            <span>{{ battery.current_soc }}%</span>
+                                        </div>
+                                        <div class="soc-bar">
+                                            <div class="soc-bar-inner" :class="{
+                                                'soc-high': battery.current_soc >= 80,
+                                                'soc-medium': battery.current_soc >= 30 && battery.current_soc < 80,
+                                                'soc-low': battery.current_soc < 30
+                                            }" :style="{width: battery.current_soc + '%'}"></div>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 12px; color: #666;">
+                                        <p>健康度: {{ battery.health_status }}%</p>
+                                        <p>循环次数: {{ battery.cycle_count }}</p>
+                                        <p v-if="battery.temperature">温度: {{ battery.temperature }}℃</p>
+                                    </div>
+                                    <el-button type="text" size="mini" @click="showBatteryDetail(battery)" style="width: 100%; margin-top: 8px;">查看详情</el-button>
+                                </div>
+                            </el-col>
+                        </el-row>
+                        <el-pagination
+                            style="margin-top: 20px; text-align: right;"
+                            @current-change="batteryPageChange"
+                            @size-change="batterySizeChange"
+                            :current-page="batteryPage"
+                            :page-sizes="[12, 24, 48]"
+                            :page-size="batteryPageSize"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="batteryTotal">
+                        </el-pagination>
+                    </el-card>
+                </div>
+
+                <div v-if="currentPage === 'order'" v-loading="loading">
+                    <el-card>
+                        <div slot="header">换电订单</div>
+                        <el-form :inline="true" style="margin-bottom: 20px;">
+                            <el-form-item label="订单号">
+                                <el-input v-model="orderFilter.order_no" placeholder="请输入" clearable></el-input>
+                            </el-form-item>
+                            <el-form-item label="订单状态">
+                                <el-select v-model="orderFilter.order_status" placeholder="全部" clearable>
+                                    <el-option label="进行中" :value="1"></el-option>
+                                    <el-option label="已完成" :value="2"></el-option>
+                                    <el-option label="已取消" :value="3"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="支付状态">
+                                <el-select v-model="orderFilter.pay_status" placeholder="全部" clearable>
+                                    <el-option label="待支付" :value="1"></el-option>
+                                    <el-option label="已支付" :value="2"></el-option>
+                                    <el-option label="已退款" :value="3"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="loadOrders">查询</el-button>
+                            </el-form-item>
+                        </el-form>
+                        <el-table :data="orders" border>
+                            <el-table-column prop="order_no" label="订单号" width="180"></el-table-column>
+                            <el-table-column prop="user_name" label="用户" width="100"></el-table-column>
+                            <el-table-column prop="user_phone" label="手机号" width="120"></el-table-column>
+                            <el-table-column prop="cabinet_name" label="换电柜" show-overflow-tooltip></el-table-column>
+                            <el-table-column prop="out_battery_no" label="取出电池" width="100"></el-table-column>
+                            <el-table-column prop="in_battery_no" label="归还电池" width="100"></el-table-column>
+                            <el-table-column prop="out_battery_soc" label="取出电量" width="90">
+                                <template slot-scope="scope">{{ scope.row.out_battery_soc }}%</template>
+                            </el-table-column>
+                            <el-table-column prop="in_battery_soc" label="归还电量" width="90">
+                                <template slot-scope="scope">{{ scope.row.in_battery_soc }}%</template>
+                            </el-table-column>
+                            <el-table-column prop="amount" label="订单金额" width="90">
+                                <template slot-scope="scope">¥{{ formatNumber(scope.row.amount) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="pay_amount" label="实付金额" width="90">
+                                <template slot-scope="scope">¥{{ formatNumber(scope.row.pay_amount) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="pay_type" label="支付方式" width="90">
+                                <template slot-scope="scope">
+                                    <el-tag v-if="scope.row.pay_type === 1" type="primary" size="mini">钱包</el-tag>
+                                    <el-tag v-else type="success" size="mini">套餐</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="order_status" label="订单状态" width="90">
+                                <template slot-scope="scope">
+                                    <el-tag v-if="scope.row.order_status === 2" type="success" size="mini">已完成</el-tag>
+                                    <el-tag v-else-if="scope.row.order_status === 1" type="warning" size="mini">进行中</el-tag>
+                                    <el-tag v-else type="info" size="mini">已取消</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="created_at" label="创建时间" width="160"></el-table-column>
+                        </el-table>
+                        <el-pagination
+                            style="margin-top: 20px; text-align: right;"
+                            @current-change="orderPageChange"
+                            @size-change="orderSizeChange"
+                            :current-page="orderPage"
+                            :page-sizes="[10, 20, 50]"
+                            :page-size="orderPageSize"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="orderTotal">
+                        </el-pagination>
+                    </el-card>
+                </div>
+
+                <div v-if="currentPage === 'dispatch'" v-loading="loading">
+                    <el-row :gutter="20">
+                        <el-col :span="12">
+                            <el-card>
+                                <div slot="header">
+                                    <span>电量缺口预警</span>
+                                    <el-button type="primary" size="small" style="float: right;" @click="loadGaps">刷新缺口</el-button>
+                                </div>
+                                <div v-for="gap in gaps" :key="gap.cabinet_id" class="gap-item" :class="{
+                                    'gap-high': gap.gap_level === 1,
+                                    'gap-medium': gap.gap_level === 2,
+                                    'gap-low': gap.gap_level === 3
+                                }">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <strong>{{ gap.cabinet_name }}</strong>
+                                        <span>
+                                            <el-tag v-if="gap.gap_level === 1" type="danger" size="mini">紧急</el-tag>
+                                            <el-tag v-else-if="gap.gap_level === 2" type="warning" size="mini">重要</el-tag>
+                                            <el-tag v-else type="success" size="mini">一般</el-tag>
+                                        </span>
+                                    </div>
+                                    <p style="font-size: 12px; color: #666; margin-bottom: 8px;">{{ gap.address }}</p>
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                                        <span>满电电池: <strong style="color: #67c23a;">{{ gap.full_battery_count }}</strong> 块</span>
+                                        <span>空槽位: <strong>{{ gap.empty_slot_count }}</strong> 个</span>
+                                        <span>需补充: <strong style="color: #f56c6c;">{{ gap.need_count }}</strong> 块</span>
+                                        <span>距离: <strong>{{ gap.distance ? formatNumber(gap.distance) : '-' }}</strong> km</span>
+                                    </div>
+                                </div>
+                            </el-card>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-card>
+                                <div slot="header">
+                                    <span>智能调度规划</span>
+                                    <el-button type="primary" size="small" style="float: right;" @click="generatePlan">生成最优路线</el-button>
+                                </div>
+                                <el-form :inline="true" style="margin-bottom: 15px;">
+                                    <el-form-item label="最大运载">
+                                        <el-input-number v-model="planParams.max_batteries" :min="1" :max="50"></el-input-number>
+                                    </el-form-item>
+                                    <el-form-item label="运维员经度">
+                                        <el-input v-model="planParams.operator_longitude"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="运维员纬度">
+                                        <el-input v-model="planParams.operator_latitude"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                                <div v-for="(item, index) in dispatchPlan" :key="item.cabinet_id" class="gap-item" :class="{
+                                    'gap-high': item.gap_level === 1,
+                                    'gap-medium': item.gap_level === 2,
+                                    'gap-low': item.gap_level === 3
+                                }">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <strong>第 {{ index + 1 }} 站: {{ item.cabinet_name }}</strong>
+                                        <span style="color: #409eff;">{{ formatNumber(item.distance) }} km</span>
+                                    </div>
+                                    <p style="font-size: 12px; color: #666;">补充 {{ item.need_count }} 块电池</p>
+                                </div>
+                                <div v-if="dispatchPlan.length > 0" style="margin-top: 15px;">
+                                    <el-button type="success" @click="createBatchTasks" style="width: 100%;">一键生成调度任务</el-button>
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                    <el-card style="margin-top: 20px;">
+                        <div slot="header">
+                            <span>调度任务列表</span>
+                            <el-button type="primary" size="small" style="float: right;" @click="autoCreateTasks">自动创建任务</el-button>
+                        </div>
+                        <el-table :data="dispatchTasks" border>
+                            <el-table-column prop="task_no" label="任务编号" width="180"></el-table-column>
+                            <el-table-column prop="type" label="任务类型" width="80">
+                                <template slot-scope="scope">
+                                    <el-tag v-if="scope.row.type === 1" type="success" size="mini">补电</el-tag>
+                                    <el-tag v-else-if="scope.row.type === 2" type="primary" size="mini">换电</el-tag>
+                                    <el-tag v-else type="warning" size="mini">维修</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="priority" label="优先级" width="80">
+                                <template slot-scope="scope">
+                                    <el-tag v-if="scope.row.priority === 1" type="danger" size="mini">高</el-tag>
+                                    <el-tag v-else-if="scope.row.priority === 2" type="warning" size="mini">中</el-tag>
+                                    <el-tag v-else type="info" size="mini">低</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="to_cabinet_name" label="目标换电柜" show-overflow-tooltip></el-table-column>
+                            <el-table-column prop="battery_count" label="电池数量" width="80"></el-table-column>
+                            <el-table-column prop="operator_name" label="运维人员" width="100"></el-table-column>
+                            <el-table-column prop="status" label="状态" width="90">
+                                <template slot-scope="scope">
+                                    <el-tag v-if="scope.row.status === 1" type="info" size="mini">待分配</el-tag>
+                                    <el-tag v-else-if="scope.row.status === 2" type="warning" size="mini">待执行</el-tag>
+                                    <el-tag v-else-if="scope.row.status === 3" type="primary" size="mini">执行中</el-tag>
+                                    <el-tag v-else-if="scope.row.status === 4" type="success" size="mini">已完成</el-tag>
+                                    <el-tag v-else type="info" size="mini">已取消</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="created_at" label="创建时间" width="160"></el-table-column>
+                            <el-table-column label="操作" width="200" fixed="right">
+                                <template slot-scope="scope">
+                                    <el-button v-if="scope.row.status === 1" type="primary" size="mini" @click="assignTask(scope.row)">分配</el-button>
+                                    <el-button v-if="scope.row.status === 2" type="success" size="mini" @click="startTask(scope.row)">开始</el-button>
+                                    <el-button v-if="scope.row.status === 3" type="primary" size="mini" @click="completeTask(scope.row)">完成</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-card>
+                </div>
+
+                <div v-if="currentPage === 'package'" v-loading="loading">
+                    <el-row :gutter="20">
+                        <el-col :span="16">
+                            <el-card>
+                                <div slot="header">套餐管理</div>
+                                <el-row :gutter="20">
+                                    <el-col :span="6" v-for="pkg in packages" :key="pkg.id">
+                                        <div style="border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; text-align: center; background: #fff;">
+                                            <h3 style="margin-bottom: 10px;">{{ pkg.name }}</h3>
+                                            <div style="font-size: 12px; color: #666; margin-bottom: 15px; min-height: 40px;">{{ pkg.description }}</div>
+                                            <div style="margin-bottom: 15px;">
+                                                <span style="font-size: 28px; color: #f56c6c; font-weight: bold;">¥{{ formatNumber(pkg.price, 0) }}</span>
+                                                <span style="font-size: 14px; color: #999; text-decoration: line-through;">¥{{ formatNumber(pkg.original_price, 0) }}</span>
+                                            </div>
+                                            <el-button type="primary" style="width: 100%;" @click="purchasePackage(pkg)">立即购买</el-button>
+                                        </div>
+                                    </el-col>
+                                </el-row>
+                            </el-card>
+                        </el-col>
+                        <el-col :span="8">
+                            <el-card>
+                                <div slot="header">我的钱包</div>
+                                <div style="text-align: center; padding: 20px 0;">
+                                    <div style="font-size: 14px; color: #666; margin-bottom: 10px;">账户余额</div>
+                                    <div style="font-size: 36px; color: #f56c6c; font-weight: bold; margin-bottom: 20px;">¥{{ wallet ? formatNumber(wallet.balance) : '0.00' }}</div>
+                                    <el-row :gutter="10">
+                                        <el-col :span="12">
+                                            <el-button type="primary" style="width: 100%;" @click="showRechargeDialog">充值</el-button>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-button type="success" style="width: 100%;" @click="currentPage='order'">消费记录</el-button>
+                                        </el-col>
+                                    </el-row>
+                                </div>
+                                <el-divider></el-divider>
+                                <div style="font-size: 14px; margin-bottom: 10px;">
+                                    <span style="color: #666;">累计充值: </span>
+                                    <span style="font-weight: bold;">¥{{ wallet ? formatNumber(wallet.total_recharge) : '0.00' }}</span>
+                                </div>
+                                <div style="font-size: 14px;">
+                                    <span style="color: #666;">累计消费: </span>
+                                    <span style="font-weight: bold;">¥{{ wallet ? formatNumber(wallet.total_consume) : '0.00' }}</span>
+                                </div>
+                            </el-card>
+                            <el-card style="margin-top: 20px;">
+                                <div slot="header">我的套餐</div>
+                                <div v-for="userPkg in userPackages" :key="userPkg.id" style="padding: 15px 0; border-bottom: 1px solid #eee;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <strong>{{ userPkg.package_name }}</strong>
+                                        <el-tag type="success" size="mini">有效</el-tag>
+                                    </div>
+                                    <div style="font-size: 12px; color: #666;">
+                                        <p v-if="userPkg.package_type === 1">剩余次数: <strong>{{ userPkg.remaining_times }}</strong> / {{ userPkg.total_times }}</p>
+                                        <p v-else>不限次数</p>
+                                        <p>有效期: {{ userPkg.start_time }} ~ {{ userPkg.end_time }}</p>
+                                    </div>
+                                </div>
+                                <div v-if="userPackages.length === 0" style="text-align: center; padding: 30px; color: #999;">
+                                    暂无有效套餐
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                    <el-card style="margin-top: 20px;">
+                        <div slot="header">交易流水</div>
+                        <el-table :data="transactions" border>
+                            <el-table-column prop="trans_no" label="流水号" width="180"></el-table-column>
+                            <el-table-column prop="type" label="类型" width="80">
+                                <template slot-scope="scope">
+                                    <el-tag v-if="scope.row.type === 1" type="success" size="mini">充值</el-tag>
+                                    <el-tag v-else-if="scope.row.type === 2" type="danger" size="mini">消费</el-tag>
+                                    <el-tag v-else type="warning" size="mini">退款</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="amount" label="金额" width="100">
+                                <template slot-scope="scope">
+                                    <span v-if="scope.row.type === 1" style="color: #67c23a;">+¥{{ formatNumber(scope.row.amount) }}</span>
+                                    <span v-else style="color: #f56c6c;">-¥{{ formatNumber(scope.row.amount) }}</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="balance_before" label="变动前" width="100">
+                                <template slot-scope="scope">¥{{ formatNumber(scope.row.balance_before) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="balance_after" label="变动后" width="100">
+                                <template slot-scope="scope">¥{{ formatNumber(scope.row.balance_after) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="remark" label="备注" show-overflow-tooltip></el-table-column>
+                            <el-table-column prop="created_at" label="时间" width="160"></el-table-column>
+                        </el-table>
+                    </el-card>
+                </div>
+
+                <div v-if="currentPage === 'alert'" v-loading="loading">
+                    <el-row :gutter="20" style="margin-bottom: 20px;">
+                        <el-col :span="4">
+                            <div class="stat-card card-bg-1" style="margin: 0;">
+                                <div class="number">{{ alertStats ? alertStats.TotalCount : 0 }}</div>
+                                <div class="label">告警总数</div>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="stat-card card-bg-2" style="margin: 0;">
+                                <div class="number">{{ alertStats ? alertStats.PendingCount : 0 }}</div>
+                                <div class="label">待处理</div>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="stat-card card-bg-3" style="margin: 0;">
+                                <div class="number">{{ alertStats ? alertStats.ProcessingCount : 0 }}</div>
+                                <div class="label">处理中</div>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="stat-card card-bg-4" style="margin: 0;">
+                                <div class="number">{{ alertStats ? alertStats.ResolvedCount : 0 }}</div>
+                                <div class="label">已处理</div>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="stat-card card-bg-5" style="margin: 0;">
+                                <div class="number">{{ alertStats ? alertStats.UrgentCount : 0 }}</div>
+                                <div class="label">紧急告警</div>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="stat-card card-bg-6" style="margin: 0;">
+                                <div class="number">{{ alertStats ? alertStats.TodayCount : 0 }}</div>
+                                <div class="label">今日新增</div>
+                            </div>
+                        </el-col>
+                    </el-row>
+                    <el-card>
+                        <div slot="header">告警列表</div>
+                        <el-form :inline="true" style="margin-bottom: 20px;">
+                            <el-form-item label="类型">
+                                <el-select v-model="alertFilter.type" placeholder="全部" clearable>
+                                    <el-option label="电池异常" :value="1"></el-option>
+                                    <el-option label="换电柜异常" :value="2"></el-option>
+                                    <el-option label="电量不足" :value="3"></el-option>
+                                    <el-option label="温度异常" :value="4"></el-option>
+                                    <el-option label="其他" :value="5"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="级别">
+                                <el-select v-model="alertFilter.level" placeholder="全部" clearable>
+                                    <el-option label="紧急" :value="1"></el-option>
+                                    <el-option label="重要" :value="2"></el-option>
+                                    <el-option label="一般" :value="3"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="状态">
+                                <el-select v-model="alertFilter.status" placeholder="全部" clearable>
+                                    <el-option label="未处理" :value="1"></el-option>
+                                    <el-option label="处理中" :value="2"></el-option>
+                                    <el-option label="已处理" :value="3"></el-option>
+                                    <el-option label="已忽略" :value="4"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="loadAlerts">查询</el-button>
+                            </el-form-item>
+                        </el-form>
+                        <el-table :data="alerts" border>
+                            <el-table-column prop="alert_no" label="告警编号" width="160"></el-table-column>
+                            <el-table-column prop="type" label="类型" width="100">
+                                <template slot-scope="scope">
+                                    <el-tag v-if="scope.row.type === 1" type="danger" size="mini">电池异常</el-tag>
+                                    <el-tag v-else-if="scope.row.type === 2" type="warning" size="mini">换电柜异常</el-tag>
+                                    <el-tag v-else-if="scope.row.type === 3" type="info" size="mini">电量不足</el-tag>
+                                    <el-tag v-else-if="scope.row.type === 4" type="danger" size="mini">温度异常</el-tag>
+                                    <el-tag v-else type="info" size="mini">其他</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="level" label="级别" width="80">
+                                <template slot-scope="scope">
+                                    <span v-if="scope.row.level === 1" class="alert-badge alert-urgent">紧急</span>
+                                    <span v-else-if="scope.row.level === 2" class="alert-badge alert-important">重要</span>
+                                    <span v-else class="alert-badge alert-normal">一般</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="title" label="标题" show-overflow-tooltip></el-table-column>
+                            <el-table-column prop="cabinet_name" label="换电柜" width="150" show-overflow-tooltip></el-table-column>
+                            <el-table-column prop="battery_no" label="电池编号" width="100"></el-table-column>
+                            <el-table-column prop="status" label="状态" width="90">
+                                <template slot-scope="scope">
+                                    <el-tag v-if="scope.row.status === 1" type="danger" size="mini">未处理</el-tag>
+                                    <el-tag v-else-if="scope.row.status === 2" type="warning" size="mini">处理中</el-tag>
+                                    <el-tag v-else-if="scope.row.status === 3" type="success" size="mini">已处理</el-tag>
+                                    <el-tag v-else type="info" size="mini">已忽略</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="handler_name" label="处理人" width="80"></el-table-column>
+                            <el-table-column prop="created_at" label="创建时间" width="160"></el-table-column>
+                            <el-table-column label="操作" width="120" fixed="right">
+                                <template slot-scope="scope">
+                                    <el-button v-if="scope.row.status === 1 || scope.row.status === 2" type="primary" size="mini" @click="handleAlert(scope.row)">处理</el-button>
+                                    <el-button type="text" size="mini" @click="showAlertDetail(scope.row)">详情</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <el-pagination
+                            style="margin-top: 20px; text-align: right;"
+                            @current-change="alertPageChange"
+                            @size-change="alertSizeChange"
+                            :current-page="alertPage"
+                            :page-sizes="[10, 20, 50]"
+                            :page-size="alertPageSize"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="alertTotal">
+                        </el-pagination>
+                    </el-card>
+                </div>
+            </el-main>
+        </el-container>
+    </el-container>
+
+    <el-dialog title="换电柜详情" :visible.sync="cabinetDetailVisible" width="800px">
+        <div v-if="currentCabinet">
+            <el-descriptions :column="2" border>
+                <el-descriptions-item label="换电柜编号">{{ currentCabinet.cabinet_no }}</el-descriptions-item>
+                <el-descriptions-item label="状态">
+                    <el-tag v-if="currentCabinet.status === 1" type="success">正常</el-tag>
+                    <el-tag v-else-if="currentCabinet.status === 2" type="info">维护中</el-tag>
+                    <el-tag v-else type="danger">离线</el-tag>
+                </el-descriptions-item>
+                <el-descriptions-item label="名称">{{ currentCabinet.name }}</el-descriptions-item>
+                <el-descriptions-item label="地址">{{ currentCabinet.address }}</el-descriptions-item>
+                <el-descriptions-item label="总槽位数">{{ currentCabinet.total_slots }}</el-descriptions-item>
+                <el-descriptions-item label="空槽位数">{{ currentCabinet.empty_slots }}</el-descriptions-item>
+                <el-descriptions-item label="满电电池">{{ currentCabinet.full_batteries }}</el-descriptions-item>
+                <el-descriptions-item label="低电量电池">{{ currentCabinet.low_batteries }}</el-descriptions-item>
+            </el-descriptions>
+            <h4 style="margin: 20px 0 10px;">槽位状态</h4>
+            <div class="slot-grid">
+                <div v-for="slot in cabinetSlots" :key="slot.id" class="slot-item"
+                     :class="getSlotClass(slot)"
+                     @click="showSlotDetail(slot)">
+                    {{ slot.slot_no }}
+                </div>
+            </div>
+            <h4 style="margin: 20px 0 10px;">电池列表</h4>
+            <el-table :data="cabinetBatteries" size="small">
+                <el-table-column prop="battery_no" label="电池编号"></el-table-column>
+                <el-table-column prop="current_soc" label="电量">
+                    <template slot-scope="scope">
+                        <div style="display: flex; align-items: center;">
+                            <div style="flex: 1; margin-right: 10px;">
+                                <div class="soc-bar">
+                                    <div class="soc-bar-inner" :class="{
+                                        'soc-high': scope.row.current_soc >= 80,
+                                        'soc-medium': scope.row.current_soc >= 30 && scope.row.current_soc < 80,
+                                        'soc-low': scope.row.current_soc < 30
+                                    }" :style="{width: scope.row.current_soc + '%'}"></div>
+                                </div>
+                            </div>
+                            <span>{{ scope.row.current_soc }}%</span>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="health_status" label="健康度" width="80">
+                    <template slot-scope="scope">{{ scope.row.health_status }}%</template>
+                </el-table-column>
+                <el-table-column prop="status" label="状态" width="80">
+                    <template slot-scope="scope">
+                        <el-tag v-if="scope.row.status === 1" type="success" size="mini">可用</el-tag>
+                        <el-tag v-else-if="scope.row.status === 3" type="warning" size="mini">充电中</el-tag>
+                        <el-tag v-else type="danger" size="mini">异常</el-tag>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="电池详情" :visible.sync="batteryDetailVisible" width="600px">
+        <div v-if="currentBattery">
+            <el-descriptions :column="2" border>
+                <el-descriptions-item label="电池编号">{{ currentBattery.battery_no }}</el-descriptions-item>
+                <el-descriptions-item label="型号">{{ currentBattery.model }}</el-descriptions-item>
+                <el-descriptions-item label="容量">{{ currentBattery.capacity }} Ah</el-descriptions-item>
+                <el-descriptions-item label="电压">{{ currentBattery.voltage }} V</el-descriptions-item>
+                <el-descriptions-item label="当前电量">{{ currentBattery.current_soc }}%</el-descriptions-item>
+                <el-descriptions-item label="健康度">{{ currentBattery.health_status }}%</el-descriptions-item>
+                <el-descriptions-item label="循环次数">{{ currentBattery.cycle_count }}</el-descriptions-item>
+                <el-descriptions-item label="状态">
+                    <el-tag v-if="currentBattery.status === 1" type="success" size="mini">可用</el-tag>
+                    <el-tag v-else-if="currentBattery.status === 2" type="primary" size="mini">使用中</el-tag>
+                    <el-tag v-else-if="currentBattery.status === 3" type="warning" size="mini">充电中</el-tag>
+                    <el-tag v-else-if="currentBattery.status === 4" type="danger" size="mini">异常</el-tag>
+                    <el-tag v-else type="info" size="mini">下线</el-tag>
+                </el-descriptions-item>
+            </el-descriptions>
+            <div v-if="currentBattery.status !== 5" style="margin-top: 20px;">
+                <el-button type="danger" @click="offlineBattery">下线电池</el-button>
+            </div>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="分配任务" :visible.sync="assignTaskVisible" width="400px">
+        <el-form label-width="80px">
+            <el-form-item label="运维人员">
+                <el-select v-model="assignForm.operator_id" placeholder="请选择" style="width: 100%;">
+                    <el-option v-for="op in operators" :key="op.id" :label="op.name" :value="op.id"></el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <div slot="footer">
+            <el-button @click="assignTaskVisible = false">取消</el-button>
+            <el-button type="primary" @click="confirmAssign">确认分配</el-button>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="完成任务" :visible.sync="completeTaskVisible" width="400px">
+        <el-form label-width="80px">
+            <el-form-item label="电池ID列表">
+                <el-input type="textarea" v-model="completeForm.battery_ids" placeholder="请输入电池ID，多个用逗号分隔" rows="4"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer">
+            <el-button @click="completeTaskVisible = false">取消</el-button>
+            <el-button type="primary" @click="confirmComplete">确认完成</el-button>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="处理告警" :visible.sync="handleAlertVisible" width="500px">
+        <el-form label-width="80px">
+            <el-form-item label="处理状态">
+                <el-radio-group v-model="handleAlertForm.status">
+                    <el-radio :label="3">已处理</el-radio>
+                    <el-radio :label="4">已忽略</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="处理结果">
+                <el-input type="textarea" v-model="handleAlertForm.handle_result" placeholder="请输入处理结果" rows="4"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer">
+            <el-button @click="handleAlertVisible = false">取消</el-button>
+            <el-button type="primary" @click="confirmHandleAlert">确认提交</el-button>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="充值" :visible.sync="rechargeVisible" width="400px">
+        <el-form label-width="80px">
+            <el-form-item label="充值金额">
+                <el-input-number v-model="rechargeForm.amount" :min="1" :step="10" style="width: 100%;"></el-input-number>
+            </el-form-item>
+            <el-form-item label="支付方式">
+                <el-radio-group v-model="rechargeForm.pay_type">
+                    <el-radio :label="1">微信</el-radio>
+                    <el-radio :label="2">支付宝</el-radio>
+                </el-radio-group>
+            </el-form-item>
+        </el-form>
+        <div slot="footer">
+            <el-button @click="rechargeVisible = false">取消</el-button>
+            <el-button type="primary" @click="confirmRecharge">确认充值</el-button>
+        </div>
+    </el-dialog>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
