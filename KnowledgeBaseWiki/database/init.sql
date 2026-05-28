@@ -141,11 +141,11 @@ INSERT INTO space_members (space_id, user_id, role) VALUES
 (2, 1, 'owner'),
 (2, 2, 'viewer');
 
-INSERT INTO documents (space_id, parent_id, title, content, path, depth, sort_order, creator_id, is_folder, status) VALUES
-(1, NULL, '快速开始', '## 欢迎使用知识库\n\n这是一个功能强大的团队知识库系统。', '/快速开始', 0, 1, 1, 0, 1),
-(1, NULL, '团队规范', '## 团队规范目录', '/团队规范', 0, 2, 1, 1, 1),
-(1, 2, '代码规范', '## Java代码规范\n\n1. 使用驼峰命名法\n2. 类名首字母大写', '/团队规范/代码规范', 1, 1, 1, 0, 1),
-(1, 2, '文档规范', '## 文档编写规范\n\n1. 使用Markdown格式\n2. 标题层级清晰', '/团队规范/文档规范', 1, 2, 1, 0, 1);
+INSERT INTO documents (space_id, parent_id, title, content, path, depth, sort_order, creator_id, last_editor_id, is_folder, status) VALUES
+(1, NULL, '快速开始', '## 欢迎使用知识库\n\n这是一个功能强大的团队知识库系统。', '/快速开始', 0, 1, 1, 1, 0, 1),
+(1, NULL, '团队规范', '## 团队规范目录', '/团队规范', 0, 2, 1, 1, 1, 1),
+(1, 2, '代码规范', '## Java代码规范\n\n1. 使用驼峰命名法\n2. 类名首字母大写', '/团队规范/代码规范', 1, 1, 1, 1, 0, 1),
+(1, 2, '文档规范', '## 文档编写规范\n\n1. 使用Markdown格式\n2. 标题层级清晰', '/团队规范/文档规范', 1, 2, 1, 1, 0, 1);
 
 INSERT INTO document_versions (document_id, version, title, content, content_html, editor_id, edit_summary) VALUES
 (1, 1, '快速开始', '## 欢迎使用知识库\n\n这是一个功能强大的团队知识库系统。', '<h2>欢迎使用知识库</h2><p>这是一个功能强大的团队知识库系统。</p>', 1, '初始版本'),

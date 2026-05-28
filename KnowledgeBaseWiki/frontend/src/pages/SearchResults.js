@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { List, Empty, Spin, Tag, message, Input } from 'antd';
 import { FileTextOutlined, SearchOutlined } from '@ant-design/icons';
-import { marked } from 'marked';
 import { documentApi } from '../services/api';
 
 const SearchResults = () => {
@@ -12,16 +11,7 @@ const SearchResults = () => {
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const kw = params.get('keyword') || '';
-    setKeyword(kw);
-    if (kw) {
-      doSearch(kw);
-    }
-  }, [location.search]);
-
-  const doSearch = async (kw) => {
+  const doSearch = useCallback(async (kw) => {
     setLoading(true);
     try {
       const res = await documentApi.search(kw);
@@ -33,7 +23,16 @@ const SearchResults = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const kw = params.get('keyword') || '';
+    setKeyword(kw);
+    if (kw) {
+      doSearch(kw);
+    }
+  }, [location.search, doSearch]);
 
   const highlightKeyword = (text, keyword) => {
     if (!text || !keyword) return text;
@@ -43,7 +42,7 @@ const SearchResults = () => {
 
   const getPreviewText = (content) => {
     if (!content) return '';
-    const plainText = content.replace(/[#*`_\[\]()]/g, '');
+    const plainText = content.replace(/[#*`_[\]()]/g, '');
     return plainText.substring(0, 200) + (plainText.length > 200 ? '...' : '');
   };
 

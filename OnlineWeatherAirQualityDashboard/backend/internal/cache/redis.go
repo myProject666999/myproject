@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"air-quality-dashboard/internal/config"
@@ -27,7 +28,9 @@ func New(cfg *config.Config) *RedisCache {
 	ctx := context.Background()
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		panic(err)
+		fmt.Printf("Warning: Failed to connect to Redis: %v\n", err)
+		fmt.Println("Running without Redis cache...")
+		return nil
 	}
 
 	Cache = &RedisCache{
@@ -35,6 +38,7 @@ func New(cfg *config.Config) *RedisCache {
 		ctx:    ctx,
 	}
 
+	fmt.Println("Redis connected successfully")
 	return Cache
 }
 

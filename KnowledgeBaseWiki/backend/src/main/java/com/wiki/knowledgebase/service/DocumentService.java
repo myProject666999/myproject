@@ -73,18 +73,22 @@ public class DocumentService {
     public Document updateDocument(Long id, Document document, Long userId, String editSummary) {
         Document existing = documentRepository.findByIdAndStatus(id, 1)
                 .orElseThrow(() -> new RuntimeException("文档不存在"));
-        
+
         int newVersion = existing.getVersion() + 1;
-        
-        DocumentVersion oldVersion = new DocumentVersion();
-        oldVersion.setDocumentId(id);
-        oldVersion.setVersion(existing.getVersion());
-        oldVersion.setTitle(existing.getTitle());
-        oldVersion.setContent(existing.getContent());
-        oldVersion.setContentHtml(existing.getContentHtml());
-        oldVersion.setEditorId(existing.getLastEditorId());
-        oldVersion.setEditSummary("保存历史版本");
-        documentVersionRepository.save(oldVersion);
+
+        Optional<DocumentVersion> existingVersion = documentVersionRepository
+                .findByDocumentIdAndVersion(id, existing.getVersion());
+        if (existingVersion.isEmpty()) {
+            DocumentVersion oldVersion = new DocumentVersion();
+            oldVersion.setDocumentId(id);
+            oldVersion.setVersion(existing.getVersion());
+            oldVersion.setTitle(existing.getTitle());
+            oldVersion.setContent(existing.getContent());
+            oldVersion.setContentHtml(existing.getContentHtml());
+            oldVersion.setEditorId(existing.getLastEditorId() != null ? existing.getLastEditorId() : existing.getCreatorId());
+            oldVersion.setEditSummary("保存历史版本");
+            documentVersionRepository.save(oldVersion);
+        }
         
         existing.setTitle(document.getTitle());
         existing.setContent(document.getContent());

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { List, Button, Empty, Spin, message, Tag, Modal } from 'antd';
 import {
@@ -15,11 +15,7 @@ const RecycleBin = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadRecycled();
-  }, [spaceId]);
-
-  const loadRecycled = async () => {
+  const loadRecycled = useCallback(async () => {
     setLoading(true);
     try {
       const res = await documentApi.getRecycled(spaceId);
@@ -31,7 +27,11 @@ const RecycleBin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [spaceId]);
+
+  useEffect(() => {
+    loadRecycled();
+  }, [spaceId, loadRecycled]);
 
   const handleRestore = (id) => {
     Modal.confirm({

@@ -27,8 +27,10 @@ func main() {
 	database.Connect(cfg)
 	defer database.Close()
 
-	cache.New(cfg)
-	defer cache.Cache.Close()
+	redisCache := cache.New(cfg)
+	if redisCache != nil {
+		defer redisCache.Close()
+	}
 
 	app := fiber.New(fiber.Config{
 		AppName: "Air Quality Dashboard API",

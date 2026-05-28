@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Space, Input, message, Spin, Modal, Form, Input as AntInput } from 'antd';
 import {
@@ -23,13 +23,7 @@ const DocumentEdit = () => {
   const [showPreview, setShowPreview] = useState(true);
   const [summaryModalVisible, setSummaryModalVisible] = useState(false);
 
-  useEffect(() => {
-    if (docId) {
-      loadDocument();
-    }
-  }, [docId]);
-
-  const loadDocument = async () => {
+  const loadDocument = useCallback(async () => {
     setLoading(true);
     try {
       const res = await documentApi.getDocument(docId);
@@ -43,7 +37,13 @@ const DocumentEdit = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [docId]);
+
+  useEffect(() => {
+    if (docId) {
+      loadDocument();
+    }
+  }, [docId, loadDocument]);
 
   const handleSave = (editSummary = '') => {
     setSaving(true);

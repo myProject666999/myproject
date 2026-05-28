@@ -1,0 +1,51 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: online-training-attendance
+  datasource:
+    url: jdbc:sqlite:./data/training.db
+    username: admin
+    password: 123456
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+  sql:
+    init:
+      mode: never
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+logging:
+  level:
+    com.training: debug
+    org.springframework.web: info
+
+app:
+  certificate:
+    upload-path: ./certificates/
+    template-path: ./templates/
+  qrcode:
+    expire-minutes: 5

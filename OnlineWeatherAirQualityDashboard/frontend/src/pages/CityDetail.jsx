@@ -15,9 +15,9 @@ import {
 import {
   EnvironmentOutlined,
   ArrowLeftOutlined,
-  ThermometerOutlined,
-  DropboxOutlined,
-  ThunderboltOutlined,
+  FireOutlined,
+  CloudOutlined,
+  ThunderboltFilled,
 } from '@ant-design/icons'
 import {
   cityAPI,
@@ -130,17 +130,17 @@ function CityDetail() {
             {latestAQI && (
               <Descriptions column={1} size="small">
                 <Descriptions.Item label={
-                  <Space><ThermometerOutlined />温度</Space>
+                  <Space><FireOutlined />温度</Space>
                 }>
                   {latestAQI.temperature?.toFixed(1)}°C
                 </Descriptions.Item>
                 <Descriptions.Item label={
-                  <Space><DropboxOutlined />湿度</Space>
+                  <Space><CloudOutlined />湿度</Space>
                 }>
                   {latestAQI.humidity?.toFixed(0)}%
                 </Descriptions.Item>
                 <Descriptions.Item label={
-                  <Space><ThunderboltOutlined />风向/风速</Space>
+                  <Space><ThunderboltFilled />风向/风速</Space>
                 }>
                   {latestAQI.wind_direction} {latestAQI.wind_speed?.toFixed(1)} m/s
                 </Descriptions.Item>

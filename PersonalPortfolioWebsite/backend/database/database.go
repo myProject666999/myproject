@@ -4,6 +4,7 @@ import (
 	"portfolio/config"
 	"portfolio/models"
 
+	_ "modernc.org/sqlite"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -13,7 +14,10 @@ var DB *gorm.DB
 
 func Init() error {
 	var err error
-	DB, err = gorm.Open(sqlite.Open("portfolio.db"), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Dialector{
+		DriverName: "sqlite",
+		DSN:        "portfolio.db",
+	}, &gorm.Config{})
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,7 @@
         <van-cell-group inset>
           <van-field
             v-model="form.phone"
+            name="phone"
             type="tel"
             label="手机号"
             placeholder="请输入手机号"
@@ -26,6 +27,7 @@
           />
           <van-field
             v-model="form.password"
+            name="password"
             type="password"
             label="密码"
             placeholder="请输入密码"
@@ -70,10 +72,10 @@ const form = ref({
   password: ''
 })
 
-const onSubmit = async (values) => {
+const onSubmit = async () => {
   try {
     loading.value = true
-    await userStore.login(values)
+    await userStore.login(form.value)
     showToast('登录成功')
     router.replace('/')
   } catch (err) {

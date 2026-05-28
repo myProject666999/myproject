@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Space, message, Spin, Empty, Breadcrumb, Tooltip, Tag, Modal } from 'antd';
 import {
@@ -17,13 +17,7 @@ const DocumentView = () => {
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (docId) {
-      loadDocument();
-    }
-  }, [docId]);
-
-  const loadDocument = async () => {
+  const loadDocument = useCallback(async () => {
     setLoading(true);
     try {
       const res = await documentApi.getDocument(docId);
@@ -35,7 +29,13 @@ const DocumentView = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [docId]);
+
+  useEffect(() => {
+    if (docId) {
+      loadDocument();
+    }
+  }, [docId, loadDocument]);
 
   const handleEdit = () => {
     navigate(`/space/${spaceId}/edit/${docId}`);

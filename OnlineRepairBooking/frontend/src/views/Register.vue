@@ -12,6 +12,7 @@
         <van-cell-group inset>
           <van-field
             v-model="form.phone"
+            name="phone"
             type="tel"
             label="手机号"
             placeholder="请输入手机号"
@@ -23,6 +24,7 @@
           />
           <van-field
             v-model="form.username"
+            name="username"
             label="用户名"
             placeholder="请输入用户名"
             :rules="[
@@ -32,6 +34,7 @@
           />
           <van-field
             v-model="form.password"
+            name="password"
             type="password"
             label="密码"
             placeholder="请输入密码"
@@ -42,6 +45,7 @@
           />
           <van-field
             v-model="form.confirmPassword"
+            name="confirmPassword"
             type="password"
             label="确认密码"
             placeholder="请再次输入密码"
@@ -95,10 +99,10 @@ const validateConfirmPassword = (value) => {
   return value === form.value.password
 }
 
-const onSubmit = async (values) => {
+const onSubmit = async () => {
   try {
     loading.value = true
-    const { confirmPassword, ...registerData } = values
+    const { confirmPassword, ...registerData } = form.value
     await userStore.register(registerData)
     showToast('注册成功，请登录')
     router.replace('/login')

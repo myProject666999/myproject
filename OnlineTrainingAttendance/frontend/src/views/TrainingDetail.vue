@@ -124,7 +124,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { VideoPlay, Medal, DataLine } from '@element-plus/icons-vue'
 import QRCode from 'qrcode'
-import { getTrainingById, generateTrainingQrcode } from '@/api/training'
+import { getTrainingById, generateTrainingQrcode, batchGenerateCertificates, exportAttendanceReport } from '@/api/training'
 import { getAttendanceStatistics } from '@/api/attendance'
 
 const route = useRoute()
@@ -191,12 +191,37 @@ const goCheckin = () => {
   router.push(`/home/training/${trainingId.value}/checkin`)
 }
 
-const generateCertificates = () => {
-  ElMessage.info('批量生成证书功能开发中')
+const generateCertificates = async () => {
+  try {
+    const res = await batchGenerateCertificates(trainingId.value)
+    const data = res.data || {}
+    const msg = `批量生成完成：成功生成 ${data.generatedCount || 0} 份证书，跳过 ${data.skippedCount || 0} 人`
+    if (data.skippedCount > 0) {
+      ElMessage.warning(msg + '；跳过原因：' + (data.skipped || []).join('；'))
+    } else {
+      ElMessage.success(msg)
+    }
+    loadStats()
+  } catch (e) {
+    ElMessage.error('批量生成失败')
+  }
 }
 
-const exportReport = () => {
-  ElMessage.info('导出报表功能开发中')
+const exportReport = async () => {
+  try {
+    const blob = await exportAttendanceReport(trainingId.value)
+    const url = window.URL.createObjectURL(new Blob([blob]))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `签到报表_${trainingId.value}_${Date.now()}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  } catch (e) {
+    ElMessage.error('导出失败')
+  }
 }
 
 const goBack = () => {

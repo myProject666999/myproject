@@ -31,6 +31,10 @@ import java.util.stream.Collectors;
 public class TrainingService {
 
     private final TrainingRepository trainingRepository;
+    private final StudentRepository studentRepository;
+    private final AttendanceRepository attendanceRepository;
+    private final CertificateRepository certificateRepository;
+    private final CertificateService certificateService;
 
     public Result<Training> add(Training training) {
         LocalDateTime now = LocalDateTime.now();
@@ -136,5 +140,96 @@ public class TrainingService {
         } catch (Exception e) {
             return Result.fail("二维码生成失败: " + e.getMessage());
         }
+    }
+
+    public Result<Map<String, Object>> batchGenerateCertificates(Long trainingId) {
+        Optional<Training> trainingOpt = trainingRepository.findById(trainingId);
+        if (!trainingOpt.isPresent()) {
+            return Result.fail(ResultCode.TRAINING_NOT_FOUND);
+        }
+        Training training = trainingOpt.get();
+        List<Student> students = studentRepository.findAll();
+        List<Attendance> attendances = attendanceRepository.findByTrainingId(trainingId);
+        Map<Long, List<Attendance>> attendanceMap = attendances.stream()
+                .collect(Collectors.groupingBy(Attendance::getStudentId));
+        Set<Long> existingCerts = certificateRepository.findByTrainingId(trainingId)
+                .stream().map(Certificate::getStudentId).collect(Collectors.toSet());
+        List<Certificate> generated = new ArrayList<>();
+        List<String> skipped = new ArrayList<>();
+        double minRate = training.getMinAttendanceRate() == null ? 80.0 : training.getMinAttendanceRate().doubleValue();
+        for (Student student : students) {
+            if (existingCerts.contains(student.getId())) {
+                skipped.add(student.getName() + "（已存在证书）");
+                continue;
+            }
+            List<Attendance> studentAttendance = attendanceMap.getOrDefault(student.getId(), new ArrayList<>());
+            long totalSessions = 1;
+            double rate = totalSessions > 0 ? (studentAttendance.size() * 100.0 / totalSessions) : 0;
+            if (rate < minRate) {
+                skipped.add(student.getName() + String.format("（出勤率%.1f%%，未达到%.0f%%）", rate, minRate));
+                continue;
+            }
+            Certificate cert = new Certificate();
+            cert.setTrainingId(trainingId);
+            cert.setStudentId(student.getId());
+            cert.setStudentName(student.getName());
+            cert.setTrainingName(training.getName());
+            cert.setInstructor(training.getInstructor());
+            cert.setIssueDate(LocalDate.now());
+            Result<Certificate> result = certificateService.issue(cert);
+            if (result.getCode() == 200 && result.getData() != null) {
+                generated.add(result.getData());
+            } else {
+                skipped.add(student.getName() + "（" + result.getMessage() + "）");
+            }
+        }
+        Map<String, Object> res = new HashMap<>();
+        res.put("generated", generated);
+        res.put("generatedCount", generated.size());
+        res.put("skipped", skipped);
+        res.put("skippedCount", skipped.size());
+        res.put("totalCount", students.size());
+        return Result.success(res);
+    }
+
+    public Result<List<Map<String, Object>>> getAttendanceReport(Long trainingId) {
+        Optional<Training> trainingOpt = trainingRepository.findById(trainingId);
+        if (!trainingOpt.isPresent()) {
+            return Result.fail(ResultCode.TRAINING_NOT_FOUND);
+        }
+        Training training = trainingOpt.get();
+        List<Student> students = studentRepository.findAll();
+        List<Attendance> attendances = attendanceRepository.findByTrainingId(trainingId);
+        Map<Long, List<Attendance>> attendanceMap = attendances.stream()
+                .collect(Collectors.groupingBy(Attendance::getStudentId));
+        List<Map<String, Object>> report = new ArrayList<>();
+        int index = 1;
+        for (Student student : students) {
+            List<Attendance> studentAttendance = attendanceMap.getOrDefault(student.getId(), new ArrayList<>());
+            Map<String, Object> row = new HashMap<>();
+            row.put("index", index++);
+            row.put("studentId", student.getId());
+            row.put("studentName", student.getName());
+            row.put("idCard", student.getIdCard());
+            row.put("phone", student.getPhone());
+            row.put("checkinCount", studentAttendance.size());
+            row.put("totalSessions", 1);
+            double rate = studentAttendance.size() * 100.0;
+            row.put("attendanceRate", String.format("%.1f%%", rate));
+            double minRate = training.getMinAttendanceRate() == null ? 80.0 : training.getMinAttendanceRate().doubleValue();
+            row.put("isPassed", rate >= minRate);
+            if (!studentAttendance.isEmpty()) {
+                Attendance last = studentAttendance.get(studentAttendance.size() - 1);
+                row.put("lastCheckinTime", last.getCheckInTime());
+                row.put("checkinType", last.getCheckInType() == 1 ? "二维码签到" : "手动签到");
+                row.put("ipAddress", last.getIpAddress());
+            } else {
+                row.put("lastCheckinTime", "-");
+                row.put("checkinType", "-");
+                row.put("ipAddress", "-");
+            }
+            report.add(row);
+        }
+        return Result.success(report);
     }
 }

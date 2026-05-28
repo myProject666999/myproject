@@ -10,12 +10,14 @@
       <van-cell-group inset>
         <van-field
           v-model="form.name"
+          name="name"
           label="收货人"
           placeholder="请输入收货人姓名"
           :rules="[{ required: true, message: '请输入收货人姓名' }]"
         />
         <van-field
           v-model="form.phone"
+          name="phone"
           label="手机号"
           placeholder="请输入手机号"
           type="tel"
@@ -26,6 +28,7 @@
         />
         <van-field
           v-model="regionText"
+          name="region"
           label="所在地区"
           placeholder="请选择省/市/区"
           readonly
@@ -35,6 +38,7 @@
         />
         <van-field
           v-model="form.detail"
+          name="detail"
           label="详细地址"
           placeholder="请输入详细地址"
           type="textarea"
@@ -124,10 +128,10 @@ const loadAddressDetail = async () => {
   }
 }
 
-const onAreaConfirm = (values) => {
-  form.province = values[0]?.name || ''
-  form.city = values[1]?.name || ''
-  form.district = values[2]?.name || ''
+const onAreaConfirm = ({ selectedOptions }) => {
+  form.province = selectedOptions[0]?.name || ''
+  form.city = selectedOptions[1]?.name || ''
+  form.district = selectedOptions[2]?.name || ''
   regionText.value = `${form.province}${form.city}${form.district}`
   showArea.value = false
 }

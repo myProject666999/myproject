@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Tree, Button, message, Dropdown, Modal, Input, Form, Select } from 'antd';
 import {
   PlusOutlined,
   FolderOutlined,
   FileTextOutlined,
-  FolderOpenOutlined,
   MoreOutlined,
-  EditOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -20,27 +18,6 @@ const DocumentTree = ({ spaceId }) => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
   const [form] = Form.useForm();
-
-  useEffect(() => {
-    if (spaceId) {
-      loadTree();
-    }
-  }, [spaceId]);
-
-  const loadTree = async () => {
-    setLoading(true);
-    try {
-      const res = await documentApi.getTree(spaceId);
-      if (res.data.code === 200) {
-        const tree = buildTree(res.data.data);
-        setTreeData(tree);
-      }
-    } catch (error) {
-      message.error('加载文档树失败');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const buildTree = (documents) => {
     const map = {};
@@ -60,6 +37,27 @@ const DocumentTree = ({ spaceId }) => {
 
     return roots;
   };
+
+  const loadTree = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await documentApi.getTree(spaceId);
+      if (res.data.code === 200) {
+        const tree = buildTree(res.data.data);
+        setTreeData(tree);
+      }
+    } catch (error) {
+      message.error('加载文档树失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [spaceId]);
+
+  useEffect(() => {
+    if (spaceId) {
+      loadTree();
+    }
+  }, [spaceId, loadTree]);
 
   const handleSelect = (selectedKeys) => {
     if (selectedKeys.length > 0) {
@@ -138,10 +136,6 @@ const DocumentTree = ({ spaceId }) => {
         </Dropdown>
       </div>
     );
-  };
-
-  const switcherIcon = ({ expanded }) => {
-    return expanded ? <FolderOpenOutlined /> : <FolderOutlined />;
   };
 
   return (

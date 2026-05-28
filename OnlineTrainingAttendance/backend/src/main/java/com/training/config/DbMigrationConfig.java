@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+// @Component // 仅在MySQL下启用，H2会自动创建表
 public class DbMigrationConfig implements CommandLineRunner {
 
     @Autowired

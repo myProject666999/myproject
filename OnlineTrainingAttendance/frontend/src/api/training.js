@@ -65,3 +65,25 @@ export function generateTrainingQrcode(id) {
     method: 'post'
   })
 }
+
+export function batchGenerateCertificates(trainingId) {
+  return request({
+    url: `/training/${trainingId}/certificates/batch`,
+    method: 'post'
+  })
+}
+
+export function getAttendanceReport(trainingId) {
+  return request({
+    url: `/training/${trainingId}/attendance/report`,
+    method: 'get'
+  })
+}
+
+export function exportAttendanceReport(trainingId) {
+  return request({
+    url: `/training/${trainingId}/attendance/export`,
+    method: 'get',
+    responseType: 'blob'
+  })
+}

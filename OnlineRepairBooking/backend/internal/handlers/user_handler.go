@@ -32,8 +32,10 @@ type RegisterRequest struct {
 func (h *UserHandler) Register(c echo.Context) error {
 	req := new(RegisterRequest)
 	if err := c.Bind(req); err != nil {
+		log.Printf("Register Bind error: %v, body: %+v", err, c.Request().Body)
 		return response.BadRequest(c, "请求参数错误")
 	}
+	log.Printf("Register request: %+v", req)
 
 	if req.Phone == "" || req.Password == "" || req.Username == "" {
 		return response.BadRequest(c, "手机号、密码和用户名不能为空")

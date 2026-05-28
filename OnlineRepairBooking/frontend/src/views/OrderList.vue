@@ -44,17 +44,17 @@
           </div>
 
           <div class="order-actions flex-end mt-12" @click.stop>
-            <template v-if="order.status === 'pending'">
+            <template v-if="order.status === 0">
               <van-button size="small" type="default" @click="cancelOrder(order.id)">取消订单</van-button>
               <van-button size="small" type="primary" class="ml-8" @click="goToPay(order.id)">去支付</van-button>
             </template>
-            <template v-else-if="order.status === 'accepted' || order.status === 'in_service'">
+            <template v-else-if="order.status === 1 || order.status === 2">
               <van-button size="small" type="default" @click="contactWorker(order)">联系师傅</van-button>
             </template>
-            <template v-else-if="order.status === 'to_review'">
+            <template v-else-if="order.status === 3">
               <van-button size="small" type="primary" @click="goToReview(order.id)">去评价</van-button>
             </template>
-            <template v-else-if="order.status === 'completed'">
+            <template v-else-if="order.status === 4">
               <van-button size="small" type="default" @click="goToDetail(order.id)">查看详情</van-button>
               <van-button size="small" type="primary" class="ml-8" @click="rebook(order)">再次预约</van-button>
             </template>
@@ -95,28 +95,28 @@ const loading = ref(false)
 const refreshing = ref(false)
 const finished = ref(false)
 const page = ref(1)
-const pageSize = 10
+const pageSize = ref(10)
 
 const getStatusText = (status) => {
   const map = {
-    pending: '待支付',
-    accepted: '已接单',
-    in_service: '服务中',
-    to_review: '待评价',
-    completed: '已完成',
-    cancelled: '已取消'
+    0: '待支付',
+    1: '已接单',
+    2: '服务中',
+    3: '待评价',
+    4: '已完成',
+    5: '已取消'
   }
   return map[status] || status
 }
 
 const getStatusTagType = (status) => {
   const map = {
-    pending: 'warning',
-    accepted: 'primary',
-    in_service: 'primary',
-    to_review: 'warning',
-    completed: 'success',
-    cancelled: 'default'
+    0: 'warning',
+    1: 'primary',
+    2: 'primary',
+    3: 'warning',
+    4: 'success',
+    5: 'default'
   }
   return map[status] || 'default'
 }
@@ -148,12 +148,21 @@ const onLoad = () => {
 const fetchOrders = async () => {
   loading.value = true
   try {
+    const statusMap = {
+      pending: 0,
+      accepted: 1,
+      in_service: 2,
+      to_review: 3,
+      completed: 4,
+      cancelled: 5
+    }
+    
     const params = {
       page: page.value,
-      pageSize: pageSize.value
+      page_size: pageSize.value
     }
-    if (activeTab.value !== 'all') {
-      params.status = activeTab.value
+    if (activeTab.value !== 'all' && statusMap[activeTab.value] !== undefined) {
+      params.status = statusMap[activeTab.value]
     }
 
     const res = await getOrderList(params)
@@ -172,6 +181,7 @@ const fetchOrders = async () => {
     }
   } catch (e) {
     showToast('获取订单列表失败')
+    finished.value = true
   } finally {
     loading.value = false
   }
@@ -193,7 +203,7 @@ const cancelOrder = async (id) => {
     
     const index = orders.value.findIndex(o => o.id === id)
     if (index !== -1) {
-      orders.value[index].status = 'cancelled'
+      orders.value[index].status = 5
     }
   } catch (e) {
     if (e !== 'cancel') {
@@ -209,7 +219,7 @@ const goToPay = async (id) => {
       showToast('支付成功')
       const index = orders.value.findIndex(o => o.id === id)
       if (index !== -1) {
-        orders.value[index].status = 'accepted'
+        orders.value[index].status = 1
       }
     }
   } catch (e) {

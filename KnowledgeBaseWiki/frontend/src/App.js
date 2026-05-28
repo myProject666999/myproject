@@ -1,14 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
-import { Layout, Menu, Input, Button, Space, Dropdown, Avatar, message } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Layout, Input, Space, Dropdown, Avatar, message } from 'antd';
 import {
   BookOutlined,
   SearchOutlined,
-  PlusOutlined,
-  UserOutlined,
-  FolderOutlined,
-  FileTextOutlined,
-  DeleteOutlined
+  UserOutlined
 } from '@ant-design/icons';
 import DocumentTree from './components/DocumentTree';
 import HomePage from './pages/HomePage';
@@ -21,37 +17,40 @@ import { spaceApi } from './services/api';
 const { Header, Sider, Content } = Layout;
 
 function App() {
-  const { spaceId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [spaces, setSpaces] = useState([]);
-  const [currentSpace, setCurrentSpace] = useState(null);
+  const [currentSpaceId, setCurrentSpaceId] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [collapsed, setCollapsed] = useState(false);
 
-  useEffect(() => {
-    loadSpaces();
-  }, []);
-
-  useEffect(() => {
-    if (spaceId && spaces.length > 0) {
-      const space = spaces.find(s => s.id === parseInt(spaceId));
-      setCurrentSpace(space);
-    }
-  }, [spaceId, spaces]);
-
-  const loadSpaces = async () => {
+  const loadSpaces = useCallback(async () => {
     try {
       const res = await spaceApi.getMySpaces();
       if (res.data.code === 200) {
-        setSpaces(res.data.data);
-        if (res.data.data.length > 0 && !spaceId) {
-          navigate(`/space/${res.data.data[0].id}`);
+        const spaceList = res.data.data;
+        setSpaces(spaceList);
+        if (spaceList.length > 0 && location.pathname === '/') {
+          navigate(`/space/${spaceList[0].id}`);
         }
       }
     } catch (error) {
       message.error('加载空间列表失败');
     }
-  };
+  }, [navigate, location.pathname]);
+
+  useEffect(() => {
+    loadSpaces();
+  }, [loadSpaces]);
+
+  useEffect(() => {
+    const match = location.pathname.match(/\/space\/(\d+)/);
+    if (match) {
+      setCurrentSpaceId(parseInt(match[1]));
+    } else {
+      setCurrentSpaceId(null);
+    }
+  }, [location.pathname]);
 
   const handleSearch = (e) => {
     if (e.key === 'Enter' && searchKeyword.trim()) {
@@ -59,17 +58,11 @@ function App() {
     }
   };
 
-  const handleMenuClick = ({ key }) => {
-    if (key === 'recycle') {
-      navigate(`/space/${spaceId}/recycle`);
-    }
-  };
-
   return (
     <Layout className="app-layout">
       <Header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: '#1890ff' }}>
+          <div style={{ fontSize: 20, fontWeight: 600, color: '#1890ff', cursor: 'pointer' }} onClick={() => navigate('/')}>
             <BookOutlined /> 知识库Wiki
           </div>
           <Input
@@ -106,8 +99,8 @@ function App() {
           onCollapse={setCollapsed}
           theme="light"
         >
-          {!collapsed && currentSpace && (
-            <DocumentTree spaceId={currentSpace.id} />
+          {!collapsed && currentSpaceId && (
+            <DocumentTree spaceId={currentSpaceId} />
           )}
         </Sider>
         <Content className="main-content">
