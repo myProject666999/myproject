@@ -212,7 +212,8 @@ func AdjustReconciliation(c *gin.Context) {
 
 	reconciliation.Status = 3
 	reconciliation.AdjustmentRemark = req.AdjustmentRemark
-	reconciliation.ReconciledAt = time.Now()
+	now := time.Now()
+	reconciliation.ReconciledAt = &now
 
 	if err := dao.DB.Save(&reconciliation).Error; err != nil {
 		utils.Error(c, "调整对账记录失败: "+err.Error())
@@ -227,8 +228,10 @@ func RegisterReconciliationRoutes(r *gin.Engine) {
 	reconGroup.Use(middleware.AuthMiddleware())
 	{
 		reconGroup.POST("", middleware.AdminMiddleware(), CreateReconciliation)
-		reconGroup.GET("/:id", GetReconciliation)
 		reconGroup.GET("", ListReconciliations)
+
 		reconGroup.POST("/:id/adjust", middleware.AdminMiddleware(), AdjustReconciliation)
+
+		reconGroup.GET("/:id", GetReconciliation)
 	}
 }

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布设置 - 播客工坊</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-gray-900">播客工坊</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">发布设置</h1>
+                <p class="text-gray-500" id="episodeTitle">加载中...</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="#" onclick="goToWorkbench()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">返回工作台</a>
+                <a href="#" onclick="goToChapters()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">章节编辑</a>
+                <a href="#" onclick="goToShowNotes()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Show Notes</a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">导出设置</h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">音频格式</label>
+                                <select id="exportFormat" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                    <option value="mp3">MP3</option>
+                                    <option value="wav">WAV</option>
+                                    <option value="m4a">M4A</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">音质</label>
+                                <select id="exportQuality" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                    <option value="standard">标准 (128kbps)</option>
+                                    <option value="high">高质量 (192kbps)</option>
+                                    <option value="best">最佳 (320kbps)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="includeChapters" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500" checked>
+                            <label for="includeChapters" class="ml-2 text-sm text-gray-700">嵌入章节信息到音频文件</label>
+                        </div>
+                        <button onclick="startExport()" class="w-full px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all">
+                            开始导出
+                        </button>
+                    </div>
+                </div>
+
+                <div id="exportStatus" class="bg-white rounded-xl shadow-sm border p-6 hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">导出进度</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span id="exportStatusText" class="text-sm text-gray-600">准备中...</span>
+                            <span id="exportProgressText" class="text-sm font-medium text-indigo-600">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="exportProgressBar" class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">发布状态</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div id="statusIcon" class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900" id="statusTitle">未发布</p>
+                                    <p class="text-sm text-gray-500" id="statusDesc">完成导出后可发布</p>
+                                </div>
+                            </div>
+                            <span id="statusBadge" class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">草稿</span>
+                        </div>
+
+                        <button id="publishBtn" onclick="publishEpisode()" class="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            发布到 RSS
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">节目信息</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">时长</span>
+                            <span class="font-medium" id="infoDuration">--:--</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">文件大小</span>
+                            <span class="font-medium" id="infoSize">--</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">章节数</span>
+                            <span class="font-medium" id="infoChapters">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">剪辑操作</span>
+                            <span class="font-medium" id="infoEdits">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">RSS 订阅</h3>
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-600">发布后，节目将自动添加到 RSS 源中</p>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-xs text-gray-500 mb-1">RSS 地址</p>
+                            <code id="rssUrl" class="text-sm text-indigo-600 break-all">/api/rss/1</code>
+                        </div>
+                        <button onclick="copyRssUrl()" class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">
+                            复制 RSS 地址
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">发布清单</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center">
+                            <svg class="w-5 h-5 text-gray-300 mr-2" id="checkAudio" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">音频已导出</span>
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-5 h-5 text-gray-300 mr-2" id="checkChapters" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">添加章节标记</span>
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-5 h-5 text-gray-300 mr-2" id="checkShowNotes" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">填写 Show Notes</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let episodeId = null;
+        let episode = null;
+        let exportTaskId = null;
+        let progressInterval = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            episodeId = window.location.pathname.split('/').pop();
+            document.getElementById('rssUrl').textContent = `${window.location.origin}/api/rss/1`;
+            loadEpisode();
+        });
+
+        async function loadEpisode() {
+            try {
+                const response = await fetch(`/api/audio/episodes/${episodeId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    episode = result.episode;
+                    document.getElementById('episodeTitle').textContent = episode.title;
+                    
+                    document.getElementById('infoDuration').textContent = formatDuration(episode.duration);
+                    document.getElementById('infoSize').textContent = formatFileSize(episode.file_size);
+                    document.getElementById('infoChapters').textContent = result.chapters?.length || 0;
+                    document.getElementById('infoEdits').textContent = result.edits?.length || 0;
+
+                    updatePublishStatus(episode.status);
+                    updateChecklist(result);
+                }
+            } catch (err) {
+                console.error('加载失败:', err);
+            }
+        }
+
+        function updatePublishStatus(status) {
+            const iconEl = document.getElementById('statusIcon');
+            const titleEl = document.getElementById('statusTitle');
+            const descEl = document.getElementById('statusDesc');
+            const badgeEl = document.getElementById('statusBadge');
+            const publishBtn = document.getElementById('publishBtn');
+
+            const statusConfig = {
+                'uploading': { icon: '⏳', title: '上传中', desc: '请等待上传完成', badge: '上传中', badgeClass: 'bg-yellow-100 text-yellow-700', canPublish: false },
+                'processing': { icon: '⚙️', title: '处理中', desc: '正在生成波形数据', badge: '处理中', badgeClass: 'bg-blue-100 text-blue-700', canPublish: false },
+                'ready': { icon: '✅', title: '准备就绪', desc: '可以导出并发布', badge: '就绪', badgeClass: 'bg-green-100 text-green-700', canPublish: false },
+                'exporting': { icon: '📦', title: '导出中', desc: '正在导出音频文件', badge: '导出中', badgeClass: 'bg-purple-100 text-purple-700', canPublish: false },
+                'published': { icon: '🚀', title: '已发布', desc: '节目已发布到 RSS', badge: '已发布', badgeClass: 'bg-emerald-100 text-emerald-700', canPublish: false }
+            };
+
+            const config = statusConfig[status] || statusConfig['ready'];
+            
+            titleEl.textContent = config.title;
+            descEl.textContent = config.desc;
+            badgeEl.textContent = config.badge;
+            badgeEl.className = `px-3 py-1 text-sm rounded-full ${config.badgeClass}`;
+            publishBtn.disabled = !config.canPublish;
+
+            if (status === 'published') {
+                publishBtn.textContent = '已发布';
+                publishBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                publishBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+            }
+        }
+
+        function updateChecklist(result) {
+            const hasExport = episode.status === 'published' || episode.status === 'exporting';
+            const hasChapters = result.chapters?.length > 0;
+            const hasShowNotes = result.showNotes && (result.showNotes.content || result.showNotes.summary);
+
+            updateCheckIcon('checkAudio', hasExport);
+            updateCheckIcon('checkChapters', hasChapters);
+            updateCheckIcon('checkShowNotes', hasShowNotes);
+        }
+
+        function updateCheckIcon(id, completed) {
+            const el = document.getElementById(id);
+            if (completed) {
+                el.classList.remove('text-gray-300');
+                el.classList.add('text-emerald-500');
+            } else {
+                el.classList.remove('text-emerald-500');
+                el.classList.add('text-gray-300');
+            }
+        }
+
+        async function startExport() {
+            const format = document.getElementById('exportFormat').value;
+            const quality = document.getElementById('exportQuality').value;
+            const includeChapters = document.getElementById('includeChapters').checked;
+
+            try {
+                const response = await fetch('/api/export', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        episodeId,
+                        format,
+                        quality,
+                        includeChapters
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    exportTaskId = result.taskId;
+                    document.getElementById('exportStatus').classList.remove('hidden');
+                    startProgressPolling();
+                }
+            } catch (err) {
+                console.error('导出失败:', err);
+                alert('启动导出失败');
+            }
+        }
+
+        function startProgressPolling() {
+            progressInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/export/tasks/${exportTaskId}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const task = result.task;
+                        document.getElementById('exportProgressBar').style.width = `${task.progress}%`;
+                        document.getElementById('exportProgressText').textContent = `${task.progress}%`;
+                        
+                        const statusTexts = {
+                            'pending': '等待中...',
+                            'processing': '正在处理...',
+                            'completed': '导出完成!',
+                            'failed': '导出失败'
+                        };
+                        document.getElementById('exportStatusText').textContent = statusTexts[task.status] || task.status;
+
+                        if (task.status === 'completed' || task.status === 'failed') {
+                            clearInterval(progressInterval);
+                            if (task.status === 'completed') {
+                                document.getElementById('publishBtn').disabled = false;
+                                loadEpisode();
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error('查询进度失败:', err);
+                }
+            }, 2000);
+        }
+
+        async function publishEpisode() {
+            if (!confirm('确定发布此节目? 发布后将在 RSS 源中可见。')) return;
+
+            try {
+                const response = await fetch('/api/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ episodeId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('发布成功!');
+                    loadEpisode();
+                }
+            } catch (err) {
+                console.error('发布失败:', err);
+                alert('发布失败');
+            }
+        }
+
+        function copyRssUrl() {
+            const url = document.getElementById('rssUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('RSS 地址已复制到剪贴板');
+            });
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return '--:--';
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m}分${s}秒`;
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '--';
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function goToWorkbench() {
+            window.location.href = `/workbench/${episodeId}`;
+        }
+
+        function goToChapters() {
+            window.location.href = `/chapters/${episodeId}`;
+        }
+
+        function goToShowNotes() {
+            window.location.href = `/shownotes/${episodeId}`;
+        }
+    </script>
+</body>
+</html>

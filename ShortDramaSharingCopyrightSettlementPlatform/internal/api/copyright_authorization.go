@@ -170,7 +170,8 @@ func RevokeCopyrightAuthorization(c *gin.Context) {
 	}
 
 	authorization.Status = 3
-	authorization.RevokedAt = time.Now()
+	now := time.Now()
+	authorization.RevokedAt = &now
 	authorization.RevokedBy = userID.(uint64)
 	if req.Remark != "" {
 		authorization.Remark = authorization.Remark + " | 撤销备注: " + req.Remark
@@ -209,9 +210,11 @@ func RegisterCopyrightAuthorizationRoutes(r *gin.Engine) {
 	authGroup.Use(middleware.AuthMiddleware())
 	{
 		authGroup.POST("", middleware.AdminMiddleware(), CreateCopyrightAuthorization)
-		authGroup.GET("/:id", GetCopyrightAuthorization)
 		authGroup.GET("", ListCopyrightAuthorizations)
-		authGroup.POST("/:id/revoke", middleware.AdminMiddleware(), RevokeCopyrightAuthorization)
 		authGroup.GET("/check/conflict", CheckAuthorizationConflict)
+
+		authGroup.POST("/:id/revoke", middleware.AdminMiddleware(), RevokeCopyrightAuthorization)
+
+		authGroup.GET("/:id", GetCopyrightAuthorization)
 	}
 }

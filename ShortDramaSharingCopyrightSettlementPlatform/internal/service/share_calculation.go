@@ -93,9 +93,10 @@ func (s *ShareCalculationService) CalculateShare(dramaID uint64, settlementPerio
 		dao.DB.Create(detail)
 	}
 
+	now := time.Now()
 	dao.DB.Model(task).Updates(map[string]interface{}{
 		"status":      2,
-		"finished_at": time.Now(),
+		"finished_at": &now,
 	})
 
 	return task.TaskNo, nil

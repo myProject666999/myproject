@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>播客在线剪辑与章节标记工坊</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .waveform-bar {
+            background: linear-gradient(to top, #6366f1, #8b5cf6);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-gray-900">播客工坊</span>
+                    </div>
+                    <div class="hidden md:ml-10 md:flex md:space-x-8">
+                        <a href="/" class="border-b-2 border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium">节目列表</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showUploadModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 transition-all">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        上传音频
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">我的节目</h1>
+            <p class="text-gray-500 mt-1">管理和编辑您的播客节目</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="episodeList">
+            <div class="col-span-full text-center py-12 text-gray-500">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                </svg>
+                <p>暂无音频节目</p>
+                <button onclick="showUploadModal()" class="mt-4 text-indigo-600 hover:text-indigo-800 font-medium">上传第一个音频</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="uploadModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4">
+            <div class="px-6 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">上传音频</h3>
+                    <button onclick="hideUploadModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="px-6 py-6">
+                <form id="uploadForm" onsubmit="uploadAudio(event)">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">节目名称</label>
+                        <input type="text" id="episodeTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="输入节目名称" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">选择音频文件</label>
+                        <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-500 transition-colors cursor-pointer">
+                            <input type="file" id="audioFile" accept="audio/*" class="hidden" onchange="handleFileSelect(event)">
+                            <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="text-sm text-gray-600">点击或拖拽文件到此处上传</p>
+                            <p class="text-xs text-gray-400 mt-1">支持 MP3, WAV, OGG, M4A 格式，最大 500MB</p>
+                            <p id="selectedFile" class="mt-3 text-sm text-indigo-600 font-medium hidden"></p>
+                        </div>
+                    </div>
+                    <div id="uploadProgress" class="hidden mb-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p id="progressText" class="text-sm text-gray-500 mt-2 text-center">上传中...</p>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="hideUploadModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">取消</button>
+                        <button type="submit" id="uploadBtn" class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50" disabled>开始上传</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEpisodes();
+            setupDragDrop();
+        });
+
+        function setupDragDrop() {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('audioFile');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-indigo-500', 'bg-indigo-50');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+                if (e.dataTransfer.files.length > 0) {
+                    selectedFile = e.dataTransfer.files[0];
+                    showSelectedFile();
+                }
+            });
+        }
+
+        function handleFileSelect(event) {
+            if (event.target.files.length > 0) {
+                selectedFile = event.target.files[0];
+                showSelectedFile();
+            }
+        }
+
+        function showSelectedFile() {
+            const selectedFileEl = document.getElementById('selectedFile');
+            const uploadBtn = document.getElementById('uploadBtn');
+            selectedFileEl.textContent = `已选择: ${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`;
+            selectedFileEl.classList.remove('hidden');
+            uploadBtn.disabled = false;
+        }
+
+        function showUploadModal() {
+            document.getElementById('uploadModal').classList.remove('hidden');
+            document.getElementById('uploadModal').classList.add('flex');
+        }
+
+        function hideUploadModal() {
+            document.getElementById('uploadModal').classList.add('hidden');
+            document.getElementById('uploadModal').classList.remove('flex');
+            document.getElementById('uploadForm').reset();
+            document.getElementById('selectedFile').classList.add('hidden');
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('uploadProgress').classList.add('hidden');
+            selectedFile = null;
+        }
+
+        async function uploadAudio(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('episodeTitle').value;
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('audio', selectedFile);
+            formData.append('title', title);
+            formData.append('podcastId', 1);
+
+            document.getElementById('uploadProgress').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/audio/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('progressText').textContent = '上传成功！正在生成波形...';
+                    
+                    setTimeout(() => {
+                        hideUploadModal();
+                        loadEpisodes();
+                    }, 1500);
+                } else {
+                    alert('上传失败: ' + result.error);
+                }
+            } catch (err) {
+                alert('上传失败: ' + err.message);
+                document.getElementById('uploadProgress').classList.add('hidden');
+            }
+        }
+
+        async function loadEpisodes() {
+            try {
+                const response = await fetch('/api/audio/episodes?podcastId=1');
+                const result = await response.json();
+
+                const episodeList = document.getElementById('episodeList');
+
+                if (result.episodes.length === 0) {
+                    episodeList.innerHTML = `
+                        <div class="col-span-full text-center py-12 text-gray-500">
+                            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                            </svg>
+                            <p>暂无音频节目</p>
+                            <button onclick="showUploadModal()" class="mt-4 text-indigo-600 hover:text-indigo-800 font-medium">上传第一个音频</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                episodeList.innerHTML = result.episodes.map(episode => `
+                    <div class="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow">
+                        <div class="p-5">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 truncate">${episode.title}</h3>
+                                    <p class="text-sm text-gray-500 mt-1">${formatDuration(episode.duration)}</p>
+                                </div>
+                                <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(episode.status)}">
+                                    ${getStatusText(episode.status)}
+                                </span>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                                <div class="flex items-end h-12 space-x-px">
+                                    ${generateWaveformPreview()}
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <a href="/workbench/${episode.id}" class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    剪辑
+                                </a>
+                                <a href="/chapters/${episode.id}" class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                                    </svg>
+                                    章节
+                                </a>
+                                <a href="/shownotes/${episode.id}" class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    笔记
+                                </a>
+                                <a href="/publish/${episode.id}" class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    发布
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('加载节目列表失败:', err);
+            }
+        }
+
+        function generateWaveformPreview() {
+            let bars = '';
+            for (let i = 0; i < 40; i++) {
+                const height = Math.random() * 100;
+                bars += `<div class="flex-1 waveform-bar rounded-t" style="height: ${20 + height * 0.6}%"></div>`;
+            }
+            return bars;
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return '--:--';
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'uploading': 'bg-yellow-100 text-yellow-800',
+                'processing': 'bg-blue-100 text-blue-800',
+                'ready': 'bg-green-100 text-green-800',
+                'exporting': 'bg-purple-100 text-purple-800',
+                'published': 'bg-emerald-100 text-emerald-800'
+            };
+            return colors[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'uploading': '上传中',
+                'processing': '处理中',
+                'ready': '可编辑',
+                'exporting': '导出中',
+                'published': '已发布'
+            };
+            return texts[status] || status;
+        }
+    </script>
+</body>
+</html>

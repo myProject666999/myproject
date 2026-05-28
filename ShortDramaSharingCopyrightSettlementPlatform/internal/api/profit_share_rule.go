@@ -103,12 +103,12 @@ func CreateProfitShareRule(c *gin.Context) {
 
 	if req.EffectiveDate != "" {
 		if t, err := time.Parse("2006-01-02", req.EffectiveDate); err == nil {
-			rule.EffectiveDate = t
+			rule.EffectiveDate = &t
 		}
 	}
 	if req.ExpireDate != "" {
 		if t, err := time.Parse("2006-01-02", req.ExpireDate); err == nil {
-			rule.ExpireDate = t
+			rule.ExpireDate = &t
 		}
 	}
 
@@ -281,13 +281,14 @@ func RegisterProfitShareRuleRoutes(r *gin.Engine) {
 	ruleGroup.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
 		ruleGroup.POST("", CreateProfitShareRule)
-		ruleGroup.PUT("/:id", UpdateProfitShareRule)
-		ruleGroup.GET("/:id", GetProfitShareRule)
 		ruleGroup.GET("", ListProfitShareRules)
-		ruleGroup.DELETE("/:id", DeleteProfitShareRule)
 
 		ruleGroup.POST("/bind", BindRuleToDrama)
 		ruleGroup.GET("/drama/:drama_id", GetDramaRules)
 		ruleGroup.DELETE("/drama/:drama_id/:rule_id", UnbindRuleFromDrama)
+
+		ruleGroup.GET("/:id", GetProfitShareRule)
+		ruleGroup.PUT("/:id", UpdateProfitShareRule)
+		ruleGroup.DELETE("/:id", DeleteProfitShareRule)
 	}
 }

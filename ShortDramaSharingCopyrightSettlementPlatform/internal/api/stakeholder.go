@@ -168,10 +168,11 @@ func RegisterStakeholderRoutes(r *gin.Engine) {
 	shGroup.Use(middleware.AuthMiddleware())
 	{
 		shGroup.POST("", middleware.AdminMiddleware(), CreateStakeholder)
-		shGroup.PUT("/:id", middleware.AdminMiddleware(), UpdateStakeholder)
-		shGroup.GET("/:id", GetStakeholder)
 		shGroup.GET("", ListStakeholders)
-		shGroup.DELETE("/:id", middleware.AdminMiddleware(), DeleteStakeholder)
 		shGroup.GET("/types", ListStakeholderTypes)
+
+		shGroup.GET("/:id", GetStakeholder)
+		shGroup.PUT("/:id", middleware.AdminMiddleware(), UpdateStakeholder)
+		shGroup.DELETE("/:id", middleware.AdminMiddleware(), DeleteStakeholder)
 	}
 }

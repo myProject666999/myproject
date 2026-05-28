@@ -12,22 +12,22 @@ import (
 )
 
 type DramaCreateRequest struct {
-	Title         string    `json:"title" binding:"required"`
-	Description   string    `json:"description"`
-	CoverURL      string    `json:"cover_url"`
-	TotalEpisodes int       `json:"total_episodes"`
-	Duration      int       `json:"duration"`
-	ReleaseDate   time.Time `json:"release_date"`
+	Title         string     `json:"title" binding:"required"`
+	Description   string     `json:"description"`
+	CoverURL      string     `json:"cover_url"`
+	TotalEpisodes int        `json:"total_episodes"`
+	Duration      int        `json:"duration"`
+	ReleaseDate   *time.Time `json:"release_date"`
 }
 
 type DramaUpdateRequest struct {
-	Title         string    `json:"title"`
-	Description   string    `json:"description"`
-	CoverURL      string    `json:"cover_url"`
-	TotalEpisodes int       `json:"total_episodes"`
-	Duration      int       `json:"duration"`
-	ReleaseDate   time.Time `json:"release_date"`
-	Status        int8      `json:"status"`
+	Title         string     `json:"title"`
+	Description   string     `json:"description"`
+	CoverURL      string     `json:"cover_url"`
+	TotalEpisodes int        `json:"total_episodes"`
+	Duration      int        `json:"duration"`
+	ReleaseDate   *time.Time `json:"release_date"`
+	Status        int8       `json:"status"`
 }
 
 func CreateDrama(c *gin.Context) {
@@ -89,7 +89,7 @@ func UpdateDrama(c *gin.Context) {
 	if req.Duration > 0 {
 		updates["duration"] = req.Duration
 	}
-	if !req.ReleaseDate.IsZero() {
+	if req.ReleaseDate != nil {
 		updates["release_date"] = req.ReleaseDate
 	}
 	if req.Status >= 0 {
@@ -182,12 +182,12 @@ func AddDramaRight(c *gin.Context) {
 
 	if req.EffectiveDate != "" {
 		if t, err := time.Parse("2006-01-02", req.EffectiveDate); err == nil {
-			right.EffectiveDate = t
+			right.EffectiveDate = &t
 		}
 	}
 	if req.ExpireDate != "" {
 		if t, err := time.Parse("2006-01-02", req.ExpireDate); err == nil {
-			right.ExpireDate = t
+			right.ExpireDate = &t
 		}
 	}
 	right.Remark = req.Remark
@@ -201,7 +201,10 @@ func AddDramaRight(c *gin.Context) {
 }
 
 func GetDramaRights(c *gin.Context) {
-	dramaID := c.Param("drama_id")
+	dramaID := c.Query("drama_id")
+	if dramaID == "" {
+		dramaID = c.Param("id")
+	}
 
 	var rights []model.DramaRight
 	dao.DB.Where("drama_id = ?", dramaID).Find(&rights)
@@ -225,13 +228,14 @@ func RegisterDramaRoutes(r *gin.Engine) {
 	dramaGroup.Use(middleware.AuthMiddleware())
 	{
 		dramaGroup.POST("", middleware.AdminMiddleware(), CreateDrama)
-		dramaGroup.PUT("/:id", middleware.AdminMiddleware(), UpdateDrama)
-		dramaGroup.GET("/:id", GetDrama)
 		dramaGroup.GET("", ListDramas)
-		dramaGroup.DELETE("/:id", middleware.AdminMiddleware(), DeleteDrama)
 
+		dramaGroup.GET("/rights", GetDramaRights)
 		dramaGroup.POST("/rights", middleware.AdminMiddleware(), AddDramaRight)
-		dramaGroup.GET("/:drama_id/rights", GetDramaRights)
 		dramaGroup.DELETE("/rights/:id", middleware.AdminMiddleware(), RemoveDramaRight)
+
+		dramaGroup.GET("/:id", GetDrama)
+		dramaGroup.PUT("/:id", middleware.AdminMiddleware(), UpdateDrama)
+		dramaGroup.DELETE("/:id", middleware.AdminMiddleware(), DeleteDrama)
 	}
 }

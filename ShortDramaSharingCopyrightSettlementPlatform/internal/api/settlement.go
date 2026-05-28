@@ -157,7 +157,8 @@ func ConfirmSettlementOrder(c *gin.Context) {
 
 	settlement.Status = 1
 	settlement.ConfirmedBy = userID.(uint64)
-	settlement.ConfirmedAt = time.Now()
+	now := time.Now()
+	settlement.ConfirmedAt = &now
 
 	if err := dao.DB.Save(&settlement).Error; err != nil {
 		utils.Error(c, "确认结算单失败: "+err.Error())
@@ -182,7 +183,8 @@ func MarkSettlementPaid(c *gin.Context) {
 	}
 
 	settlement.Status = 2
-	settlement.PaidAt = time.Now()
+	now := time.Now()
+	settlement.PaidAt = &now
 
 	if err := dao.DB.Save(&settlement).Error; err != nil {
 		utils.Error(c, "标记付款失败: "+err.Error())
@@ -244,10 +246,12 @@ func RegisterSettlementRoutes(r *gin.Engine) {
 	settlementGroup.Use(middleware.AuthMiddleware())
 	{
 		settlementGroup.POST("", middleware.AdminMiddleware(), CreateSettlementOrder)
-		settlementGroup.GET("/:id", GetSettlementOrder)
 		settlementGroup.GET("", ListSettlementOrders)
+
 		settlementGroup.POST("/:id/verify", middleware.AdminMiddleware(), VerifySettlementOrder)
 		settlementGroup.POST("/:id/confirm", middleware.AdminMiddleware(), ConfirmSettlementOrder)
 		settlementGroup.POST("/:id/paid", middleware.AdminMiddleware(), MarkSettlementPaid)
+
+		settlementGroup.GET("/:id", GetSettlementOrder)
 	}
 }

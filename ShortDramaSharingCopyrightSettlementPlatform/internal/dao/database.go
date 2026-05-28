@@ -100,15 +100,18 @@ func initSeedData() {
 		DB.Create(&types)
 	}
 
+	adminPasswordHash := "$2a$10$F6/8ByueWOsVCGIXqiuNGe9vXqeWitQpPNGZK2l8oLeNeC4D2x79a"
 	DB.Model(&model.User{}).Where("username = ?", "admin").Count(&count)
 	if count == 0 {
 		admin := &model.User{
 			Username: "admin",
-			Password: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
+			Password: adminPasswordHash,
 			RealName: "系统管理员",
 			Role:     3,
 			Status:   1,
 		}
 		DB.Create(admin)
+	} else {
+		DB.Model(&model.User{}).Where("username = ?", "admin").Update("password", adminPasswordHash)
 	}
 }

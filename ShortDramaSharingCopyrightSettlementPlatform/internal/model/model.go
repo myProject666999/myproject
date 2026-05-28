@@ -30,15 +30,15 @@ func (User) TableName() string {
 
 type Drama struct {
 	BaseModel
-	DramaNo       string    `gorm:"size:64;uniqueIndex;not null" json:"drama_no"`
-	Title         string    `gorm:"size:200;not null" json:"title"`
-	Description   string    `gorm:"type:text" json:"description"`
-	CoverURL      string    `gorm:"size:500" json:"cover_url"`
-	TotalEpisodes int       `gorm:"not null;default:0" json:"total_episodes"`
-	Duration      int       `json:"duration"`
-	ReleaseDate   time.Time `json:"release_date"`
-	Status        int8      `gorm:"not null;default:0" json:"status"`
-	CreatedBy     uint64    `gorm:"not null" json:"created_by"`
+	DramaNo       string     `gorm:"size:64;uniqueIndex;not null" json:"drama_no"`
+	Title         string     `gorm:"size:200;not null" json:"title"`
+	Description   string     `gorm:"type:text" json:"description"`
+	CoverURL      string     `gorm:"size:500" json:"cover_url"`
+	TotalEpisodes int        `gorm:"not null;default:0" json:"total_episodes"`
+	Duration      int        `json:"duration"`
+	ReleaseDate   *time.Time `json:"release_date"`
+	Status        int8       `gorm:"not null;default:0" json:"status"`
+	CreatedBy     uint64     `gorm:"not null" json:"created_by"`
 }
 
 func (Drama) TableName() string {
@@ -78,15 +78,15 @@ func (Stakeholder) TableName() string {
 
 type DramaRight struct {
 	BaseModel
-	DramaID        uint64    `gorm:"uniqueIndex:idx_drama_stakeholder;not null" json:"drama_id"`
-	StakeholderID  uint64    `gorm:"uniqueIndex:idx_drama_stakeholder;not null" json:"stakeholder_id"`
-	RoleName       string    `gorm:"size:100" json:"role_name"`
-	BaseRatio      float64   `gorm:"type:decimal(8,4);not null;default:0.0000" json:"base_ratio"`
-	IsActive       int8      `gorm:"not null;default:1" json:"is_active"`
-	EffectiveDate  time.Time `json:"effective_date"`
-	ExpireDate     time.Time `json:"expire_date"`
-	Remark         string    `gorm:"size:500" json:"remark"`
-	CreatedBy      uint64    `gorm:"not null" json:"created_by"`
+	DramaID        uint64     `gorm:"uniqueIndex:idx_drama_stakeholder;not null" json:"drama_id"`
+	StakeholderID  uint64     `gorm:"uniqueIndex:idx_drama_stakeholder;not null" json:"stakeholder_id"`
+	RoleName       string     `gorm:"size:100" json:"role_name"`
+	BaseRatio      float64    `gorm:"type:decimal(8,4);not null;default:0.0000" json:"base_ratio"`
+	IsActive       int8       `gorm:"not null;default:1" json:"is_active"`
+	EffectiveDate  *time.Time `json:"effective_date"`
+	ExpireDate     *time.Time `json:"expire_date"`
+	Remark         string     `gorm:"size:500" json:"remark"`
+	CreatedBy      uint64     `gorm:"not null" json:"created_by"`
 }
 
 func (DramaRight) TableName() string {
@@ -95,16 +95,16 @@ func (DramaRight) TableName() string {
 
 type ProfitShareRule struct {
 	BaseModel
-	RuleNo        string    `gorm:"size:64;uniqueIndex;not null" json:"rule_no"`
-	RuleName      string    `gorm:"size:100;not null" json:"rule_name"`
-	RuleType      int8      `gorm:"not null;default:1" json:"rule_type"`
-	DSLContent    string    `gorm:"type:text;not null" json:"dsl_content"`
-	Description   string    `gorm:"size:500" json:"description"`
-	Priority      int       `gorm:"not null;default:0" json:"priority"`
-	Status        int8      `gorm:"not null;default:0" json:"status"`
-	EffectiveDate time.Time `json:"effective_date"`
-	ExpireDate    time.Time `json:"expire_date"`
-	CreatedBy     uint64    `gorm:"not null" json:"created_by"`
+	RuleNo        string     `gorm:"size:64;uniqueIndex;not null" json:"rule_no"`
+	RuleName      string     `gorm:"size:100;not null" json:"rule_name"`
+	RuleType      int8       `gorm:"not null;default:1" json:"rule_type"`
+	DSLContent    string     `gorm:"type:text;not null" json:"dsl_content"`
+	Description   string     `gorm:"size:500" json:"description"`
+	Priority      int        `gorm:"not null;default:0" json:"priority"`
+	Status        int8       `gorm:"not null;default:0" json:"status"`
+	EffectiveDate *time.Time `json:"effective_date"`
+	ExpireDate    *time.Time `json:"expire_date"`
+	CreatedBy     uint64     `gorm:"not null" json:"created_by"`
 }
 
 func (ProfitShareRule) TableName() string {
@@ -159,16 +159,16 @@ func (PaymentData) TableName() string {
 
 type ShareCalculationTask struct {
 	BaseModel
-	TaskNo           string    `gorm:"size:64;uniqueIndex;not null" json:"task_no"`
-	DramaID          uint64    `gorm:"index:idx_drama_period;not null" json:"drama_id"`
-	SettlementPeriod string    `gorm:"size:20;index:idx_drama_period;not null" json:"settlement_period"`
-	TaskType         int8      `gorm:"not null;default:1" json:"task_type"`
-	Status           int8      `gorm:"index;not null;default:0" json:"status"`
-	RetryCount       int       `gorm:"not null;default:0" json:"retry_count"`
-	LastRetryAt      time.Time `json:"last_retry_at"`
-	IdempotentKey    string    `gorm:"size:128;uniqueIndex;not null" json:"idempotent_key"`
-	ErrorMessage     string    `gorm:"type:text" json:"error_message"`
-	FinishedAt       time.Time `json:"finished_at"`
+	TaskNo           string     `gorm:"size:64;uniqueIndex;not null" json:"task_no"`
+	DramaID          uint64     `gorm:"index:idx_drama_period;not null" json:"drama_id"`
+	SettlementPeriod string     `gorm:"size:20;index:idx_drama_period;not null" json:"settlement_period"`
+	TaskType         int8       `gorm:"not null;default:1" json:"task_type"`
+	Status           int8       `gorm:"index;not null;default:0" json:"status"`
+	RetryCount       int        `gorm:"not null;default:0" json:"retry_count"`
+	LastRetryAt      *time.Time `json:"last_retry_at"`
+	IdempotentKey    string     `gorm:"size:128;uniqueIndex;not null" json:"idempotent_key"`
+	ErrorMessage     string     `gorm:"type:text" json:"error_message"`
+	FinishedAt       *time.Time `json:"finished_at"`
 }
 
 func (ShareCalculationTask) TableName() string {
@@ -196,20 +196,20 @@ func (ShareDetail) TableName() string {
 
 type SettlementOrder struct {
 	BaseModel
-	SettlementNo          string    `gorm:"size:64;uniqueIndex;not null" json:"settlement_no"`
-	StakeholderID         uint64    `gorm:"uniqueIndex:idx_stakeholder_period;index;not null" json:"stakeholder_id"`
-	SettlementPeriod      string    `gorm:"size:20;uniqueIndex:idx_stakeholder_period;index;not null" json:"settlement_period"`
-	TotalShareAmount      float64   `gorm:"type:decimal(18,2);not null;default:0.00" json:"total_share_amount"`
-	DeductionAmount       float64   `gorm:"type:decimal(18,2);not null;default:0.00" json:"deduction_amount"`
-	ActualSettlementAmount float64  `gorm:"type:decimal(18,2);not null;default:0.00" json:"actual_settlement_amount"`
-	TailDiffAmount        float64   `gorm:"type:decimal(18,2);not null;default:0.00" json:"tail_diff_amount"`
-	Status                int8      `gorm:"index;not null;default:0" json:"status"`
-	HashSignature         string    `gorm:"size:512;not null" json:"hash_signature"`
-	ConfirmedBy           uint64    `json:"confirmed_by"`
-	ConfirmedAt           time.Time `json:"confirmed_at"`
-	PaidAt                time.Time `json:"paid_at"`
-	Remark                string    `gorm:"size:500" json:"remark"`
-	CreatedBy             uint64    `gorm:"not null" json:"created_by"`
+	SettlementNo          string     `gorm:"size:64;uniqueIndex;not null" json:"settlement_no"`
+	StakeholderID         uint64     `gorm:"uniqueIndex:idx_stakeholder_period;index;not null" json:"stakeholder_id"`
+	SettlementPeriod      string     `gorm:"size:20;uniqueIndex:idx_stakeholder_period;index;not null" json:"settlement_period"`
+	TotalShareAmount      float64    `gorm:"type:decimal(18,2);not null;default:0.00" json:"total_share_amount"`
+	DeductionAmount       float64    `gorm:"type:decimal(18,2);not null;default:0.00" json:"deduction_amount"`
+	ActualSettlementAmount float64   `gorm:"type:decimal(18,2);not null;default:0.00" json:"actual_settlement_amount"`
+	TailDiffAmount        float64    `gorm:"type:decimal(18,2);not null;default:0.00" json:"tail_diff_amount"`
+	Status                int8       `gorm:"index;not null;default:0" json:"status"`
+	HashSignature         string     `gorm:"size:512;not null" json:"hash_signature"`
+	ConfirmedBy           uint64     `json:"confirmed_by"`
+	ConfirmedAt           *time.Time `json:"confirmed_at"`
+	PaidAt                *time.Time `json:"paid_at"`
+	Remark                string     `gorm:"size:500" json:"remark"`
+	CreatedBy             uint64     `gorm:"not null" json:"created_by"`
 }
 
 func (SettlementOrder) TableName() string {
@@ -232,19 +232,19 @@ func (SettlementOrderDetail) TableName() string {
 
 type ReconciliationRecord struct {
 	BaseModel
-	ReconciliationNo     string    `gorm:"size:64;uniqueIndex;not null" json:"reconciliation_no"`
-	DramaID              uint64    `gorm:"uniqueIndex:idx_drama_period;not null" json:"drama_id"`
-	SettlementPeriod     string    `gorm:"size:20;uniqueIndex:idx_drama_period;index;not null" json:"settlement_period"`
-	SystemPlayCount      int64     `gorm:"not null;default:0" json:"system_play_count"`
-	ThirdPartyPlayCount  int64     `gorm:"not null;default:0" json:"third_party_play_count"`
-	PlayCountDiff        int64     `gorm:"not null;default:0" json:"play_count_diff"`
-	SystemPaymentAmount  float64   `gorm:"type:decimal(18,2);not null;default:0.00" json:"system_payment_amount"`
+	ReconciliationNo     string     `gorm:"size:64;uniqueIndex;not null" json:"reconciliation_no"`
+	DramaID              uint64     `gorm:"uniqueIndex:idx_drama_period;not null" json:"drama_id"`
+	SettlementPeriod     string     `gorm:"size:20;uniqueIndex:idx_drama_period;index;not null" json:"settlement_period"`
+	SystemPlayCount      int64      `gorm:"not null;default:0" json:"system_play_count"`
+	ThirdPartyPlayCount  int64      `gorm:"not null;default:0" json:"third_party_play_count"`
+	PlayCountDiff        int64      `gorm:"not null;default:0" json:"play_count_diff"`
+	SystemPaymentAmount  float64    `gorm:"type:decimal(18,2);not null;default:0.00" json:"system_payment_amount"`
 	ThirdPartyPaymentAmount float64 `gorm:"type:decimal(18,2);not null;default:0.00" json:"third_party_payment_amount"`
-	PaymentAmountDiff    float64   `gorm:"type:decimal(18,2);not null;default:0.00" json:"payment_amount_diff"`
-	Status               int8      `gorm:"index;not null;default:0" json:"status"`
-	AdjustmentRemark     string    `gorm:"size:500" json:"adjustment_remark"`
-	CreatedBy            uint64    `gorm:"not null" json:"created_by"`
-	ReconciledAt         time.Time `json:"reconciled_at"`
+	PaymentAmountDiff    float64    `gorm:"type:decimal(18,2);not null;default:0.00" json:"payment_amount_diff"`
+	Status               int8       `gorm:"index;not null;default:0" json:"status"`
+	AdjustmentRemark     string     `gorm:"size:500" json:"adjustment_remark"`
+	CreatedBy            uint64     `gorm:"not null" json:"created_by"`
+	ReconciledAt         *time.Time `json:"reconciled_at"`
 }
 
 func (ReconciliationRecord) TableName() string {
@@ -269,22 +269,22 @@ func (ReconciliationDetail) TableName() string {
 
 type CopyrightAuthorization struct {
 	BaseModel
-	AuthorizationNo   string    `gorm:"size:64;uniqueIndex;not null" json:"authorization_no"`
-	DramaID           uint64    `gorm:"index;not null" json:"drama_id"`
-	AuthorizerID      uint64    `gorm:"index;not null" json:"authorizer_id"`
-	LicenseeID        uint64    `gorm:"index;not null" json:"licensee_id"`
-	AuthorizationType int8      `gorm:"not null;default:1" json:"authorization_type"`
-	AuthorizationScope string   `gorm:"size:200;not null" json:"authorization_scope"`
-	RightsType        string    `gorm:"size:100;not null" json:"rights_type"`
-	EffectiveDate     time.Time `gorm:"index;not null" json:"effective_date"`
-	ExpireDate        time.Time `gorm:"index;not null" json:"expire_date"`
-	AuthorizationFee  float64   `gorm:"type:decimal(18,2)" json:"authorization_fee"`
-	ContractNo        string    `gorm:"size:100" json:"contract_no"`
-	Status            int8      `gorm:"index;not null;default:0" json:"status"`
-	Remark            string    `gorm:"size:500" json:"remark"`
-	CreatedBy         uint64    `gorm:"not null" json:"created_by"`
-	RevokedAt         time.Time `json:"revoked_at"`
-	RevokedBy         uint64    `json:"revoked_by"`
+	AuthorizationNo   string     `gorm:"size:64;uniqueIndex;not null" json:"authorization_no"`
+	DramaID           uint64     `gorm:"index;not null" json:"drama_id"`
+	AuthorizerID      uint64     `gorm:"index;not null" json:"authorizer_id"`
+	LicenseeID        uint64     `gorm:"index;not null" json:"licensee_id"`
+	AuthorizationType int8       `gorm:"not null;default:1" json:"authorization_type"`
+	AuthorizationScope string    `gorm:"size:200;not null" json:"authorization_scope"`
+	RightsType        string     `gorm:"size:100;not null" json:"rights_type"`
+	EffectiveDate     time.Time  `gorm:"index;not null" json:"effective_date"`
+	ExpireDate        time.Time  `gorm:"index;not null" json:"expire_date"`
+	AuthorizationFee  float64    `gorm:"type:decimal(18,2)" json:"authorization_fee"`
+	ContractNo        string     `gorm:"size:100" json:"contract_no"`
+	Status            int8       `gorm:"index;not null;default:0" json:"status"`
+	Remark            string     `gorm:"size:500" json:"remark"`
+	CreatedBy         uint64     `gorm:"not null" json:"created_by"`
+	RevokedAt         *time.Time `json:"revoked_at"`
+	RevokedBy         uint64     `json:"revoked_by"`
 }
 
 func (CopyrightAuthorization) TableName() string {
