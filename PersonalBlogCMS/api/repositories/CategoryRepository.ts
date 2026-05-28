@@ -28,6 +28,11 @@ export class CategoryRepository extends BaseRepository<Category> {
     return row ? this.rowToEntity(row) : null;
   }
 
+  async findByName(name: string): Promise<Category | null> {
+    const row = db.prepare('SELECT * FROM categories WHERE name = ?').get(name) as Record<string, unknown> | undefined;
+    return row ? this.rowToEntity(row) : null;
+  }
+
   async incrementArticleCount(id: number, delta = 1): Promise<void> {
     db.prepare('UPDATE categories SET article_count = article_count + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(delta, id);
   }

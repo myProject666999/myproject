@@ -98,9 +98,8 @@ const HRRecruitPage = () => {
   const handlePublishJob = async () => {
     try {
       const values = await jobForm.validateFields()
-      values.minSalary = parseInt(values.salaryRange[0])
-      values.maxSalary = parseInt(values.salaryRange[1])
-      delete values.salaryRange
+      values.minSalary = parseInt(values.minSalary)
+      values.maxSalary = parseInt(values.maxSalary)
       await jobApi.publishJob(values)
       message.success('职位发布成功')
       jobForm.resetFields()
@@ -159,7 +158,14 @@ const HRRecruitPage = () => {
   const jobColumns = [
     { title: '职位名称', dataIndex: 'title', key: 'title' },
     { title: '薪资', dataIndex: 'salaryText', key: 'salary',
-      render: (_, r) => `${r.minSalary}-${r.maxSalary}K`
+      render: (_, r) => {
+        const min = r.minSalary ?? r.min_salary
+        const max = r.maxSalary ?? r.max_salary
+        if (min && max) return `${min}-${max}K`
+        if (min) return `${min}K起`
+        if (max) return `最高${max}K`
+        return '面议'
+      }
     },
     { title: '城市', dataIndex: 'city', key: 'city' },
     {
@@ -223,11 +229,23 @@ const HRRecruitPage = () => {
                           <Option value="INTERN">实习</Option>
                         </Select>
                       </Form.Item>
-                      <Form.Item name="salaryRange" label="薪资范围(K)" rules={[{ required: true }]}>
+                      <Form.Item label="薪资范围(K)" required>
                         <Input.Group compact>
-                          <InputNumber style={{ width: '45%' }} min={1} placeholder="最低" />
-                          <span style={{ width: '10%', textAlign: 'center' }}> - </span>
-                          <InputNumber style={{ width: '45%' }} min={1} placeholder="最高" />
+                          <Form.Item
+                            name="minSalary"
+                            noStyle
+                            rules={[{ required: true, message: '请输入最低薪资' }]}
+                          >
+                            <InputNumber style={{ width: '45%' }} min={1} placeholder="最低" />
+                          </Form.Item>
+                          <span style={{ width: '10%', textAlign: 'center', lineHeight: '32px' }}> - </span>
+                          <Form.Item
+                            name="maxSalary"
+                            noStyle
+                            rules={[{ required: true, message: '请输入最高薪资' }]}
+                          >
+                            <InputNumber style={{ width: '45%' }} min={1} placeholder="最高" />
+                          </Form.Item>
                         </Input.Group>
                       </Form.Item>
                       <Row gutter={16}>

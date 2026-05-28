@@ -34,6 +34,12 @@ public class AppointmentService {
     private PatientRepository patientRepository;
 
     @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
     private QueueCallRepository queueCallRepository;
 
     @Autowired
@@ -208,6 +214,14 @@ public class AppointmentService {
         if (appointment.getPatientId() != null) {
             Patient patient = patientRepository.findById(appointment.getPatientId()).orElse(null);
             appointment.setPatient(patient);
+        }
+        if (appointment.getDoctorId() != null) {
+            Doctor doctor = doctorRepository.findById(appointment.getDoctorId()).orElse(null);
+            appointment.setDoctor(doctor);
+        }
+        if (appointment.getDepartmentId() != null) {
+            Department department = departmentRepository.findById(appointment.getDepartmentId()).orElse(null);
+            appointment.setDepartment(department);
         }
     }
 }

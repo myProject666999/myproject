@@ -49,7 +49,7 @@ public class SupplierController {
     @PutMapping("/{id}")
     public Result<Supplier> update(@PathVariable Long id, @RequestBody Supplier supplier) {
         Optional<Supplier> existing = supplierService.findById(id);
-        if (existing.isEmpty()) {
+        if (!existing.isPresent()) {
             return Result.error("供应商不存在");
         }
         supplier.setId(id);

@@ -40,15 +40,23 @@ func UserDetailHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		email := ""
+		if user.Email != nil {
+			email = *user.Email
+		}
+		remark := ""
+		if user.Remark != nil {
+			remark = *user.Remark
+		}
 		resp := types.UserInfo{
 			Id:         user.Id,
 			Username:   user.Username,
 			RealName:   user.RealName,
 			Phone:      user.Phone,
-			Email:      user.Email,
+			Email:      email,
 			Role:       user.Role,
 			Status:     user.Status,
-			Remark:     user.Remark,
+			Remark:     remark,
 			CreateTime: user.CreateTime.Format("2006-01-02 15:04:05"),
 		}
 		httpx.OkJsonCtx(r.Context(), w, resp)
@@ -90,10 +98,12 @@ func UserUpdateHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		user.Username = req.Username
 		user.RealName = req.RealName
 		user.Phone = req.Phone
-		user.Email = req.Email
+		email := req.Email
+		user.Email = &email
 		user.Role = req.Role
 		user.Status = req.Status
-		user.Remark = req.Remark
+		remark := req.Remark
+		user.Remark = &remark
 
 		err = svcCtx.SysUserModel.Update(user)
 		if err != nil {

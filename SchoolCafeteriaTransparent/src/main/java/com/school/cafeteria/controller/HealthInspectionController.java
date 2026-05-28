@@ -61,7 +61,7 @@ public class HealthInspectionController {
     @PutMapping("/{id}")
     public Result<HealthInspection> update(@PathVariable Long id, @RequestBody HealthInspection inspection) {
         Optional<HealthInspection> existing = healthInspectionService.findById(id);
-        if (existing.isEmpty()) {
+        if (!existing.isPresent()) {
             return Result.error("记录不存在");
         }
         inspection.setId(id);

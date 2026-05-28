@@ -28,6 +28,11 @@ export class TagRepository extends BaseRepository<Tag> {
     return row ? this.rowToEntity(row) : null;
   }
 
+  async findByName(name: string): Promise<Tag | null> {
+    const row = db.prepare('SELECT * FROM tags WHERE name = ?').get(name) as Record<string, unknown> | undefined;
+    return row ? this.rowToEntity(row) : null;
+  }
+
   async findByIds(ids: number[]): Promise<Tag[]> {
     if (!ids || ids.length === 0) return [];
     const placeholders = ids.map(() => '?').join(', ');

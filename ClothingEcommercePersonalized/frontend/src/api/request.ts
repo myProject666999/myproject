@@ -1,5 +1,10 @@
 import axios from 'axios'
+import type { AxiosRequestConfig } from 'axios'
 import type { MessageInstance } from 'antd/es/message/interface'
+
+export interface RequestConfig extends AxiosRequestConfig {
+  silentError?: boolean
+}
 
 let messageApi: MessageInstance | null = null
 
@@ -26,14 +31,20 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response) => {
     const res = response.data
+    const config = response.config as RequestConfig
     if (res.code !== 200) {
-      messageApi?.error(res.message || '请求失败')
+      if (!config.silentError) {
+        messageApi?.error(res.message || '请求失败')
+      }
       return Promise.reject(new Error(res.message || '请求失败'))
     }
     return res
   },
   (error) => {
-    messageApi?.error(error.response?.data?.message || '网络异常，请稍后重试')
+    const config = error.config as RequestConfig
+    if (!config.silentError) {
+      messageApi?.error(error.response?.data?.message || '网络异常，请稍后重试')
+    }
     return Promise.reject(error)
   }
 )

@@ -4,7 +4,6 @@ import (
 	"carpooling/internal/model"
 	"carpooling/pkg/database"
 	redisPkg "carpooling/pkg/redis"
-	"math"
 	"sort"
 	"strconv"
 

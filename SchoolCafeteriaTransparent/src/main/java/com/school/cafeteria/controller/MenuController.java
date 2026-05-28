@@ -47,7 +47,7 @@ public class MenuController {
     @PutMapping("/{id}")
     public Result<Menu> updateMenu(@PathVariable Long id, @RequestBody Menu menu) {
         Optional<Menu> existing = menuService.getMenuById(id);
-        if (existing.isEmpty()) {
+        if (!existing.isPresent()) {
             return Result.error("菜谱不存在");
         }
         menu.setId(id);

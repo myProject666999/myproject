@@ -154,7 +154,10 @@ export const useDataStore = create<DataState>((set, get) => ({
         set((state) => ({
           todayMeals: [...state.todayMeals, response.data!],
         }));
-        await get().fetchTodayData(data.record_date);
+        const statsRes = await statsApi.getDailyStats({ date: data.record_date });
+        if (statsRes.success && statsRes.data) {
+          set({ dailyStats: statsRes.data });
+        }
       }
     } catch (error: any) {
       set({ error: error.message || '添加饮食记录失败' });
@@ -176,7 +179,10 @@ export const useDataStore = create<DataState>((set, get) => ({
         }));
         const meal = get().todayMeals.find((m) => m.id === id);
         if (meal) {
-          await get().fetchTodayData(meal.record_date);
+          const statsRes = await statsApi.getDailyStats({ date: meal.record_date });
+          if (statsRes.success && statsRes.data) {
+            set({ dailyStats: statsRes.data });
+          }
         }
       }
     } catch (error: any) {
@@ -198,7 +204,10 @@ export const useDataStore = create<DataState>((set, get) => ({
           todayMeals: state.todayMeals.filter((meal) => meal.id !== id),
         }));
         if (recordDate) {
-          await get().fetchTodayData(recordDate);
+          const statsRes = await statsApi.getDailyStats({ date: recordDate });
+          if (statsRes.success && statsRes.data) {
+            set({ dailyStats: statsRes.data });
+          }
         }
       }
     } catch (error: any) {
@@ -217,7 +226,10 @@ export const useDataStore = create<DataState>((set, get) => ({
         set((state) => ({
           todayExercises: [...state.todayExercises, response.data!],
         }));
-        await get().fetchTodayData(data.record_date);
+        const statsRes = await statsApi.getDailyStats({ date: data.record_date });
+        if (statsRes.success && statsRes.data) {
+          set({ dailyStats: statsRes.data });
+        }
       }
     } catch (error: any) {
       set({ error: error.message || '添加运动记录失败' });
@@ -239,7 +251,10 @@ export const useDataStore = create<DataState>((set, get) => ({
         }));
         const exercise = get().todayExercises.find((e) => e.id === id);
         if (exercise) {
-          await get().fetchTodayData(exercise.record_date);
+          const statsRes = await statsApi.getDailyStats({ date: exercise.record_date });
+          if (statsRes.success && statsRes.data) {
+            set({ dailyStats: statsRes.data });
+          }
         }
       }
     } catch (error: any) {
@@ -261,7 +276,10 @@ export const useDataStore = create<DataState>((set, get) => ({
           todayExercises: state.todayExercises.filter((exercise) => exercise.id !== id),
         }));
         if (recordDate) {
-          await get().fetchTodayData(recordDate);
+          const statsRes = await statsApi.getDailyStats({ date: recordDate });
+          if (statsRes.success && statsRes.data) {
+            set({ dailyStats: statsRes.data });
+          }
         }
       }
     } catch (error: any) {

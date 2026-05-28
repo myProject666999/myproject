@@ -16,10 +16,10 @@ type (
 		Password   string    `db:"password"`
 		RealName   string    `db:"real_name"`
 		Phone      string    `db:"phone"`
-		Email      string    `db:"email"`
+		Email      *string   `db:"email"`
 		Role       string    `db:"role"`
 		Status     int64     `db:"status"`
-		Remark     string    `db:"remark"`
+		Remark     *string   `db:"remark"`
 		CreateTime time.Time `db:"create_time"`
 		UpdateTime time.Time `db:"update_time"`
 	}

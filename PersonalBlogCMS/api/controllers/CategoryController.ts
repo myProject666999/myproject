@@ -37,9 +37,16 @@ export class CategoryController {
         return;
       }
 
-      const category = await this.categoryService.createCategory(body);
-      success(res, category, '分类创建成功');
+      const result = await this.categoryService.createCategory(body);
+
+      if ('error' in result) {
+        error(res, result.error);
+        return;
+      }
+
+      success(res, result, '分类创建成功');
     } catch (err) {
+      console.error('创建分类失败:', err);
       error(res, '创建分类失败', 500, 500);
     }
   }
@@ -92,9 +99,16 @@ export class CategoryController {
         return;
       }
 
-      const tag = await this.categoryService.createTag(body);
-      success(res, tag, '标签创建成功');
+      const result = await this.categoryService.createTag(body);
+
+      if ('error' in result) {
+        error(res, result.error);
+        return;
+      }
+
+      success(res, result, '标签创建成功');
     } catch (err) {
+      console.error('创建标签失败:', err);
       error(res, '创建标签失败', 500, 500);
     }
   }

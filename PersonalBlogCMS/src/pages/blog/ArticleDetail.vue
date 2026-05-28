@@ -67,7 +67,7 @@ const loadComments = async (articleId: number) => {
   commentsLoading.value = true;
   try {
     const response = await commentApi.getApproved(articleId);
-    comments.value = response.data;
+    comments.value = response;
   } catch (error) {
     console.error('加载评论失败', error);
   } finally {

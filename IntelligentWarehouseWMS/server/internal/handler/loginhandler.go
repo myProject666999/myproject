@@ -7,6 +7,7 @@ import (
 	"wms-server/internal/svc"
 	"wms-server/internal/types"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
@@ -14,6 +15,7 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.LoginReq
 		if err := httpx.Parse(r, &req); err != nil {
+			logx.Errorf("Parse request error: %v", err)
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
@@ -21,6 +23,7 @@ func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		l := logic.NewLoginLogic(r.Context(), svcCtx)
 		resp, err := l.Login(&req)
 		if err != nil {
+			logx.Errorf("Login logic error: %v", err)
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {
 			httpx.OkJsonCtx(r.Context(), w, resp)

@@ -82,7 +82,7 @@
           <span class="toggle-label">列表</span>
         </el-radio-button>
         <el-radio-button value="map">
-          <el-icon><Map /></el-icon>
+          <el-icon><Position /></el-icon>
           <span class="toggle-label">地图</span>
         </el-radio-button>
       </el-radio-group>

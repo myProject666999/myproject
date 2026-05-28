@@ -67,7 +67,7 @@ public class AccompanyMealController {
     @PutMapping("/{id}")
     public Result<AccompanyMeal> update(@PathVariable Long id, @RequestBody AccompanyMeal meal) {
         Optional<AccompanyMeal> existing = accompanyMealService.findById(id);
-        if (existing.isEmpty()) {
+        if (!existing.isPresent()) {
             return Result.error("记录不存在");
         }
         meal.setId(id);

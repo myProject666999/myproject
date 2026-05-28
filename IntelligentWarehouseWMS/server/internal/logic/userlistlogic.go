@@ -56,15 +56,23 @@ func (l *UserListLogic) UserList(req *types.UserListReq) (resp *types.UserListRe
 
 	userList := make([]types.UserInfo, 0, len(list))
 	for _, user := range list {
+		email := ""
+		if user.Email != nil {
+			email = *user.Email
+		}
+		remark := ""
+		if user.Remark != nil {
+			remark = *user.Remark
+		}
 		userList = append(userList, types.UserInfo{
 			Id:         user.Id,
 			Username:   user.Username,
 			RealName:   user.RealName,
 			Phone:      user.Phone,
-			Email:      user.Email,
+			Email:      email,
 			Role:       user.Role,
 			Status:     user.Status,
-			Remark:     user.Remark,
+			Remark:     remark,
 			CreateTime: user.CreateTime.Format("2006-01-02 15:04:05"),
 		})
 	}

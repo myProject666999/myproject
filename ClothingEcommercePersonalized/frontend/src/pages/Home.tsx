@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Carousel, Card, Input, Badge, Spin, Rate } from 'antd'
+import { Carousel, Card, Input, Badge, Spin, Rate, App as AntApp } from 'antd'
 import {
   ShoppingCartOutlined,
   UserOutlined,
@@ -168,6 +168,7 @@ function formatSales(sales: number) {
 
 export default function Home() {
   const navigate = useNavigate()
+  const { message } = AntApp.useApp()
   const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES)
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS)
   const [loading, setLoading] = useState(false)
@@ -202,13 +203,41 @@ export default function Home() {
     }
   }
 
+  function handleCategoryClick(cat: Category) {
+    message.info(`已选择分类：${cat.name}，功能开发中`)
+  }
+
+  function handleProductClick(product: Product) {
+    message.info(`查看商品：${product.name}，功能开发中`)
+  }
+
+  function handleViewMore() {
+    message.info('更多商品，功能开发中')
+  }
+
+  function handleCartClick() {
+    message.info('购物车，功能开发中')
+  }
+
+  function handleUserClick() {
+    message.info('用户中心，功能开发中')
+  }
+
+  function handleLinkClick(linkName: string) {
+    message.info(`${linkName}，功能开发中`)
+  }
+
+  function handleLogoClick() {
+    navigate('/')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={handleLogoClick}>
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 text-sm font-bold text-white">
                 CE
               </div>
@@ -230,9 +259,9 @@ export default function Home() {
 
             <div className="flex items-center gap-5">
               <Badge count={0} showZero={false}>
-                <ShoppingCartOutlined className="text-xl text-gray-600 cursor-pointer hover:text-pink-500 transition-colors" />
+                <ShoppingCartOutlined className="text-xl text-gray-600 cursor-pointer hover:text-pink-500 transition-colors" onClick={handleCartClick} />
               </Badge>
-              <UserOutlined className="text-xl text-gray-600 cursor-pointer hover:text-pink-500 transition-colors" />
+              <UserOutlined className="text-xl text-gray-600 cursor-pointer hover:text-pink-500 transition-colors" onClick={handleUserClick} />
             </div>
           </div>
         </div>
@@ -276,6 +305,7 @@ export default function Home() {
                   'cursor-pointer shadow-sm hover:shadow-md transition-all',
                   'hover:-translate-y-0.5'
                 )}
+                onClick={() => handleCategoryClick(cat)}
               >
                 <span className="text-2xl sm:text-3xl">{cat.icon}</span>
                 <span className="text-xs sm:text-sm text-gray-700 font-medium">{cat.name}</span>
@@ -291,7 +321,7 @@ export default function Home() {
               <FireOutlined className="text-orange-500 text-xl" />
               <h2 className="text-xl font-semibold text-gray-800">为你推荐</h2>
             </div>
-            <span className="text-sm text-gray-400 cursor-pointer hover:text-pink-500 transition-colors flex items-center gap-1">
+            <span className="text-sm text-gray-400 cursor-pointer hover:text-pink-500 transition-colors flex items-center gap-1" onClick={handleViewMore}>
               查看更多 <RightOutlined className="text-xs" />
             </span>
           </div>
@@ -304,6 +334,7 @@ export default function Home() {
                   hoverable
                   className="overflow-hidden rounded-xl border-0 shadow-sm"
                   styles={{ body: { padding: '12px' } }}
+                  onClick={() => handleProductClick(product)}
                   cover={
                     <div className="relative aspect-square overflow-hidden bg-gray-100">
                       <img
@@ -408,19 +439,19 @@ export default function Home() {
             <div>
               <h4 className="mb-3 text-sm font-semibold text-gray-800">快速链接</h4>
               <ul className="space-y-2 text-sm text-gray-500">
-                <li className="cursor-pointer hover:text-pink-500 transition-colors">新品上架</li>
-                <li className="cursor-pointer hover:text-pink-500 transition-colors">热门推荐</li>
-                <li className="cursor-pointer hover:text-pink-500 transition-colors">品牌精选</li>
-                <li className="cursor-pointer hover:text-pink-500 transition-colors">限时特惠</li>
+                <li className="cursor-pointer hover:text-pink-500 transition-colors" onClick={() => handleLinkClick('新品上架')}>新品上架</li>
+                <li className="cursor-pointer hover:text-pink-500 transition-colors" onClick={() => handleLinkClick('热门推荐')}>热门推荐</li>
+                <li className="cursor-pointer hover:text-pink-500 transition-colors" onClick={() => handleLinkClick('品牌精选')}>品牌精选</li>
+                <li className="cursor-pointer hover:text-pink-500 transition-colors" onClick={() => handleLinkClick('限时特惠')}>限时特惠</li>
               </ul>
             </div>
             <div>
               <h4 className="mb-3 text-sm font-semibold text-gray-800">帮助中心</h4>
               <ul className="space-y-2 text-sm text-gray-500">
-                <li className="cursor-pointer hover:text-pink-500 transition-colors">购物指南</li>
-                <li className="cursor-pointer hover:text-pink-500 transition-colors">配送方式</li>
-                <li className="cursor-pointer hover:text-pink-500 transition-colors">售后服务</li>
-                <li className="cursor-pointer hover:text-pink-500 transition-colors">联系我们</li>
+                <li className="cursor-pointer hover:text-pink-500 transition-colors" onClick={() => handleLinkClick('购物指南')}>购物指南</li>
+                <li className="cursor-pointer hover:text-pink-500 transition-colors" onClick={() => handleLinkClick('配送方式')}>配送方式</li>
+                <li className="cursor-pointer hover:text-pink-500 transition-colors" onClick={() => handleLinkClick('售后服务')}>售后服务</li>
+                <li className="cursor-pointer hover:text-pink-500 transition-colors" onClick={() => handleLinkClick('联系我们')}>联系我们</li>
               </ul>
             </div>
           </div>

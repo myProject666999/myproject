@@ -31,15 +31,17 @@ func (l *UserCreateLogic) UserCreate(req *types.UserCreateReq) (resp *types.Comm
 		return nil, err
 	}
 
+	email := req.Email
+	remark := req.Remark
 	user := &model.SysUser{
 		Username: req.Username,
 		Password: string(hashedPassword),
 		RealName: req.RealName,
 		Phone:    req.Phone,
-		Email:    req.Email,
+		Email:    &email,
 		Role:     req.Role,
 		Status:   req.Status,
-		Remark:   req.Remark,
+		Remark:   &remark,
 	}
 
 	_, err = l.svcCtx.SysUserModel.Insert(user)

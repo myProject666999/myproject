@@ -68,6 +68,7 @@ export class CommentController {
 
       success(res, result, '评论提交成功，等待审核');
     } catch (err) {
+      console.error('发表评论失败:', err);
       error(res, '发表评论失败', 500, 500);
     }
   }

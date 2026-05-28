@@ -59,7 +59,7 @@ public class SampleRecordController {
     @PutMapping("/{id}")
     public Result<SampleRecord> update(@PathVariable Long id, @RequestBody SampleRecord record) {
         Optional<SampleRecord> existing = sampleRecordService.findById(id);
-        if (existing.isEmpty()) {
+        if (!existing.isPresent()) {
             return Result.error("记录不存在");
         }
         record.setId(id);

@@ -11,7 +11,7 @@
         <el-col :xs="24" :md="12" class="map-column">
           <div class="map-section">
             <div class="section-title">
-              <el-icon :size="16"><Map /></el-icon>
+              <el-icon :size="16"><Position /></el-icon>
               <span>选择位置</span>
             </div>
             <div class="map-hint">
@@ -218,7 +218,7 @@ import {
   User,
   Price,
   Search,
-  Map,
+  Position,
   Plus,
   CircleCheck
 } from '@element-plus/icons-vue'

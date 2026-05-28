@@ -89,6 +89,15 @@ new Vue({
             if (val === null || val === undefined || isNaN(val)) return '0.00';
             return Number(val).toFixed(decimals);
         },
+        buildParams(obj) {
+            const params = {};
+            for (const key in obj) {
+                if (obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
+                    params[key] = obj[key];
+                }
+            }
+            return params;
+        },
         handleMenuSelect(index) {
             this.currentPage = index;
             this.pageTitle = this.pageTitles[index] || '数据概览';

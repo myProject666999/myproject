@@ -116,8 +116,11 @@ const JobDetailPage = () => {
 
   const renderSalary = () => {
     if (!job) return ''
-    if (job.minSalary && job.maxSalary) return `${job.minSalary}-${job.maxSalary}K`
-    if (job.minSalary) return `${job.minSalary}K以上`
+    const min = job.minSalary ?? job.min_salary
+    const max = job.maxSalary ?? job.max_salary
+    if (min && max) return `${min}-${max}K`
+    if (min) return `${min}K以上`
+    if (max) return `最高${max}K`
     return '面议'
   }
 

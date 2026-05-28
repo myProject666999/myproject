@@ -380,8 +380,8 @@ INSERT INTO `product` (`sku`, `product_name`, `category`, `spec`, `unit`, `min_s
 ('SKU008', '耳机', '电子产品', '无线/降噪', '副', 25, 250);
 
 INSERT INTO `sys_user` (`username`, `password`, `real_name`, `phone`, `role`) VALUES
-('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '系统管理员', '13800138000', 1),
-('operator', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '仓库管理员', '13800138003', 2);
+('admin', '$2a$10$.x0B01Qr.y6sT1ni9bzT1OBt2BKu/HzCh8PjDrMMm8vZ/UpbnOc5u', '系统管理员', '13800138000', 1),
+('operator', '$2a$10$.x0B01Qr.y6sT1ni9bzT1OBt2BKu/HzCh8PjDrMMm8vZ/UpbnOc5u', '仓库管理员', '13800138003', 2);
 
 INSERT INTO `inventory` (`warehouse_id`, `location_id`, `product_id`, `sku`, `quantity`, `available_qty`, `locked_qty`, `version`, `batch_no`) VALUES
 (1, 1, 1, 'SKU001', 50, 50, 0, 0, 'B20240101'),

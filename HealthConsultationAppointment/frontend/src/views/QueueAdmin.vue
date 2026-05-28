@@ -5,7 +5,7 @@
     <el-card class="filter-card">
       <el-form :inline="true" :model="filter">
         <el-form-item label="科室">
-          <el-select v-model="filter.departmentId" placeholder="请选择科室" @change="onDepartmentChange">
+          <el-select v-model="filter.departmentId" placeholder="请选择科室" @change="onDepartmentChange" style="width: 200px;">
             <el-option
               v-for="dept in departments"
               :key="dept.id"
@@ -15,7 +15,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="医生">
-          <el-select v-model="filter.doctorId" placeholder="请选择医生" @change="loadData">
+          <el-select v-model="filter.doctorId" placeholder="请选择医生" @change="loadData" style="width: 180px;">
             <el-option
               v-for="doctor in doctors"
               :key="doctor.id"
@@ -25,7 +25,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="排班">
-          <el-select v-model="filter.scheduleId" placeholder="请选择排班" @change="loadData">
+          <el-select v-model="filter.scheduleId" placeholder="请选择排班" @change="loadData" style="width: 220px;">
             <el-option
               v-for="s in schedules"
               :key="s.id"

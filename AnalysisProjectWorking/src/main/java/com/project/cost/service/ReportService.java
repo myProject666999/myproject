@@ -41,7 +41,7 @@ public class ReportService {
         );
 
         if (cache != null && cache.getExpireTime().isAfter(LocalDateTime.now())) {
-            return JSON.parseArray(cache.getCacheData(), Map.class);
+            return JSON.parseObject(cache.getCacheData(), new com.alibaba.fastjson.TypeReference<List<Map<String, Object>>>() {});
         }
 
         List<Timesheet> timesheets = timesheetMapper.selectList(
@@ -116,7 +116,7 @@ public class ReportService {
         );
 
         if (cache != null && cache.getExpireTime().isAfter(LocalDateTime.now())) {
-            return JSON.parseArray(cache.getCacheData(), Map.class);
+            return JSON.parseObject(cache.getCacheData(), new com.alibaba.fastjson.TypeReference<List<Map<String, Object>>>() {});
         }
 
         List<Timesheet> timesheets = timesheetMapper.selectList(

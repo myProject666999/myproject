@@ -89,23 +89,23 @@ const mockExerciseTypes = [
 
 const today = dayjs().format('YYYY-MM-DD');
 
-const mockMeals = [
-  { id: 1, user_id: 1, food_id: 1, meal_type: 'breakfast', quantity: 150, calories: 174, protein: 3.9, fat: 0.45, carbs: 38.85, record_date: today, created_at: '', food: mockFoods[0] },
-  { id: 2, user_id: 1, food_id: 11, meal_type: 'breakfast', quantity: 60, calories: 86.4, protein: 7.98, fat: 5.28, carbs: 1.68, record_date: today, created_at: '', food: mockFoods[10] },
-  { id: 3, user_id: 1, food_id: 12, meal_type: 'breakfast', quantity: 250, calories: 135, protein: 7.5, fat: 8, carbs: 8.5, record_date: today, created_at: '', food: mockFoods[11] },
-  { id: 4, user_id: 1, food_id: 7, meal_type: 'lunch', quantity: 200, calories: 198, protein: 2.2, fat: 0.4, carbs: 49.4, record_date: today, created_at: '', food: mockFoods[6] },
-  { id: 5, user_id: 1, food_id: 9, meal_type: 'lunch', quantity: 150, calories: 199.5, protein: 29.1, fat: 7.5, carbs: 3.75, record_date: today, created_at: '', food: mockFoods[8] },
-  { id: 6, user_id: 1, food_id: 14, meal_type: 'lunch', quantity: 100, calories: 33, protein: 4.1, fat: 0.6, carbs: 4.3, record_date: today, created_at: '', food: mockFoods[13] },
-  { id: 7, user_id: 1, food_id: 5, meal_type: 'dinner', quantity: 100, calories: 246, protein: 13, fat: 3.5, carbs: 41, record_date: today, created_at: '', food: mockFoods[4] },
-  { id: 8, user_id: 1, food_id: 18, meal_type: 'snack', quantity: 150, calories: 78, protein: 0.3, fat: 0.3, carbs: 20.25, record_date: today, created_at: '', food: mockFoods[17] },
+let mockMeals = [
+  { id: 1, user_id: 1, food_id: 1, meal_type: 'breakfast', quantity: 150, calories: 174, protein: 3.9, fat: 0.45, carbs: 38.85, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'), food: mockFoods[0] },
+  { id: 2, user_id: 1, food_id: 11, meal_type: 'breakfast', quantity: 60, calories: 86.4, protein: 7.98, fat: 5.28, carbs: 1.68, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'), food: mockFoods[10] },
+  { id: 3, user_id: 1, food_id: 12, meal_type: 'breakfast', quantity: 250, calories: 135, protein: 7.5, fat: 8, carbs: 8.5, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'), food: mockFoods[11] },
+  { id: 4, user_id: 1, food_id: 7, meal_type: 'lunch', quantity: 200, calories: 198, protein: 2.2, fat: 0.4, carbs: 49.4, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'), food: mockFoods[6] },
+  { id: 5, user_id: 1, food_id: 9, meal_type: 'lunch', quantity: 150, calories: 199.5, protein: 29.1, fat: 7.5, carbs: 3.75, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'), food: mockFoods[8] },
+  { id: 6, user_id: 1, food_id: 14, meal_type: 'lunch', quantity: 100, calories: 33, protein: 4.1, fat: 0.6, carbs: 4.3, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'), food: mockFoods[13] },
+  { id: 7, user_id: 1, food_id: 5, meal_type: 'dinner', quantity: 100, calories: 246, protein: 13, fat: 3.5, carbs: 41, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'), food: mockFoods[4] },
+  { id: 8, user_id: 1, food_id: 18, meal_type: 'snack', quantity: 150, calories: 78, protein: 0.3, fat: 0.3, carbs: 20.25, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'), food: mockFoods[17] },
 ];
 
-const mockExercises = [
-  { id: 1, user_id: 1, exercise_type: '跑步', duration_minutes: 30, calories_burned: 300, record_date: today, created_at: '' },
-  { id: 2, user_id: 1, exercise_type: '力量训练', duration_minutes: 45, calories_burned: 270, record_date: today, created_at: '' },
+let mockExercises = [
+  { id: 1, user_id: 1, exercise_type: '跑步', duration_minutes: 30, calories_burned: 300, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss') },
+  { id: 2, user_id: 1, exercise_type: '力量训练', duration_minutes: 45, calories_burned: 270, record_date: today, created_at: dayjs().format('YYYY-MM-DD HH:mm:ss') },
 ];
 
-const mockDailyStats = {
+let mockDailyStats = {
   id: 1,
   user_id: 1,
   stat_date: today,
@@ -119,6 +119,27 @@ const mockDailyStats = {
   created_at: '',
   updated_at: '',
 };
+
+const recalculateDailyStats = () => {
+  const totalCaloriesIntake = mockMeals.reduce((sum, meal) => sum + meal.calories, 0);
+  const totalCaloriesBurned = mockExercises.reduce((sum, exercise) => sum + exercise.calories_burned, 0);
+  const totalProtein = mockMeals.reduce((sum, meal) => sum + meal.protein, 0);
+  const totalFat = mockMeals.reduce((sum, meal) => sum + meal.fat, 0);
+  const totalCarbs = mockMeals.reduce((sum, meal) => sum + meal.carbs, 0);
+  
+  mockDailyStats = {
+    ...mockDailyStats,
+    total_calories_intake: Number(totalCaloriesIntake.toFixed(1)),
+    total_calories_burned: Number(totalCaloriesBurned.toFixed(1)),
+    net_calories: Number((totalCaloriesIntake - totalCaloriesBurned).toFixed(1)),
+    protein: Number(totalProtein.toFixed(2)),
+    fat: Number(totalFat.toFixed(2)),
+    carbs: Number(totalCarbs.toFixed(2)),
+  };
+};
+
+let nextMealId = mockMeals.length + 1;
+let nextExerciseId = mockExercises.length + 1;
 
 const generateTrendData = (days: number) => {
   const data = [];
@@ -209,19 +230,86 @@ export const mockApiHandler = (url: string, options: RequestInit = {}): Promise<
           data: food || mockFoods[0],
         });
       } else if (url.includes('/meals') && method === 'GET') {
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+        const date = urlParams.get('date');
+        let filteredMeals = [...mockMeals];
+        if (date) {
+          filteredMeals = filteredMeals.filter(m => m.record_date === date);
+        }
         resolve({
           success: true,
-          data: mockMeals,
+          data: filteredMeals,
         });
       } else if (url.includes('/meals') && method === 'POST') {
+        const food = mockFoods.find(f => f.id === body.food_id);
+        if (!food) {
+          resolve({
+            success: false,
+            message: '食物不存在',
+          });
+          return;
+        }
+        const newMeal = {
+          id: nextMealId++,
+          user_id: 1,
+          food_id: body.food_id,
+          meal_type: body.meal_type,
+          quantity: body.quantity,
+          calories: Number(((food.calories_per_100g * body.quantity) / 100).toFixed(1)),
+          protein: Number(((food.protein * body.quantity) / 100).toFixed(2)),
+          fat: Number(((food.fat * body.quantity) / 100).toFixed(2)),
+          carbs: Number(((food.carbs * body.quantity) / 100).toFixed(2)),
+          record_date: body.record_date || today,
+          created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+          food: food,
+        };
+        mockMeals.push(newMeal);
+        recalculateDailyStats();
         resolve({
           success: true,
+          data: newMeal,
           message: '添加成功（演示模式）',
         });
-      } else if (url.match(/\/meals\/\d+/) && (method === 'PUT' || method === 'DELETE')) {
+      } else if (url.match(/\/meals\/\d+/) && method === 'PUT') {
+        const mealId = parseInt(url.split('/').pop() || '0');
+        const mealIndex = mockMeals.findIndex(m => m.id === mealId);
+        if (mealIndex === -1) {
+          resolve({
+            success: false,
+            message: '记录不存在',
+          });
+          return;
+        }
+        const meal = mockMeals[mealIndex];
+        const food = meal.food || mockFoods.find(f => f.id === meal.food_id);
+        if (body.quantity !== undefined && food) {
+          meal.quantity = body.quantity;
+          meal.calories = Number(((food.calories_per_100g * body.quantity) / 100).toFixed(1));
+          meal.protein = Number(((food.protein * body.quantity) / 100).toFixed(2));
+          meal.fat = Number(((food.fat * body.quantity) / 100).toFixed(2));
+          meal.carbs = Number(((food.carbs * body.quantity) / 100).toFixed(2));
+        }
+        recalculateDailyStats();
         resolve({
           success: true,
-          message: method === 'PUT' ? '更新成功（演示模式）' : '删除成功（演示模式）',
+          data: meal,
+          message: '更新成功（演示模式）',
+        });
+      } else if (url.match(/\/meals\/\d+/) && method === 'DELETE') {
+        const mealId = parseInt(url.split('/').pop() || '0');
+        const mealIndex = mockMeals.findIndex(m => m.id === mealId);
+        if (mealIndex === -1) {
+          resolve({
+            success: false,
+            message: '记录不存在',
+          });
+          return;
+        }
+        mockMeals.splice(mealIndex, 1);
+        recalculateDailyStats();
+        resolve({
+          success: true,
+          message: '删除成功（演示模式）',
         });
       } else if (url.includes('/exercises/types') && method === 'GET') {
         resolve({
@@ -229,19 +317,78 @@ export const mockApiHandler = (url: string, options: RequestInit = {}): Promise<
           data: mockExerciseTypes,
         });
       } else if (url.includes('/exercises') && method === 'GET') {
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+        const date = urlParams.get('date');
+        let filteredExercises = [...mockExercises];
+        if (date) {
+          filteredExercises = filteredExercises.filter(e => e.record_date === date);
+        }
         resolve({
           success: true,
-          data: mockExercises,
+          data: filteredExercises,
         });
       } else if (url.includes('/exercises') && method === 'POST') {
+        const exerciseType = mockExerciseTypes.find(t => t.name === body.exercise_type);
+        if (!exerciseType) {
+          resolve({
+            success: false,
+            message: '运动类型不存在',
+          });
+          return;
+        }
+        const newExercise = {
+          id: nextExerciseId++,
+          user_id: 1,
+          exercise_type: body.exercise_type,
+          duration_minutes: body.duration_minutes,
+          calories_burned: Math.round(exerciseType.calories_per_minute * body.duration_minutes),
+          record_date: body.record_date || today,
+          created_at: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        };
+        mockExercises.push(newExercise);
+        recalculateDailyStats();
         resolve({
           success: true,
+          data: newExercise,
           message: '添加成功（演示模式）',
         });
-      } else if (url.match(/\/exercises\/\d+/) && (method === 'PUT' || method === 'DELETE')) {
+      } else if (url.match(/\/exercises\/\d+/) && method === 'PUT') {
+        const exerciseId = parseInt(url.split('/').pop() || '0');
+        const exerciseIndex = mockExercises.findIndex(e => e.id === exerciseId);
+        if (exerciseIndex === -1) {
+          resolve({
+            success: false,
+            message: '记录不存在',
+          });
+          return;
+        }
+        const exercise = mockExercises[exerciseIndex];
+        const exerciseType = mockExerciseTypes.find(t => t.name === exercise.exercise_type);
+        if (body.duration_minutes !== undefined && exerciseType) {
+          exercise.duration_minutes = body.duration_minutes;
+          exercise.calories_burned = Math.round(exerciseType.calories_per_minute * body.duration_minutes);
+        }
+        recalculateDailyStats();
         resolve({
           success: true,
-          message: method === 'PUT' ? '更新成功（演示模式）' : '删除成功（演示模式）',
+          data: exercise,
+          message: '更新成功（演示模式）',
+        });
+      } else if (url.match(/\/exercises\/\d+/) && method === 'DELETE') {
+        const exerciseId = parseInt(url.split('/').pop() || '0');
+        const exerciseIndex = mockExercises.findIndex(e => e.id === exerciseId);
+        if (exerciseIndex === -1) {
+          resolve({
+            success: false,
+            message: '记录不存在',
+          });
+          return;
+        }
+        mockExercises.splice(exerciseIndex, 1);
+        recalculateDailyStats();
+        resolve({
+          success: true,
+          message: '删除成功（演示模式）',
         });
       } else if (url.includes('/weights') && method === 'GET') {
         resolve({

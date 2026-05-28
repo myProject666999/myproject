@@ -39,7 +39,17 @@ export class CategoryService {
     return tags;
   }
 
-  async createCategory(request: CreateCategoryRequest): Promise<Category> {
+  async createCategory(request: CreateCategoryRequest): Promise<Category | { error: string }> {
+    const existingName = await this.categoryRepository.findByName(request.name);
+    if (existingName) {
+      return { error: '分类名称已存在' };
+    }
+
+    const existingSlug = await this.categoryRepository.findBySlug(request.slug);
+    if (existingSlug) {
+      return { error: '分类Slug已存在' };
+    }
+
     const category = await this.categoryRepository.create(request);
     await this.invalidateCache();
     return category;
@@ -61,7 +71,17 @@ export class CategoryService {
     return success;
   }
 
-  async createTag(request: CreateTagRequest): Promise<Tag> {
+  async createTag(request: CreateTagRequest): Promise<Tag | { error: string }> {
+    const existingName = await this.tagRepository.findByName(request.name);
+    if (existingName) {
+      return { error: '标签名称已存在' };
+    }
+
+    const existingSlug = await this.tagRepository.findBySlug(request.slug);
+    if (existingSlug) {
+      return { error: '标签Slug已存在' };
+    }
+
     const tag = await this.tagRepository.create({
       ...request,
       color: request.color || '#10b981',

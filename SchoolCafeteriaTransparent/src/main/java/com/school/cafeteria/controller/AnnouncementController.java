@@ -43,7 +43,7 @@ public class AnnouncementController {
     @PutMapping("/{id}")
     public Result<Announcement> update(@PathVariable Long id, @RequestBody Announcement announcement) {
         Optional<Announcement> existing = announcementService.findById(id);
-        if (existing.isEmpty()) {
+        if (!existing.isPresent()) {
             return Result.error("公告不存在");
         }
         announcement.setId(id);

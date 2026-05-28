@@ -1,0 +1,19 @@
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "123456"
+  dbname: team_virtual_office
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: team-virtual-office-jwt-secret-key
+  expire_hours: 24
+
+server:
+  port: 8080

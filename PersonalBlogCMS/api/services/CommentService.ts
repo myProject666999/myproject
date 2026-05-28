@@ -44,7 +44,7 @@ export class CommentService {
       return { error: '评论过于频繁，请稍后再试' };
     }
 
-    const article = this.articleRepository.findById(articleId);
+    const article = await this.articleRepository.findById(articleId);
     if (!article || article.status !== 'published') {
       return { error: '文章不存在' };
     }
@@ -60,7 +60,7 @@ export class CommentService {
     }
 
     if (request.parentId) {
-      const parent = this.commentRepository.findById(request.parentId);
+      const parent = await this.commentRepository.findById(request.parentId);
       if (!parent || parent.articleId !== articleId) {
         return { error: '回复的评论不存在' };
       }

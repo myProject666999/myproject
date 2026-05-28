@@ -14,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService extends ServiceImpl<ProjectMapper, Project> {
@@ -108,10 +111,10 @@ public class ProjectService extends ServiceImpl<ProjectMapper, Project> {
 
         List<Long> projectIds = memberships.stream()
                 .map(ProjectMember::getProjectId)
-                .toList();
+                .collect(Collectors.toList());
 
         if (projectIds.isEmpty()) {
-            return List.of();
+            return Collections.emptyList();
         }
 
         return listByIds(projectIds);
