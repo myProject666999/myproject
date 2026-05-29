@@ -313,11 +313,11 @@ new Vue({
         },
 
         async loadBatteries() {
-            const params = new URLSearchParams({
+            const params = new URLSearchParams(this.buildParams({
                 page: this.batteryPage,
                 page_size: this.batteryPageSize,
                 ...this.batteryFilter
-            });
+            }));
             const data = await this.request('get', `/battery/list?${params.toString()}`);
             if (data) {
                 this.batteries = data.list || [];
@@ -337,7 +337,11 @@ new Vue({
 
         async showBatteryDetail(battery) {
             const data = await this.request('get', `/battery/${battery.id}`);
-            this.currentBattery = data || battery;
+            if (data && data.battery) {
+                this.currentBattery = data.battery;
+            } else {
+                this.currentBattery = battery;
+            }
             this.batteryDetailVisible = true;
         },
 
@@ -349,7 +353,7 @@ new Vue({
                     battery_id: this.currentBattery.id,
                     reason: '管理员手动下线'
                 });
-                if (res) {
+                if (res !== null) {
                     this.$message.success('电池已下线');
                     this.batteryDetailVisible = false;
                     this.loadBatteries();
@@ -367,11 +371,11 @@ new Vue({
         },
 
         async loadOrders() {
-            const params = new URLSearchParams({
+            const params = new URLSearchParams(this.buildParams({
                 page: this.orderPage,
                 page_size: this.orderPageSize,
                 ...this.orderFilter
-            });
+            }));
             const data = await this.request('get', `/order/list?${params.toString()}`);
             if (data) {
                 this.orders = data.list || [];
@@ -391,7 +395,11 @@ new Vue({
 
         async loadDispatchTasks() {
             const data = await this.request('get', '/dispatch/task/list');
-            this.dispatchTasks = data || [];
+            if (data && data.list) {
+                this.dispatchTasks = data.list;
+            } else {
+                this.dispatchTasks = [];
+            }
         },
 
         async loadGaps() {
@@ -415,7 +423,7 @@ new Vue({
                 type: 'warning'
             }).then(async () => {
                 const res = await this.request('post', '/dispatch/auto-create');
-                if (res) {
+                if (res !== null) {
                     this.$message.success('调度任务已生成');
                     this.loadDispatchTasks();
                     this.dispatchPlan = [];
@@ -425,7 +433,7 @@ new Vue({
 
         async autoCreateTasks() {
             const res = await this.request('post', '/dispatch/auto-create');
-            if (res) {
+            if (res !== null) {
                 this.$message.success('自动生成调度任务完成');
                 this.loadDispatchTasks();
                 this.loadGaps();
@@ -452,7 +460,7 @@ new Vue({
                 task_id: this.currentTask.id,
                 operator_id: this.assignForm.operator_id
             });
-            if (res) {
+            if (res !== null) {
                 this.$message.success('任务已分配');
                 this.assignTaskVisible = false;
                 this.loadDispatchTasks();
@@ -464,7 +472,7 @@ new Vue({
                 type: 'warning'
             }).then(async () => {
                 const res = await this.request('post', `/dispatch/task/${task.id}/start`);
-                if (res) {
+                if (res !== null) {
                     this.$message.success('任务已开始');
                     this.loadDispatchTasks();
                 }
@@ -483,7 +491,7 @@ new Vue({
                 task_id: this.currentTask.id,
                 battery_ids: batteryIds
             });
-            if (res) {
+            if (res !== null) {
                 this.$message.success('任务已完成');
                 this.completeTaskVisible = false;
                 this.loadDispatchTasks();
@@ -512,7 +520,7 @@ new Vue({
         },
 
         async purchasePackage(pkg) {
-            this.$confirm(`确认购买「${pkg.name}」套餐，价格 ¥${pkg.price.toFixed(2)}？`, '提示', {
+            this.$confirm(`确认购买「${pkg.name}」套餐，价格 ¥${this.formatNumber(pkg.price)}？`, '提示', {
                 type: 'warning'
             }).then(async () => {
                 const idempotentKey = `purchase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -552,11 +560,11 @@ new Vue({
         },
 
         async loadAlerts() {
-            const params = new URLSearchParams({
+            const params = new URLSearchParams(this.buildParams({
                 page: this.alertPage,
                 page_size: this.alertPageSize,
                 ...this.alertFilter
-            });
+            }));
             const data = await this.request('get', `/alert/list?${params.toString()}`);
             if (data) {
                 this.alerts = data.list || [];
@@ -593,7 +601,7 @@ new Vue({
                 status: this.handleAlertForm.status,
                 handle_result: this.handleAlertForm.handle_result
             });
-            if (res) {
+            if (res !== null) {
                 this.$message.success('处理成功');
                 this.handleAlertVisible = false;
                 this.loadAlerts();
@@ -604,18 +612,22 @@ new Vue({
         async showAlertDetail(alert) {
             const data = await this.request('get', `/alert/${alert.id}`);
             if (data) {
-                this.$alert(`
+                const content = `
                     <div style="line-height: 2;">
                         <p><strong>告警编号：</strong>${data.alert_no}</p>
                         <p><strong>标题：</strong>${data.title}</p>
-                        <p><strong>内容：</strong>${data.content}</p>
+                        <p><strong>内容：</strong>${data.content || '-'}</p>
                         <p><strong>换电柜：</strong>${data.cabinet_name || '-'}</p>
                         <p><strong>电池：</strong>${data.battery_no || '-'}</p>
                         <p><strong>创建时间：</strong>${data.created_at}</p>
                         <p><strong>处理人：</strong>${data.handler_name || '-'}</p>
                         <p><strong>处理结果：</strong>${data.handle_result || '-'}</p>
                     </div>
-                `, '告警详情');
+                `;
+                this.$alert(content, '告警详情', {
+                    dangerouslyUseHTMLString: true,
+                    confirmButtonText: '确定'
+                });
             }
         }
     }

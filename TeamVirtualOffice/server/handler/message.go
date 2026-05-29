@@ -170,11 +170,10 @@ func GetRoomMessages(c *gin.Context) {
 	var messages []model.Message
 	var total int64
 
-	query := db.Model(&model.Message{}).Where("room_id = ?", roomID)
-	query.Count(&total)
+	db.Model(&model.Message{}).Where("room_id = ?", roomID).Count(&total)
 
 	offset := (page - 1) * pageSize
-	query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&messages)
+	db.Model(&model.Message{}).Where("room_id = ?", roomID).Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&messages)
 
 	senderIDs := make([]uint, len(messages))
 	for i, msg := range messages {
@@ -234,14 +233,16 @@ func GetPrivateMessages(c *gin.Context) {
 	var messages []model.Message
 	var total int64
 
-	query := db.Model(&model.Message{}).Where(
+	db.Model(&model.Message{}).Where(
 		"(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
 		userID, otherUserID, otherUserID, userID,
-	)
-	query.Count(&total)
+	).Count(&total)
 
 	offset := (page - 1) * pageSize
-	query.Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&messages)
+	db.Model(&model.Message{}).Where(
+		"(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
+		userID, otherUserID, otherUserID, userID,
+	).Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&messages)
 
 	senderIDs := make([]uint, len(messages))
 	for i, msg := range messages {

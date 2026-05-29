@@ -258,7 +258,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -267,7 +267,7 @@ import {
   User,
   Search,
   Filter,
-  Map,
+  Position,
   List,
   Refresh,
   ArrowDown
@@ -311,6 +311,14 @@ onMounted(() => {
   nextTick(() => {
     drawMockMap()
   })
+})
+
+watch(viewMode, (newVal) => {
+  if (newVal === 'map') {
+    nextTick(() => {
+      drawMockMap()
+    })
+  }
 })
 
 async function fetchRides() {

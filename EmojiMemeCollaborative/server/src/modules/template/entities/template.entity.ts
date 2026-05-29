@@ -41,7 +41,7 @@ export class Template {
   @Column({ name: 'copyright_info', length: 500, nullable: true })
   copyright_info: string;
 
-  @Column({ name: 'created_by', nullable: true })
+  @Column({ name: 'created_by', type: 'int', nullable: true })
   created_by: number;
 
   @ManyToOne(() => User)

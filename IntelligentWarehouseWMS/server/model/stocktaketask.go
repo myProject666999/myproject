@@ -22,7 +22,7 @@ type (
 		Operator    string     `db:"operator"`
 		StartTime   *time.Time `db:"start_time"`
 		EndTime     *time.Time `db:"end_time"`
-		Remark      string     `db:"remark"`
+		Remark      *string     `db:"remark"`
 		CreateTime  time.Time  `db:"create_time"`
 		UpdateTime  time.Time  `db:"update_time"`
 	}

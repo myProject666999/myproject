@@ -25,6 +25,7 @@ func NewLocationCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Lo
 }
 
 func (l *LocationCreateLogic) LocationCreate(req *types.LocationCreateReq) (resp *types.CommonResp, err error) {
+	remark := req.Remark
 	location := &model.Location{
 		WarehouseId:  req.WarehouseId,
 		ShelfId:      req.ShelfId,
@@ -34,7 +35,7 @@ func (l *LocationCreateLogic) LocationCreate(req *types.LocationCreateReq) (resp
 		Capacity:     req.Capacity,
 		UsedCapacity: req.UsedCapacity,
 		Status:       req.Status,
-		Remark:       req.Remark,
+		Remark:       &remark,
 	}
 
 	_, err = l.svcCtx.LocationModel.Insert(location)

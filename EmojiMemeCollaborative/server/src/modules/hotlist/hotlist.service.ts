@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Injectable, Inject } from '@nestjs/common';
 import Redis from 'ioredis';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
@@ -9,7 +8,7 @@ import { HotlistQueryDto } from './dto/hotlist-query.dto';
 @Injectable()
 export class HotlistService {
   constructor(
-    @InjectRedis() private redis: Redis,
+    @Inject('REDIS_CLIENT') private redis: Redis,
     @InjectRepository(Meme)
     private memeRepository: Repository<Meme>,
   ) {}

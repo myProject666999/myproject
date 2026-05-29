@@ -40,6 +40,10 @@ func LocationDetailHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		remark := ""
+		if location.Remark != nil {
+			remark = *location.Remark
+		}
 		resp := types.LocationInfo{
 			Id:           location.Id,
 			WarehouseId:  location.WarehouseId,
@@ -50,7 +54,7 @@ func LocationDetailHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			Capacity:     location.Capacity,
 			UsedCapacity: location.UsedCapacity,
 			Status:       location.Status,
-			Remark:       location.Remark,
+			Remark:       remark,
 			CreateTime:   location.CreateTime.Format("2006-01-02 15:04:05"),
 		}
 		httpx.OkJsonCtx(r.Context(), w, resp)
@@ -97,7 +101,8 @@ func LocationUpdateHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		location.Capacity = req.Capacity
 		location.UsedCapacity = req.UsedCapacity
 		location.Status = req.Status
-		location.Remark = req.Remark
+		remark := req.Remark
+		location.Remark = &remark
 
 		err = svcCtx.LocationModel.Update(location)
 		if err != nil {

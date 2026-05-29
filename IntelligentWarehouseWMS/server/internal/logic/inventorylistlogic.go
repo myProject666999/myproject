@@ -64,6 +64,10 @@ func convertInventoryInfo(item *model.Inventory) types.InventoryInfo {
 	if item.ExpiryDate != nil {
 		expiryDate = item.ExpiryDate.Format("2006-01-02 15:04:05")
 	}
+	batchNo := ""
+	if item.BatchNo != nil {
+		batchNo = *item.BatchNo
+	}
 
 	return types.InventoryInfo{
 		Id:             item.Id,
@@ -75,7 +79,7 @@ func convertInventoryInfo(item *model.Inventory) types.InventoryInfo {
 		AvailableQty:   item.AvailableQty,
 		LockedQty:      item.LockedQty,
 		Version:        item.Version,
-		BatchNo:        item.BatchNo,
+		BatchNo:        batchNo,
 		ProductionDate: productionDate,
 		ExpiryDate:     expiryDate,
 		CreateTime:     item.CreateTime.Format("2006-01-02 15:04:05"),
@@ -120,6 +124,7 @@ func (l *InventoryAdjustLogic) InventoryAdjust(req *types.InventoryAdjustReq) (*
 	} else {
 		logType = 2
 	}
+	remarkLog := req.Reason
 	inventoryLog := &model.InventoryLog{
 		LogNo:        generateLogNo(),
 		WarehouseId:  inventory.WarehouseId,
@@ -133,7 +138,7 @@ func (l *InventoryAdjustLogic) InventoryAdjust(req *types.InventoryAdjustReq) (*
 		ChangeQty:    req.ChangeQty,
 		AfterQty:     afterQty,
 		Operator:     req.Operator,
-		Remark:       req.Reason,
+		Remark:       &remarkLog,
 		CreateTime:   now,
 	}
 	_, err = l.svcCtx.InventoryLogModel.Insert(inventoryLog)

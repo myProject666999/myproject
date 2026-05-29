@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"unmanned-container/utils"
+)
 
 type StockCheck struct {
 	BaseModel
@@ -57,7 +61,7 @@ type StockCheckQuery struct {
 type StockCheckCreate struct {
 	ContainerID   uint64              `json:"container_id" binding:"required"`
 	ReplenisherID uint64              `json:"replenisher_id" binding:"required"`
-	CheckTime     time.Time           `json:"check_time" binding:"required"`
+	CheckTime     utils.CustomTime    `json:"check_time" binding:"required"`
 	Items         []StockCheckItemDTO `json:"items" binding:"required,min=1"`
 	Remark        string              `json:"remark"`
 }
@@ -109,11 +113,11 @@ type DamageRecordQuery struct {
 }
 
 type DamageRecordCreate struct {
-	ContainerID uint64    `json:"container_id" binding:"required"`
-	ProductID   uint64    `json:"product_id" binding:"required"`
-	Quantity    int       `json:"quantity" binding:"required,min=1"`
-	Reason      string    `json:"reason" binding:"required"`
-	HandlerID   uint64    `json:"handler_id" binding:"required"`
-	HandleTime  time.Time `json:"handle_time" binding:"required"`
-	CheckID     *uint64   `json:"check_id"`
+	ContainerID uint64           `json:"container_id" binding:"required"`
+	ProductID   uint64           `json:"product_id" binding:"required"`
+	Quantity    int              `json:"quantity" binding:"required,min=1"`
+	Reason      string           `json:"reason" binding:"required"`
+	HandlerID   uint64           `json:"handler_id" binding:"required"`
+	HandleTime  utils.CustomTime `json:"handle_time" binding:"required"`
+	CheckID     *uint64          `json:"check_id"`
 }

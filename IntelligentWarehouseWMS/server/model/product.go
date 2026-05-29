@@ -11,20 +11,20 @@ import (
 
 type (
 	Product struct {
-		Id          int64     `db:"id"`
-		Sku         string    `db:"sku"`
-		ProductName string    `db:"product_name"`
-		Category    string    `db:"category"`
-		Spec        string    `db:"spec"`
-		Unit        string    `db:"unit"`
-		Weight      float64   `db:"weight"`
-		Volume      float64   `db:"volume"`
-		MinStock    int       `db:"min_stock"`
-		MaxStock    int       `db:"max_stock"`
-		Status      int64     `db:"status"`
-		Remark      string    `db:"remark"`
-		CreateTime  time.Time `db:"create_time"`
-		UpdateTime  time.Time `db:"update_time"`
+		Id          int64      `db:"id"`
+		Sku         string     `db:"sku"`
+		ProductName string     `db:"product_name"`
+		Category    *string    `db:"category"`
+		Spec        *string    `db:"spec"`
+		Unit        string     `db:"unit"`
+		Weight      *float64   `db:"weight"`
+		Volume      *float64   `db:"volume"`
+		MinStock    int        `db:"min_stock"`
+		MaxStock    int        `db:"max_stock"`
+		Status      int64      `db:"status"`
+		Remark      *string    `db:"remark"`
+		CreateTime  time.Time  `db:"create_time"`
+		UpdateTime  time.Time  `db:"update_time"`
 	}
 
 	ProductQuery struct {

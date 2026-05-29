@@ -13,7 +13,7 @@ import { databaseConfig } from './config/database.config';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { Redis } from 'ioredis';
+import { RedisModule } from './config/redis.module';
 
 @Module({
   imports: [
@@ -22,6 +22,7 @@ import { Redis } from 'ioredis';
       useFactory: databaseConfig,
       inject: [ConfigService],
     }),
+    RedisModule,
     AuthModule,
     UserModule,
     TemplateModule,
@@ -32,20 +33,8 @@ import { Redis } from 'ioredis';
     ReviewModule,
   ],
   providers: [
-    {
-      provide: 'REDIS_CLIENT',
-      useFactory: (configService: ConfigService) => {
-        return new Redis({
-          host: configService.get<string>('REDIS_HOST', '127.0.0.1'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          db: 0,
-        });
-      },
-      inject: [ConfigService],
-    },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
-  exports: ['REDIS_CLIENT'],
 })
 export class AppModule {}

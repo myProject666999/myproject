@@ -55,19 +55,39 @@ func (l *ProductListLogic) ProductList(req *types.ProductListReq) (resp *types.P
 
 	productList := make([]types.ProductInfo, 0, len(list))
 	for _, product := range list {
+		category := ""
+		if product.Category != nil {
+			category = *product.Category
+		}
+		spec := ""
+		if product.Spec != nil {
+			spec = *product.Spec
+		}
+		weight := 0.0
+		if product.Weight != nil {
+			weight = *product.Weight
+		}
+		volume := 0.0
+		if product.Volume != nil {
+			volume = *product.Volume
+		}
+		remark := ""
+		if product.Remark != nil {
+			remark = *product.Remark
+		}
 		productList = append(productList, types.ProductInfo{
 			Id:          product.Id,
 			Sku:         product.Sku,
 			ProductName: product.ProductName,
-			Category:    product.Category,
-			Spec:        product.Spec,
+			Category:    category,
+			Spec:        spec,
 			Unit:        product.Unit,
-			Weight:      product.Weight,
-			Volume:      product.Volume,
+			Weight:      weight,
+			Volume:      volume,
 			MinStock:    product.MinStock,
 			MaxStock:    product.MaxStock,
 			Status:      product.Status,
-			Remark:      product.Remark,
+			Remark:      remark,
 			CreateTime:  product.CreateTime.Format("2006-01-02 15:04:05"),
 		})
 	}

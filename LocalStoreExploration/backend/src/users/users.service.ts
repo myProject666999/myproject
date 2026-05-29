@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { instanceToPlain } from 'class-transformer';
 import { User } from '../entities/user.entity';
 
 @Injectable()
@@ -13,7 +14,8 @@ export class UsersService {
   async findById(id: number) {
     const user = await this.userRepository.findOne({ where: { id } });
     if (user) {
-      const { password, ...result } = user;
+      const plain = instanceToPlain(user) as any;
+      const { password, ...result } = plain;
       return result;
     }
     return null;
@@ -26,7 +28,11 @@ export class UsersService {
       order: { followersCount: 'DESC' },
     });
     return {
-      list: users.map(u => { const { password, ...rest } = u; return rest; }),
+      list: users.map(u => {
+        const plain = instanceToPlain(u) as any;
+        const { password, ...rest } = plain;
+        return rest;
+      }),
       total,
       page,
       limit,

@@ -120,20 +120,22 @@ func (s *InventoryService) Delete(id uint64) error {
 func (s *InventoryService) GetLowStockItems(area string) ([]models.LowStockItem, error) {
 	var items []models.LowStockItem
 
-	db := config.DB.Table("inventory i").
-		Select(`i.container_id, c.container_no, c.name as container_name, c.area,
+	sql := `SELECT i.id, i.container_id, c.container_no, c.name as container_name, c.area,
 				i.product_id, p.product_code, p.name as product_name, p.category,
 				i.quantity, i.threshold, i.max_quantity,
-				(i.max_quantity - i.quantity) as need_quantity`).
-		Joins("LEFT JOIN containers c ON i.container_id = c.id").
-		Joins("LEFT JOIN products p ON i.product_id = p.id").
-		Where("i.quantity <= i.threshold AND c.status = 1 AND p.status = 1")
+				(i.max_quantity - i.quantity) as need_quantity
+			FROM inventory i
+			LEFT JOIN containers c ON i.container_id = c.id
+			LEFT JOIN products p ON i.product_id = p.id
+			WHERE i.quantity <= i.threshold AND c.status = 1 AND p.status = 1`
 
 	if area != "" {
-		db = db.Where("c.area = ?", area)
+		sql += " AND c.area = '" + area + "'"
 	}
 
-	if err := db.Order("c.area, c.id, p.id").Find(&items).Error; err != nil {
+	sql += " ORDER BY c.area, c.id, p.id"
+
+	if err := config.DB.Raw(sql).Scan(&items).Error; err != nil {
 		return nil, err
 	}
 

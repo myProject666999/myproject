@@ -21,7 +21,7 @@ export class Meme {
   @Column({ name: 'image_url', length: 500, nullable: true })
   image_url: string;
 
-  @Column({ name: 'template_id', nullable: true })
+  @Column({ name: 'template_id', type: 'int', nullable: true })
   template_id: number | null;
 
   @ManyToOne(() => Template)

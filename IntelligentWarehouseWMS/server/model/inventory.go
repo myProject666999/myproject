@@ -20,7 +20,7 @@ type (
 		AvailableQty  int64      `db:"available_qty"`
 		LockedQty     int64      `db:"locked_qty"`
 		Version       int64      `db:"version"`
-		BatchNo       string     `db:"batch_no"`
+		BatchNo       *string     `db:"batch_no"`
 		ProductionDate *time.Time `db:"production_date"`
 		ExpiryDate     *time.Time `db:"expiry_date"`
 		CreateTime    time.Time  `db:"create_time"`

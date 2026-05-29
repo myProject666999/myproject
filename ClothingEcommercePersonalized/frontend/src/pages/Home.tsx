@@ -199,32 +199,43 @@ export default function Home() {
 
   function handleSearch(value: string) {
     if (value.trim()) {
-      navigate(`/?keyword=${encodeURIComponent(value.trim())}`)
+      navigate(`/products?keyword=${encodeURIComponent(value.trim())}`)
     }
   }
 
   function handleCategoryClick(cat: Category) {
-    message.info(`已选择分类：${cat.name}，功能开发中`)
+    navigate(`/products/category/${cat.id}`)
   }
 
   function handleProductClick(product: Product) {
-    message.info(`查看商品：${product.name}，功能开发中`)
+    navigate(`/product/${product.id}`)
   }
 
   function handleViewMore() {
-    message.info('更多商品，功能开发中')
+    navigate('/products')
   }
 
   function handleCartClick() {
-    message.info('购物车，功能开发中')
+    message.info('购物车功能开发中')
   }
 
   function handleUserClick() {
-    message.info('用户中心，功能开发中')
+    message.info('用户中心功能开发中')
   }
 
   function handleLinkClick(linkName: string) {
-    message.info(`${linkName}，功能开发中`)
+    const linkPageMap: Record<string, string> = {
+      '新品上架': '/products',
+      '热门推荐': '/products',
+      '品牌精选': '/products',
+      '限时特惠': '/products',
+    }
+    const targetPage = linkPageMap[linkName]
+    if (targetPage) {
+      navigate(targetPage)
+    } else {
+      message.info(`${linkName}功能开发中`)
+    }
   }
 
   function handleLogoClick() {

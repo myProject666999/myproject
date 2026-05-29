@@ -23,11 +23,10 @@ func GetActivities(c *gin.Context) {
 	var activities []model.Activity
 	var total int64
 
-	query := db.Model(&model.Activity{}).Order("created_at DESC")
-	query.Count(&total)
+	db.Model(&model.Activity{}).Count(&total)
 
 	offset := (page - 1) * pageSize
-	query.Offset(offset).Limit(pageSize).Find(&activities)
+	db.Model(&model.Activity{}).Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&activities)
 
 	userIDs := make([]uint, 0)
 	for _, act := range activities {

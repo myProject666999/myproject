@@ -6,6 +6,7 @@ import (
 	redisPkg "carpooling/pkg/redis"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -17,6 +18,14 @@ func NewRideService() *RideService {
 }
 
 func (s *RideService) CreateRide(ownerID uint64, req *model.CreateRideRequest) (*model.Ride, error) {
+	departureTime, err := time.ParseInLocation("2006-01-02 15:04:05", req.DepartureTime, time.Local)
+	if err != nil {
+		departureTime, err = time.Parse(time.RFC3339, req.DepartureTime)
+		if err != nil {
+			return nil, fmt.Errorf("无效的时间格式: %v", err)
+		}
+	}
+
 	ride := &model.Ride{
 		OwnerID:        ownerID,
 		VehicleID:      req.VehicleID,
@@ -26,7 +35,7 @@ func (s *RideService) CreateRide(ownerID uint64, req *model.CreateRideRequest) (
 		Destination:    req.Destination,
 		DestinationLng: req.DestinationLng,
 		DestinationLat: req.DestinationLat,
-		DepartureTime:  req.DepartureTime,
+		DepartureTime:  departureTime,
 		AvailableSeats: req.AvailableSeats,
 		PricePerPerson: req.PricePerPerson,
 		Description:    req.Description,

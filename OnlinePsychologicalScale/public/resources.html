@@ -631,163 +631,13 @@
     <script src="js/common.js"></script>
     <script src="js/api.js"></script>
     <script>
-        const mockResources = [
-            {
-                id: 1,
-                title: '如何识别和应对抑郁症',
-                summary: '了解抑郁症的常见症状、发病原因，以及有效的应对方法和专业治疗途径。',
-                type: 'article',
-                category: 'mental',
-                views: 12580,
-                author: '张明教授',
-                source: '中国心理学会',
-                publishDate: '2024-01-10',
-                icon: '📖',
-                hotline: null,
-                content: '抑郁症是一种常见的心理障碍，影响着全球数亿人的生活。本文将从多个角度帮助您了解和应对抑郁症。\n\n一、什么是抑郁症\n抑郁症不仅仅是心情不好，它是一种需要治疗的医学疾病。患者会经历持续的悲伤、绝望和对活动缺乏兴趣，这些症状会严重影响日常生活。\n\n二、常见症状\n1. 持续的悲伤、焦虑或"空虚"情绪\n2. 对活动缺乏兴趣或乐趣\n3. 食欲变化导致体重波动\n4. 睡眠困难或过度睡眠\n5. 精力下降、疲劳\n6. 感到无价值或内疚\n7. 注意力难以集中\n8. 出现自杀念头\n\n三、应对方法\n1. 寻求专业帮助：心理咨询和药物治疗都是有效的治疗方式\n2. 保持规律作息：充足的睡眠和规律的饮食对情绪稳定至关重要\n3. 适度运动：有氧运动可以显著改善抑郁症状\n4. 社交支持：与亲友保持联系，不要孤立自己\n5. 学习压力管理：正念冥想、深呼吸等放松技巧\n\n四、何时需要紧急帮助\n如果您或您认识的人有自杀念头，请立即寻求帮助。您可以拨打心理援助热线或前往最近的医院急诊科。\n\n记住：抑郁症是可以治疗的，寻求帮助是勇敢的表现。',
-                related: [2, 5]
-            },
-            {
-                id: 2,
-                title: '全国24小时心理危机干预热线',
-                summary: '7×24小时免费心理援助服务，由专业心理咨询师接听，严格保密。',
-                type: 'hotline',
-                category: 'crisis',
-                views: 56890,
-                author: '全国心理援助联盟',
-                source: '官方热线',
-                publishDate: '2023-06-01',
-                icon: '📞',
-                hotline: '400-161-9995',
-                hotlineDesc: '7×24小时 · 免费保密 · 专业接听',
-                content: '本热线由全国心理援助联盟设立，为有心理困扰的人群提供24小时免费、专业、保密的心理咨询服务。\n\n服务内容：\n• 心理危机干预\n• 情绪疏导\n• 心理健康咨询\n• 资源转介\n\n服务特点：\n• 24小时全天候服务，全年无休\n• 由持有专业资质的心理咨询师接听\n• 严格保密所有来电信息\n• 免费服务，无需承担任何费用\n• 支持普通话及多种方言\n\n如果您或您身边的人正在经历心理危机，请立即拨打：400-161-9995\n\n紧急情况请直接拨打120或前往最近医院急诊科。',
-                related: [3, 4]
-            },
-            {
-                id: 3,
-                title: '北京心理危机研究与干预中心',
-                summary: '专业的心理危机干预机构，提供24小时热线服务和面对面咨询。',
-                type: 'hotline',
-                category: 'crisis',
-                views: 32450,
-                author: '北京心理危机研究与干预中心',
-                source: '官方热线',
-                publishDate: '2023-03-15',
-                icon: '🏥',
-                hotline: '010-82951332',
-                hotlineDesc: '专业机构 · 24小时服务',
-                content: '北京心理危机研究与干预中心是国内首家心理危机专业干预机构，隶属于北京回龙观医院。\n\n服务范围：\n• 24小时心理危机干预热线\n• 门诊心理咨询与治疗\n• 自杀预防与干预\n• 心理危机干预人员培训\n• 相关科学研究\n\n中心拥有一支经验丰富的专业团队，包括精神科医生、护士、心理学家、社会工作者等。\n\n热线电话：010-82951332\n地址：北京市昌平区回龙观镇\n\n中心同时提供多种语言服务，包括普通话、英语等。',
-                related: [2, 6]
-            },
-            {
-                id: 4,
-                title: '青少年心理健康指导手册',
-                summary: '针对青少年常见心理问题的识别、预防和干预指南，适合家长和教育工作者阅读。',
-                type: 'article',
-                category: 'reading',
-                views: 18920,
-                author: '李华博士',
-                source: '教育部心理健康教育指导委员会',
-                publishDate: '2024-01-05',
-                icon: '📚',
-                hotline: null,
-                content: '青少年时期是心理发展的关键阶段，也是心理问题的高发期。本手册旨在帮助家长和教育工作者更好地了解和支持青少年的心理健康。\n\n第一章 青少年心理发展特点\n青少年期（12-18岁）是从儿童向成人过渡的时期，身体、认知和社会情感都在发生巨大变化。这一阶段的青少年开始形成自我认同，对同伴关系更加重视，情绪体验也更为强烈。\n\n第二章 常见心理问题识别\n1. 情绪问题：抑郁、焦虑、易怒\n2. 行为问题：攻击性、违纪、网络成瘾\n3. 人际问题：社交退缩、校园欺凌\n4. 自我伤害：自伤行为、自杀念头\n\n第三章 如何与青少年沟通\n1. 倾听不评判：给孩子表达的空间\n2. 尊重隐私：不随意翻看孩子的私人物品\n3. 保持耐心：沟通需要时间和信任\n4. 避免说教：以平等的姿态交流\n\n第四章 预防与干预\n1. 建立良好的家庭氛围\n2. 培养健康的生活习惯\n3. 教会情绪管理技巧\n4. 及时寻求专业帮助\n\n记住：关注孩子的心理健康和关注身体健康同样重要。',
-                related: [1, 7]
-            },
-            {
-                id: 5,
-                title: '5分钟呼吸放松训练',
-                summary: '简单易学的呼吸放松技巧，帮助您在焦虑和压力时快速平复情绪。',
-                type: 'audio',
-                category: 'tool',
-                views: 25670,
-                author: '王芳心理咨询师',
-                source: '原创音频',
-                publishDate: '2023-12-20',
-                icon: '🎧',
-                hotline: null,
-                content: '呼吸放松训练是一种简单而有效的压力管理技巧。通过调节呼吸节奏，我们可以激活副交感神经系统，降低心率和血压，带来放松的感觉。\n\n以下是5分钟呼吸放松训练的指导：\n\n准备工作：\n找一个安静舒适的地方坐下或躺下\n如果可能，闭上眼睛\n将一只手放在腹部，另一只手放在胸部\n\n训练步骤：\n1. 观察自然呼吸（1分钟）\n   不要刻意改变呼吸，只是观察\n   感受空气进入和离开身体\n\n2. 腹式呼吸练习（2分钟）\n   用鼻子慢慢吸气，数1-2-3-4\n   感受腹部隆起（放在腹部的手上升）\n   屏住呼吸，数1-2\n   用嘴巴慢慢呼气，数1-2-3-4-5-6\n   感受腹部回落\n\n3. 4-7-8呼吸法（2分钟）\n   用鼻子吸气4秒\n   屏住呼吸7秒\n   用嘴巴呼气8秒\n   重复循环\n\n训练结束后，慢慢睁开眼睛，花一点时间感受身体的变化。\n\n建议每天练习2-3次，特别是在感到压力或焦虑时。',
-                related: [8, 9]
-            },
-            {
-                id: 6,
-                title: '上海市精神卫生中心',
-                summary: '国内知名的精神卫生专业机构，提供全方位的心理健康服务。',
-                type: 'link',
-                category: 'institution',
-                views: 15340,
-                author: '上海市精神卫生中心',
-                source: '官方网站',
-                publishDate: '2023-09-10',
-                icon: '🏛️',
-                hotline: null,
-                content: '上海市精神卫生中心（Shanghai Mental Health Center）始建于1935年，是一所集医疗、教学、科研、防治、康复为一体的大型三级甲等精神卫生专科医院。\n\n科室设置：\n• 普通精神科\n• 心境障碍科\n• 焦虑障碍科\n• 儿童青少年精神科\n• 老年精神科\n• 心理咨询科\n• 睡眠障碍科\n• 成瘾科\n\n特色服务：\n• 专家门诊和特需门诊\n• 心理评估与测评\n• 个体和团体心理治疗\n• 家庭治疗\n• 危机干预\n• 远程医疗咨询\n\n地址：上海市徐汇区宛平南路600号\n电话：021-34773151\n\n中心拥有一支高素质的专业团队，致力于为患者提供优质的心理健康服务。',
-                related: [3, 10]
-            },
-            {
-                id: 7,
-                title: '正念冥想入门指导',
-                summary: '从零开始学习正念冥想，帮助您提升专注力，减轻压力和焦虑。',
-                type: 'video',
-                category: 'tool',
-                views: 31280,
-                author: '陈静冥想导师',
-                source: '原创视频',
-                publishDate: '2023-11-15',
-                icon: '🎬',
-                hotline: null,
-                content: '正念冥想（Mindfulness Meditation）源于东方禅修传统，现已被科学研究证实对心理健康有诸多益处。\n\n什么是正念？\n正念是一种有意地、不加评判地将注意力集中于当下体验的方法。通过正念练习，我们可以更清晰地觉察自己的思维和情绪模式。\n\n正念的益处：\n• 减轻压力和焦虑\n• 提升专注力和记忆力\n• 改善情绪调节能力\n• 增强自我觉察\n• 改善睡眠质量\n• 降低慢性疼痛\n\n基础正念练习步骤：\n1. 找一个安静舒适的地方坐下\n2. 设置一个5-10分钟的计时器\n3. 闭上眼睛或向下看\n4. 将注意力集中在呼吸上\n5. 当思绪飘走时，温和地将注意力带回到呼吸上\n6. 不要评判自己，只是持续练习\n\n常见的正念练习：\n• 呼吸觉察\n• 身体扫描\n• 正念行走\n• 正念进食\n• 慈心冥想\n\n建议从每天5分钟开始，逐渐增加练习时间。',
-                related: [5, 9]
-            },
-            {
-                id: 8,
-                title: '睡眠问题的自我调节',
-                summary: '了解睡眠的重要性，学习改善睡眠质量的实用方法。',
-                type: 'article',
-                category: 'mental',
-                views: 22150,
-                author: '刘伟医生',
-                source: '中国睡眠研究会',
-                publishDate: '2023-10-25',
-                icon: '😴',
-                hotline: null,
-                content: '睡眠对身心健康至关重要。良好的睡眠有助于恢复体力、巩固记忆、调节情绪。本文将介绍一些改善睡眠质量的实用方法。\n\n一、睡眠的重要性\n成年人每晚需要7-9小时的睡眠。睡眠不足或质量差会导致：\n• 注意力不集中\n• 情绪易怒\n• 免疫力下降\n• 体重增加\n• 焦虑抑郁风险增加\n\n二、常见睡眠问题\n1. 入睡困难：躺下30分钟以上无法入睡\n2. 睡眠维持困难：夜间频繁醒来\n3. 早醒：比预期时间早醒且无法再入睡\n4. 睡眠质量差：即使睡够时间也感到疲劳\n\n三、改善睡眠的方法\n\n1. 建立规律的睡眠时间表\n   每天同一时间上床和起床，包括周末\n\n2. 创建良好的睡眠环境\n   保持卧室安静、黑暗、凉爽（18-22°C）\n   选择舒适的床垫和枕头\n\n3. 睡前仪式\n   睡前30分钟避免使用电子设备\n   可以阅读、听轻音乐或泡个热水澡\n\n4. 注意饮食和运动\n   避免下午3点后摄入咖啡因\n   睡前2-3小时避免大量进食和饮酒\n   规律运动，但避免睡前3小时剧烈运动\n\n5. 管理压力\n   睡前写下待办事项，清空大脑\n   学习放松技巧，如深呼吸、正念\n\n四、何时需要专业帮助\n如果睡眠问题持续超过1个月，并且严重影响日常生活，建议咨询专业医生或睡眠专家。',
-                related: [1, 5]
-            },
-            {
-                id: 9,
-                title: '压力管理实用技巧',
-                summary: '认识压力的来源和影响，学习科学的压力管理方法。',
-                type: 'article',
-                category: 'reading',
-                views: 19870,
-                author: '赵雪心理咨询师',
-                source: '职场心理健康杂志',
-                publishDate: '2023-08-18',
-                icon: '💪',
-                hotline: null,
-                content: '在快节奏的现代生活中，压力已经成为我们不可避免的一部分。适度的压力可以激发潜能，但长期过度的压力会对身心健康造成负面影响。\n\n一、压力的来源\n• 工作压力：任务繁重、时间紧迫、职场关系\n• 生活压力：经济负担、家庭责任、重大变故\n• 社会压力：社交比较、信息过载\n• 内部压力：完美主义、自我要求过高\n\n二、压力对身体的影响\n长期压力会影响身体各个系统：\n• 神经系统：头痛、失眠、焦虑\n• 心血管系统：血压升高、心率加快\n• 消化系统：胃痛、消化不良\n• 免疫系统：免疫力下降\n• 内分泌系统：激素失衡\n\n三、压力管理四步法\n\n1. 觉察压力信号\n   识别压力早期症状：易怒、疲劳、睡眠问题\n\n2. 识别压力来源\n   记录压力日记，找出触发因素\n\n3. 采取应对策略\n   问题导向：解决问题本身\n   情绪导向：调节情绪反应\n\n四、实用压力管理技巧\n\n1. 时间管理\n   列待办清单，按优先级排序\n   学会说"不"，避免过度承诺\n\n2. 放松技巧\n   深呼吸、渐进式肌肉放松\n   冥想、瑜伽、正念\n\n3. 健康生活方式\n   规律运动、均衡饮食、充足睡眠\n   减少咖啡因和酒精摄入\n\n4. 社会支持\n   与亲友交流，分享感受\n   必要时寻求专业帮助\n\n记住：压力是生活的一部分，关键在于如何应对它。',
-                related: [5, 7]
-            },
-            {
-                id: 10,
-                title: '认知行为疗法(CBT)入门',
-                summary: '了解认知行为疗法的基本原理和核心技术，学习如何应用于日常生活。',
-                type: 'article',
-                category: 'reading',
-                views: 14560,
-                author: '孙明教授',
-                source: '临床心理学杂志',
-                publishDate: '2023-07-20',
-                icon: '🧠',
-                hotline: null,
-                content: '认知行为疗法（Cognitive Behavioral Therapy, CBT）是目前应用最广泛、研究证据最充分的心理治疗方法之一。\n\n一、什么是CBT\nCBT是一种短程、结构化的心理治疗方法，基于"认知影响情绪和行为"的基本原理。它认为，不是事件本身导致我们的情绪反应，而是我们对事件的看法和解释决定了我们的感受。\n\n二、CBT的核心原理\n1. 认知三角：思维-情绪-行为相互影响\n2. 自动思维：快速出现、未经过滤的想法\n3. 认知歪曲：非理性、不符合现实的思维模式\n4. 核心信念：深层的、关于自我和世界的信念\n\n三、常见的认知歪曲\n1. 全或无思维：非黑即白的极端思维\n2. 灾难化：放大负面结果\n3. 以偏概全：基于单一事件得出普遍结论\n4. 贴标签：给自己或他人贴上负面标签\n5. 读心术：假设知道别人在想什么\n6. 个性化：将不相关的事情归咎于自己\n\n四、CBT核心技术\n\n1. 认知重构\n   识别自动思维 → 评估其真实性 → 发展更平衡的思维\n\n2. 行为激活\n   增加积极活动，打破"不想做→不做→更不想做"的恶性循环\n\n3. 暴露疗法\n   逐渐面对害怕的场景，减少回避行为\n\n4. 放松训练\n   学习身体放松技巧，应对焦虑反应\n\n5. 问题解决\n   系统地分析问题，寻找解决方案\n\n五、在日常生活中应用CBT\n每天花5-10分钟记录自己的想法和情绪，练习识别和挑战非理性思维。\n\nCBT需要练习才能掌握，但只要坚持，就能有效改善情绪和生活质量。',
-                related: [1, 8]
-            }
-        ];
-
-        let currentCategory = 'all';
-        let currentType = 'all';
+        const typeIcons = {
+            article: '📖',
+            video: '🎬',
+            audio: '🎧',
+            link: '🔗',
+            hotline: '📞'
+        };
 
         const typeLabels = {
             article: '文章',
@@ -795,6 +645,14 @@
             audio: '音频',
             link: '链接',
             hotline: '热线'
+        };
+
+        const categoryKeyMap = {
+            1: 'crisis',
+            2: 'mental',
+            3: 'institution',
+            4: 'tool',
+            5: 'reading'
         };
 
         const categoryLabels = {
@@ -805,34 +663,55 @@
             reading: '推荐阅读'
         };
 
+        let allResources = [];
+        let currentCategory = 'all';
+        let currentType = 'all';
+
+        function mapResourceFromApi(raw) {
+            const categoryKey = categoryKeyMap[raw.category_id] || 'mental';
+            return {
+                id: raw.id,
+                title: raw.title || '',
+                summary: raw.summary || '',
+                type: raw.resource_type || raw.type || 'article',
+                category: categoryKey,
+                category_name: raw.category_name || categoryLabels[categoryKey] || '',
+                category_id: raw.category_id,
+                views: raw.view_count || raw.views || 0,
+                author: raw.author || '',
+                source: raw.source || '',
+                publishDate: raw.published_at ? raw.published_at.split('T')[0] : (raw.publishDate || ''),
+                icon: typeIcons[raw.resource_type || raw.type] || '📖',
+                hotline: raw.phone_number || raw.hotline || null,
+                content: raw.content || ''
+            };
+        }
+
         function renderResourceCard(resource) {
             const isHotline = resource.type === 'hotline';
-            const imageUrl = `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(resource.title)}&image_size=landscape_16_9`;
-            
             let cardClass = 'resource-card';
             if (isHotline) cardClass += ' hotline-card';
 
             return `
                 <div class="${cardClass}" onclick="openModal(${resource.id})">
                     <div class="resource-cover">
-                        <img src="${imageUrl}" alt="${resource.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="resource-cover-icon" style="display: none;">${resource.icon}</div>
-                        <span class="type-tag">${typeLabels[resource.type]}</span>
+                        <div class="resource-cover-icon" style="display:flex;">${resource.icon}</div>
+                        <span class="type-tag">${typeLabels[resource.type] || resource.type}</span>
                     </div>
                     ${isHotline && resource.hotline ? `
                         <div class="hotline-display-card">
                             <div class="number">${resource.hotline}</div>
-                            <div class="desc">${resource.hotlineDesc || ''}</div>
+                            <div class="desc">专业热线 · 请随时拨打</div>
                         </div>
                     ` : ''}
                     <div class="resource-content">
                         <h4 class="resource-title">${resource.title}</h4>
-                        <p class="resource-summary">${resource.summary}</p>
+                        <p class="resource-summary">${resource.summary || ''}</p>
                         <div class="resource-meta">
-                            <span class="resource-category">${categoryLabels[resource.category]}</span>
+                            <span class="resource-category">${resource.category_name || categoryLabels[resource.category] || resource.category}</span>
                             <span class="resource-views">
                                 <span>👁</span>
-                                <span>${resource.views.toLocaleString()} 次浏览</span>
+                                <span>${(resource.views || 0).toLocaleString()} 次浏览</span>
                             </span>
                         </div>
                     </div>
@@ -842,7 +721,7 @@
 
         function renderResources() {
             const container = document.getElementById('resourcesGrid');
-            let filtered = mockResources;
+            let filtered = allResources;
 
             if (currentCategory !== 'all') {
                 filtered = filtered.filter(r => r.category === currentCategory);
@@ -865,34 +744,82 @@
             container.innerHTML = filtered.map(renderResourceCard).join('');
         }
 
-        function openModal(id) {
-            const resource = mockResources.find(r => r.id === id);
-            if (!resource) return;
+        function renderContentHtml(text) {
+            if (!text || text.trim() === '') return '<p style="color:#8c8c8c;">暂无详细内容</p>';
+            return text.split('\n\n').map(function(p) {
+                return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
+            }).join('');
+        }
 
+        function formatDate(dateStr) {
+            if (!dateStr) return '未知';
+            try {
+                if (dateStr.includes('T')) return dateStr.split('T')[0];
+                return dateStr;
+            } catch(e) { return dateStr; }
+        }
+
+        async function openModal(id) {
             const modal = document.getElementById('resourceModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalBody = document.getElementById('modalBody');
 
+            const localResource = allResources.find(r => r.id === id);
+
+            modalTitle.textContent = localResource ? localResource.title : '资源详情';
+            modalBody.innerHTML = '<div style="text-align:center; padding:40px;"><div style="font-size:24px; margin-bottom:12px;">⏳</div><p>正在加载资源详情...</p></div>';
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            let resource = null;
+
+            try {
+                const data = await API.resources.getDetail(id);
+                if (data.success && data.data) {
+                    resource = mapResourceFromApi(data.data);
+                }
+            } catch (error) {
+                console.warn('获取资源详情失败:', error);
+                if (localResource && localResource.content) {
+                    resource = localResource;
+                }
+            }
+
+            if (!resource) {
+                resource = localResource;
+            }
+
+            if (!resource) {
+                modalBody.innerHTML = '<div style="text-align:center; padding:40px;"><p>资源不存在或加载失败</p></div>';
+                return;
+            }
+
             modalTitle.textContent = resource.title;
 
-            const imageUrl = `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(resource.title)}&image_size=landscape_16_9`;
-            
-            const relatedHtml = resource.related && resource.related.length > 0 ? `
+            const hotlineHtml = resource.hotline ? `
+                <div style="background: #fff1f0; padding: 16px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 700; color: #f5222d; margin-bottom: 4px;">${resource.hotline}</div>
+                    <div style="font-size: 13px; color: #8c8c8c;">专业热线 · 请随时拨打</div>
+                </div>
+            ` : '';
+
+            const contentHtml = renderContentHtml(resource.content);
+
+            const relatedResources = allResources.filter(function(r) {
+                return r.id !== id && r.category === resource.category;
+            }).slice(0, 3);
+
+            const relatedHtml = relatedResources.length > 0 ? `
                 <div class="related-section">
                     <h4>相关资源推荐</h4>
                     <div class="related-list">
-                        ${resource.related.map(relId => {
-                            const rel = mockResources.find(r => r.id === relId);
-                            if (!rel) return '';
-                            const relImageUrl = `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(rel.title)}&image_size=square`;
+                        ${relatedResources.map(function(rel) {
                             return `
                                 <div class="related-item" onclick="openModal(${rel.id})">
-                                    <div class="related-cover">
-                                        <img src="${relImageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;" alt="${rel.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='${rel.icon}';">
-                                    </div>
+                                    <div class="related-cover">${rel.icon || '📖'}</div>
                                     <div class="related-info">
                                         <div class="related-title">${rel.title}</div>
-                                        <div class="related-meta">${typeLabels[rel.type]} · ${rel.views.toLocaleString()} 次浏览</div>
+                                        <div class="related-meta">${typeLabels[rel.type] || ''} · ${(rel.views || 0).toLocaleString()} 次浏览</div>
                                     </div>
                                 </div>
                             `;
@@ -902,46 +829,34 @@
             ` : '';
 
             modalBody.innerHTML = `
-                <div class="modal-cover">
-                    <img src="${imageUrl}" alt="${resource.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="modal-cover-icon" style="display: none;">${resource.icon}</div>
-                </div>
                 <div class="modal-info">
                     <div class="modal-info-item">
                         <span class="label">作者：</span>
-                        <span>${resource.author}</span>
+                        <span>${resource.author || '未知'}</span>
                     </div>
                     <div class="modal-info-item">
                         <span class="label">来源：</span>
-                        <span>${resource.source}</span>
+                        <span>${resource.source || '未知'}</span>
                     </div>
                     <div class="modal-info-item">
                         <span class="label">发布时间：</span>
-                        <span>${resource.publishDate}</span>
+                        <span>${formatDate(resource.publishDate) || formatDate(resource.published_at) || '未知'}</span>
                     </div>
                     <div class="modal-info-item">
                         <span class="label">类型：</span>
-                        <span>${typeLabels[resource.type]}</span>
+                        <span>${typeLabels[resource.type] || resource.type}</span>
                     </div>
                     <div class="modal-info-item">
                         <span class="label">浏览：</span>
-                        <span>${resource.views.toLocaleString()} 次</span>
+                        <span>${(resource.views || 0).toLocaleString()} 次</span>
                     </div>
                 </div>
-                ${resource.hotline ? `
-                    <div style="background: var(--danger-light); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; text-align: center;">
-                        <div style="font-size: 24px; font-weight: 700; color: var(--danger); margin-bottom: 4px;">${resource.hotline}</div>
-                        <div style="font-size: 13px; color: var(--text-secondary);">${resource.hotlineDesc || ''}</div>
-                    </div>
-                ` : ''}
+                ${hotlineHtml}
                 <div class="modal-content">
-                    ${resource.content.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')}
+                    ${contentHtml}
                 </div>
                 ${relatedHtml}
             `;
-
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
@@ -950,8 +865,38 @@
             document.body.style.overflow = '';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        async function loadResources() {
+            try {
+                const data = await API.resources.list({ pageSize: 50 });
+                if (data.success && data.data && Array.isArray(data.data.resources)) {
+                    allResources = data.data.resources.map(function(r) {
+                        return mapResourceFromApi(r);
+                    });
+                } else {
+                    allResources = getMockResources();
+                }
+            } catch (error) {
+                console.error('加载资源失败:', error);
+                allResources = getMockResources();
+            }
             renderResources();
+        }
+
+        function getMockResources() {
+            return [
+                { id: 1, title: '全国24小时心理援助热线', summary: '全国心理援助热线，提供7×24小时免费心理咨询服务', type: 'hotline', category: 'crisis', category_name: '危机干预', views: 56890, author: '国家卫健委', source: '官方热线', publishDate: '2023-06-01', icon: '📞', hotline: '400-161-9995', content: '如果您或您身边的人正在经历心理危机，请立即拨打以下热线：\n\n全国24小时心理危机干预热线：400-161-9995\n北京心理危机研究与干预中心：010-82951332\n全国卫生热线：12320\n生命热线：400-821-1215\n\n所有热线均由专业心理咨询师接听，完全免费保密。' },
+                { id: 2, title: '了解抑郁：症状、原因与应对', summary: '全面介绍抑郁症的基本知识，帮助您识别和应对抑郁', type: 'article', category: 'mental', category_name: '心理健康科普', views: 12580, author: '心理健康教育团队', source: '本平台', publishDate: '2024-01-10', icon: '📖', content: '抑郁症是最常见的心理障碍之一。本文将从症状表现、常见原因、自我调节方法等方面为您详细介绍。\n\n【什么是抑郁症】\n抑郁症不仅仅是"心情不好"，而是一种持续的情绪障碍，通常表现为持续两周以上的情绪低落、兴趣减退、精力不足等。\n\n【常见症状】\n- 持续的悲伤、空虚或绝望感\n- 对以前喜欢的活动失去兴趣\n- 睡眠障碍（失眠或嗜睡）\n- 食欲和体重变化\n- 疲劳和精力不足\n- 注意力难以集中\n- 无价值感或过度内疚\n- 反复出现死亡或自杀的想法\n\n【自我调节建议】\n1. 保持规律作息\n2. 适度运动\n3. 与亲友保持联系\n4. 设定可实现的小目标\n5. 避免酒精和药物\n6. 寻求专业帮助' },
+                { id: 3, title: '北京心理危机研究与干预中心', summary: '提供专业的心理危机干预服务', type: 'hotline', category: 'crisis', category_name: '危机干预', views: 32450, author: '北京心理危机研究与干预中心', source: '官方热线', publishDate: '2023-03-15', icon: '🏥', hotline: '010-82951332', content: '北京心理危机研究与干预中心是全国最早成立的心理危机干预机构之一，提供电话咨询、面询等服务。\n\n热线电话：010-82951332\n服务时间：24小时\n地址：北京市' },
+                { id: 4, title: '焦虑管理：从认识焦虑到有效应对', summary: '帮助您了解焦虑的本质，学习科学有效的焦虑管理策略', type: 'article', category: 'mental', category_name: '心理健康科普', views: 18920, author: '心理健康教育团队', source: '本平台', publishDate: '2024-01-05', icon: '📖', content: '焦虑是一种常见的情绪反应，适度的焦虑有助于提高警觉性，但过度的焦虑会影响日常生活。\n\n【焦虑的正常与异常】\n正常焦虑：面对压力时的短暂紧张不安\n异常焦虑：持续过度担忧，影响日常功能\n\n【有效的焦虑管理方法】\n1. 腹式呼吸法\n2. 渐进性肌肉放松\n3. 正念冥想\n4. 认知重构\n5. 规律运动\n6. 限制咖啡因摄入\n7. 充足睡眠' },
+                { id: 5, title: '正念冥想入门指南', summary: '适合初学者的正念冥想方法介绍', type: 'article', category: 'tool', category_name: '自助工具', views: 25670, author: '心理健康教育团队', source: '本平台', publishDate: '2023-12-20', icon: '🧘', content: '正念冥想是一种经过科学验证的心理调节方法，适合日常练习。\n\n【什么是正念】\n正念是有意识地将注意力集中在当下，不加评判地观察自己的想法、感受和身体感觉。\n\n【基础练习】\n1. 呼吸冥想（5分钟）\n   - 找安静处舒适坐下\n   - 闭眼，关注呼吸\n   - 吸气时感受腹部膨胀\n   - 呼气时感受腹部收缩\n   - 思绪游走时轻轻拉回\n\n2. 身体扫描（10分钟）\n   - 从头顶开始\n   - 逐步关注身体各部位\n   - 感受但不评判\n   - 直至脚底' },
+                { id: 6, title: '如何选择心理咨询师', summary: '选择合适心理咨询师的实用指南', type: 'article', category: 'institution', category_name: '专业机构', views: 15340, author: '心理健康教育团队', source: '本平台', publishDate: '2023-09-10', icon: '📋', content: '选择心理咨询师是迈向心理健康的重要一步。以下是选择咨询师时需要考虑的因素：\n\n【专业资质】\n- 心理咨询师资格证\n- 心理治疗师资格证\n- 精神科医师执业证\n\n【选择建议】\n1. 确认咨询师的专业资质\n2. 了解咨询师的受训背景和经验\n3. 初次咨询感受是否舒适\n4. 咨询目标和方式是否匹配\n5. 费用是否在可承受范围内' },
+                { id: 7, title: '睡眠卫生指南：改善睡眠的10个建议', summary: '科学实用的睡眠改善建议，帮助您建立良好的睡眠习惯', type: 'article', category: 'mental', category_name: '心理健康科普', views: 31280, author: '心理健康教育团队', source: '本平台', publishDate: '2023-11-15', icon: '😴', content: '良好的睡眠是身心健康的基石。以下是改善睡眠质量的10个科学建议：\n\n1. 保持规律作息：每天同一时间上床和起床\n2. 创造舒适环境：安静、黑暗、凉爽的卧室\n3. 限制床上活动：床只用于睡眠\n4. 睡前放松仪式：温水澡、轻音乐、阅读\n5. 避免刺激物：下午后避免咖啡因\n6. 限制午睡：不超过30分钟\n7. 规律运动：但避免睡前3小时内剧烈运动\n8. 管理担忧：睡前写下烦恼和明日计划\n9. 不要强迫入睡：20分钟未入睡则起床\n10. 减少屏幕时间：睡前1小时远离电子设备' },
+                { id: 8, title: '《伯恩斯新情绪疗法》', summary: '认知行为疗法经典自助读物', type: 'article', category: 'reading', category_name: '推荐阅读', views: 22150, author: '心理健康教育团队', source: '本平台', publishDate: '2023-10-25', icon: '📚', content: '作者：大卫·伯恩斯\n\n本书是认知行为疗法（CBT）领域的经典自助读物，被全球数百万读者验证有效。\n\n【核心内容】\n- 认知扭曲的10种类型\n- 情绪日记法\n- 认知重构技术\n- 行为激活方法\n\n【适合人群】\n- 轻中度抑郁或焦虑者\n- 想要学习情绪管理的人\n- 对CBT感兴趣的心理健康爱好者\n\n本书提供了大量实用的练习和工作表，适合自我练习使用。' }
+            ];
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadResources();
 
             document.querySelectorAll('#categoryFilters .filter-btn').forEach(btn => {
                 btn.addEventListener('click', () => {

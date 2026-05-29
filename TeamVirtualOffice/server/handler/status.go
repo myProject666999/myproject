@@ -30,11 +30,8 @@ func UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	changed, err := cacheManager.SetUserStatus(uint(userID), req.OnlineStatus, req.BusyMode, req.TextStatus)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Response{Code: 500, Message: "failed to update status"})
-		return
-	}
+	changed := false
+	changed, _ = cacheManager.SetUserStatus(uint(userID), req.OnlineStatus, req.BusyMode, req.TextStatus)
 
 	var userStatus model.UserStatus
 	db.Where("user_id = ?", userID).First(&userStatus)
@@ -47,6 +44,9 @@ func UpdateStatus(c *gin.Context) {
 		}
 		db.Create(&userStatus)
 	} else {
+		if int(userStatus.OnlineStatus) != req.OnlineStatus {
+			changed = true
+		}
 		userStatus.OnlineStatus = int8(req.OnlineStatus)
 		userStatus.BusyMode = int8(req.BusyMode)
 		userStatus.TextStatus = req.TextStatus
@@ -54,23 +54,38 @@ func UpdateStatus(c *gin.Context) {
 		db.Save(&userStatus)
 	}
 
+	CreateActivity(uint(userID), 5, "", nil, nil)
+
 	if changed {
 		var user model.User
 		db.First(&user, userID)
-		onlineUsers, _ := cacheManager.GetOnlineUsers()
-		for _, uid := range onlineUsers {
-			hub.Broadcast <- ws.Message{
-				Type: "private",
-				To:   uid,
-				Data: map[string]interface{}{
-					"type":          "status_update",
-					"user_id":       userID,
-					"nickname":      user.Nickname,
-					"avatar_url":    user.AvatarURL,
-					"online_status": req.OnlineStatus,
-					"busy_mode":     req.BusyMode,
-					"text_status":   req.TextStatus,
-				},
+		statusData := map[string]interface{}{
+			"type":          "status_update",
+			"user_id":       userID,
+			"nickname":      user.Nickname,
+			"avatar_url":    user.AvatarURL,
+			"online_status": req.OnlineStatus,
+			"busy_mode":     req.BusyMode,
+			"text_status":   req.TextStatus,
+		}
+		onlineUsers, err := cacheManager.GetOnlineUsers()
+		if err == nil {
+			for _, uid := range onlineUsers {
+				hub.Broadcast <- ws.Message{
+					Type: "private",
+					To:   uid,
+					Data: statusData,
+				}
+			}
+		} else {
+			var allClients []model.UserStatus
+			db.Where("online_status != 0").Find(&allClients)
+			for _, us := range allClients {
+				hub.Broadcast <- ws.Message{
+					Type: "private",
+					To:   us.UserID,
+					Data: statusData,
+				}
 			}
 		}
 	}
@@ -91,25 +106,31 @@ func SetBusyMode(c *gin.Context) {
 		return
 	}
 
-	statusMap, err := cacheManager.GetUserStatus(uint(userID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Response{Code: 500, Message: "failed to get status"})
-		return
-	}
-
 	onlineStatus := 0
-	if val, ok := statusMap["online_status"]; ok {
-		onlineStatus, _ = strconv.Atoi(val)
-	}
-	textStatus := statusMap["text_status"]
+	textStatus := ""
 
-	_, err = cacheManager.SetUserStatus(uint(userID), onlineStatus, req.BusyMode, textStatus)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Response{Code: 500, Message: "failed to update busy mode"})
-		return
+	statusMap, err := cacheManager.GetUserStatus(uint(userID))
+	if err == nil && len(statusMap) > 0 {
+		if val, ok := statusMap["online_status"]; ok {
+			onlineStatus, _ = strconv.Atoi(val)
+		}
+		textStatus = statusMap["text_status"]
+	} else {
+		var userStatus model.UserStatus
+		if db.Where("user_id = ?", userID).First(&userStatus).Error == nil {
+			onlineStatus = int(userStatus.OnlineStatus)
+			textStatus = userStatus.TextStatus
+		}
 	}
 
-	db.Model(&model.UserStatus{}).Where("user_id = ?", userID).Update("busy_mode", req.BusyMode)
+	cacheManager.SetUserStatus(uint(userID), onlineStatus, req.BusyMode, textStatus)
+
+	db.Model(&model.UserStatus{}).Where("user_id = ?", userID).Updates(map[string]interface{}{
+		"busy_mode":  req.BusyMode,
+		"updated_at": time.Now(),
+	})
+
+	CreateActivity(uint(userID), 5, "", nil, nil)
 
 	c.JSON(http.StatusOK, model.Response{
 		Code:    0,

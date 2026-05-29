@@ -152,7 +152,7 @@
                     style="width: 100%"
                   >
                     <template #prepend>
-                      <el-icon><Price /></el-icon>
+                      <el-icon><PriceTag /></el-icon>
                     </template>
                   </el-input-number>
                 </el-form-item>
@@ -216,7 +216,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import {
   Location,
   User,
-  Price,
+  PriceTag,
   Search,
   Position,
   Plus,

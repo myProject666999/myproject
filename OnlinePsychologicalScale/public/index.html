@@ -32,7 +32,7 @@
                     <p>采用国际通用的标准化心理量表，为您提供专业、便捷、私密的心理健康评估服务，帮助您更好地了解自己，守护心灵健康。</p>
                     <div class="hero-buttons">
                         <a href="scales.html" class="btn btn-primary btn-lg">开始测评</a>
-                        <a href="#" class="btn btn-outline btn-lg">了解更多</a>
+                        <a href="scales.html" class="btn btn-outline btn-lg">了解更多</a>
                     </div>
                     <div class="hero-features">
                         <div class="feature-item">
@@ -229,9 +229,20 @@
             `;
         }
 
-        function startScale(id) {
+        async function startScale(id) {
             if (!Common.requireLogin()) return;
             Common.showToast('即将开始测评...', 'info');
+            try {
+                const data = await API.answers.startSession(id);
+                if (data.success && data.data && data.data.session_uuid) {
+                    location.href = `answer.html?session_uuid=${data.data.session_uuid}`;
+                } else {
+                    Common.showToast('启动失败，请重试', 'error');
+                }
+            } catch (error) {
+                console.error('启动测评失败:', error);
+                Common.showToast('启动失败，请重试', 'error');
+            }
         }
 
         async function loadPopularScales() {

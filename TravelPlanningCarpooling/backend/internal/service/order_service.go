@@ -28,7 +28,23 @@ func NewOrderService() *OrderService {
 
 func (s *OrderService) lockSeats(rideID uint64, count int) (bool, error) {
 	key := fmt.Sprintf("ride:seats:%d", rideID)
-	result, err := lockSeatsScript.Run(redisPkg.Ctx, redisPkg.Client, []string{key}, count).Int64()
+	rdb := redisPkg.Client
+	ctx := redisPkg.Ctx
+
+	exists, err := rdb.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+	if exists == 0 {
+		var ride model.Ride
+		if err := database.GetDB().First(&ride, rideID).Error; err != nil {
+			return false, fmt.Errorf("行程不存在")
+		}
+		available := ride.AvailableSeats - ride.LockedSeats
+		rdb.Set(ctx, key, available, 0)
+	}
+
+	result, err := lockSeatsScript.Run(ctx, rdb, []string{key}, count).Int64()
 	if err != nil {
 		return false, err
 	}

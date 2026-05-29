@@ -95,7 +95,7 @@
             <span class="price">¥{{ ride.price_per_person }}/人</span>
           </span>
           <span class="meta-item">
-            <el-icon :size="14"><Chair /></el-icon>
+            <el-icon :size="14"><User /></el-icon>
             {{ ride.available_seats }}座
           </span>
         </div>
@@ -162,8 +162,7 @@ import {
   Right,
   Clock,
   User,
-  Money,
-  Chair
+  Money
 } from '@element-plus/icons-vue'
 import { requestApi, orderApi } from '../api'
 import type { Ride, RideRequest } from '../types'

@@ -119,7 +119,7 @@ func (s *StockCheckService) CreateCheck(data *models.StockCheckCreate) (*models.
 		CheckNo:         checkNo,
 		ContainerID:     data.ContainerID,
 		ReplenisherID:   data.ReplenisherID,
-		CheckTime:       data.CheckTime,
+		CheckTime:       data.CheckTime.ToTime(),
 		TotalExpected:   totalExpected,
 		TotalActual:     totalActual,
 		TotalDifference: totalDifference,
@@ -162,7 +162,7 @@ func (s *StockCheckService) CreateCheck(data *models.StockCheckCreate) (*models.
 				TotalAmount: float64(item.DamageQuantity) * product.Price,
 				Reason:      item.DamageReason,
 				HandlerID:   data.ReplenisherID,
-				HandleTime:  data.CheckTime,
+				HandleTime:  data.CheckTime.ToTime(),
 				CheckID:     &check.ID,
 			}
 			if err := tx.Create(damageRecord).Error; err != nil {
@@ -300,7 +300,7 @@ func (s *StockCheckService) CreateDamageRecord(data *models.DamageRecordCreate) 
 		TotalAmount: float64(data.Quantity) * product.Price,
 		Reason:      data.Reason,
 		HandlerID:   data.HandlerID,
-		HandleTime:  data.HandleTime,
+		HandleTime:  data.HandleTime.ToTime(),
 		CheckID:     data.CheckID,
 	}
 

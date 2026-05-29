@@ -36,7 +36,7 @@ type CreateRideRequest struct {
 	Destination    string    `json:"destination" binding:"required"`
 	DestinationLng float64   `json:"destination_lng" binding:"required"`
 	DestinationLat float64   `json:"destination_lat" binding:"required"`
-	DepartureTime  time.Time `json:"departure_time" binding:"required"`
+	DepartureTime  string    `json:"departure_time" binding:"required"`
 	AvailableSeats int       `json:"available_seats" binding:"required,min=1"`
 	PricePerPerson float64   `json:"price_per_person" binding:"required,min=0"`
 	Description    string    `json:"description"`

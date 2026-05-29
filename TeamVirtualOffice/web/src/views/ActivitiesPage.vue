@@ -38,11 +38,11 @@
       </div>
     </el-card>
     <el-card class="timeline-card" shadow="never">
-      <el-timeline>
+      <el-timeline v-if="filteredActivities.length > 0">
         <el-timeline-item
           v-for="activity in paginatedActivities"
           :key="activity.id"
-          :timestamp="formatTimestamp(activity.timestamp)"
+          :timestamp="formatTimestamp(activity.created_at)"
           placement="top"
           :type="getTimelineType(activity.type)"
           :color="getActivityColor(activity.type)"
@@ -51,22 +51,19 @@
           <div class="activity-item">
             <div class="activity-header">
               <el-avatar :size="36" class="activity-avatar">
-                {{ (activity.user?.nickname || activity.user?.username)?.charAt(0) }}
+                {{ (activity.nickname || 'U')?.charAt(0) }}
               </el-avatar>
               <div class="activity-info">
                 <div class="activity-user">
-                  {{ activity.user?.nickname || activity.user?.username }}
+                  {{ activity.nickname || 'Unknown' }}
                 </div>
                 <div class="activity-description">
-                  {{ activity.description }}
+                  {{ activity.content || formatActivityType(activity.type) }}
                 </div>
               </div>
               <el-tag :type="getTagType(activity.type)" size="small" effect="light">
                 {{ formatActivityType(activity.type) }}
               </el-tag>
-            </div>
-            <div v-if="activity.details" class="activity-details">
-              {{ activity.details }}
             </div>
           </div>
         </el-timeline-item>
@@ -114,13 +111,13 @@ const pageSize = ref(10)
 const selectedTypes = ref([])
 
 const activityTypes = [
-  { value: 'online', label: 'Online', color: '#67c23a', icon: User },
-  { value: 'offline', label: 'Offline', color: '#909399', icon: SwitchButton },
-  { value: 'enter_room', label: 'Enter Room', color: '#409eff', icon: Grid },
-  { value: 'leave_room', label: 'Leave Room', color: '#e6a23c', icon: Grid },
-  { value: 'status_change', label: 'Status Change', color: '#f56c6c', icon: Edit },
-  { value: 'call', label: 'Call', color: '#67c23a', icon: Phone },
-  { value: 'message', label: 'Message', color: '#909399', icon: ChatDotRound }
+  { value: 1, label: 'Online', color: '#67c23a', icon: User },
+  { value: 2, label: 'Offline', color: '#909399', icon: SwitchButton },
+  { value: 3, label: 'Enter Room', color: '#409eff', icon: Grid },
+  { value: 4, label: 'Leave Room', color: '#e6a23c', icon: Grid },
+  { value: 5, label: 'Status Change', color: '#f56c6c', icon: Edit },
+  { value: 6, label: 'Call', color: '#67c23a', icon: Phone },
+  { value: 7, label: 'Message', color: '#909399', icon: ChatDotRound }
 ]
 
 const totalActivities = computed(() => activities.value.length)
@@ -139,65 +136,33 @@ const paginatedActivities = computed(() => {
 })
 
 function getTimelineType(type) {
-  const types = {
-    online: 'success',
-    offline: 'info',
-    enter_room: 'primary',
-    leave_room: 'warning',
-    status_change: 'danger',
-    call: 'success',
-    message: 'info'
-  }
+  const types = { 1: 'success', 2: 'info', 3: 'primary', 4: 'warning', 5: 'danger', 6: 'success', 7: 'info' }
   return types[type] || 'info'
 }
 
 function getActivityColor(type) {
-  const colors = {
-    online: '#67c23a',
-    offline: '#909399',
-    enter_room: '#409eff',
-    leave_room: '#e6a23c',
-    status_change: '#f56c6c',
-    call: '#67c23a',
-    message: '#909399'
-  }
+  const colors = { 1: '#67c23a', 2: '#909399', 3: '#409eff', 4: '#e6a23c', 5: '#f56c6c', 6: '#67c23a', 7: '#909399' }
   return colors[type] || '#909399'
 }
 
 function getTagType(type) {
-  const types = {
-    online: 'success',
-    offline: 'info',
-    enter_room: 'primary',
-    leave_room: 'warning',
-    status_change: 'danger',
-    call: 'success',
-    message: 'info'
-  }
+  const types = { 1: 'success', 2: 'info', 3: 'primary', 4: 'warning', 5: 'danger', 6: 'success', 7: 'info' }
   return types[type] || 'info'
 }
 
 function formatActivityType(type) {
   const types = {
-    online: 'Online',
-    offline: 'Offline',
-    enter_room: 'Enter Room',
-    leave_room: 'Leave Room',
-    status_change: 'Status Change',
-    call: 'Call',
-    message: 'Message'
+    1: 'Online', 2: 'Offline', 3: 'Enter Room', 4: 'Leave Room',
+    5: 'Status Change', 6: 'Call', 7: 'Message'
   }
-  return types[type] || type
+  return types[type] || 'Unknown'
 }
 
 function formatTimestamp(timestamp) {
   if (!timestamp) return ''
   const date = new Date(timestamp)
   return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
   })
 }
 
@@ -208,48 +173,16 @@ function goBack() {
 async function fetchActivities() {
   loading.value = true
   try {
-    const response = await request.get('/api/activities')
-    activities.value = response.data || []
+    const response = await request.get('/api/activity/list', {
+      params: { page: 1, page_size: 100 }
+    })
+    activities.value = response.data?.list || response.data || []
   } catch (e) {
     ElMessage.error('Failed to fetch activities')
-    activities.value = generateMockActivities()
+    activities.value = []
   } finally {
     loading.value = false
   }
-}
-
-function generateMockActivities() {
-  const users = [
-    { id: 1, username: 'alice', nickname: 'Alice' },
-    { id: 2, username: 'bob', nickname: 'Bob' },
-    { id: 3, username: 'charlie', nickname: 'Charlie' },
-    { id: 4, username: 'diana', nickname: 'Diana' }
-  ]
-  const types = ['online', 'offline', 'enter_room', 'leave_room', 'status_change', 'call', 'message']
-  const descriptions = {
-    online: 'came online',
-    offline: 'went offline',
-    enter_room: 'joined Main Hall',
-    leave_room: 'left Meeting Room A',
-    status_change: 'changed status to Busy',
-    call: 'started a video call',
-    message: 'sent a message'
-  }
-  const mockActivities = []
-  const now = Date.now()
-  for (let i = 0; i < 25; i++) {
-    const type = types[Math.floor(Math.random() * types.length)]
-    const user = users[Math.floor(Math.random() * users.length)]
-    mockActivities.push({
-      id: i + 1,
-      type,
-      user,
-      description: `${user.nickname} ${descriptions[type]}`,
-      timestamp: new Date(now - i * 60000 * Math.floor(Math.random() * 60 + 5)).toISOString(),
-      details: type === 'message' ? 'Hello everyone!' : null
-    })
-  }
-  return mockActivities
 }
 
 function refreshActivities() {
@@ -283,18 +216,8 @@ onMounted(() => {
         gap: 16px;
 
         .header-info {
-          h1 {
-            margin: 0 0 4px 0;
-            color: #303133;
-            font-size: 20px;
-            font-weight: 600;
-          }
-
-          p {
-            margin: 0;
-            color: #909399;
-            font-size: 14px;
-          }
+          h1 { margin: 0 0 4px 0; color: #303133; font-size: 20px; font-weight: 600; }
+          p { margin: 0; color: #909399; font-size: 14px; }
         }
       }
     }
@@ -310,20 +233,13 @@ onMounted(() => {
       align-items: center;
       flex-wrap: wrap;
 
-      .filter-label {
-        color: #606266;
-        font-weight: 500;
-      }
+      .filter-label { color: #606266; font-weight: 500; }
 
       .type-label {
         display: flex;
         align-items: center;
         gap: 6px;
-
-        .type-icon {
-          display: flex;
-          align-items: center;
-        }
+        .type-icon { display: flex; align-items: center; }
       }
     }
   }
@@ -345,29 +261,9 @@ onMounted(() => {
 
         .activity-info {
           flex: 1;
-
-          .activity-user {
-            font-weight: 500;
-            color: #303133;
-            font-size: 14px;
-            margin-bottom: 2px;
-          }
-
-          .activity-description {
-            color: #606266;
-            font-size: 13px;
-          }
+          .activity-user { font-weight: 500; color: #303133; font-size: 14px; margin-bottom: 2px; }
+          .activity-description { color: #606266; font-size: 13px; }
         }
-      }
-
-      .activity-details {
-        margin-top: 8px;
-        padding: 8px 12px;
-        background: #f5f7fa;
-        border-radius: 6px;
-        color: #606266;
-        font-size: 13px;
-        font-style: italic;
       }
     }
 
@@ -378,11 +274,7 @@ onMounted(() => {
       justify-content: center;
       padding: 60px 20px;
       color: #c0c4cc;
-
-      p {
-        margin: 16px 0 0 0;
-        font-size: 14px;
-      }
+      p { margin: 16px 0 0 0; font-size: 14px; }
     }
 
     .pagination-wrapper {

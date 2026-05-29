@@ -25,18 +25,23 @@ func NewProductCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Pro
 }
 
 func (l *ProductCreateLogic) ProductCreate(req *types.ProductCreateReq) (resp *types.CommonResp, err error) {
+	category := req.Category
+	spec := req.Spec
+	weight := req.Weight
+	volume := req.Volume
+	remark := req.Remark
 	product := &model.Product{
 		Sku:         req.Sku,
 		ProductName: req.ProductName,
-		Category:    req.Category,
-		Spec:        req.Spec,
+		Category:    &category,
+		Spec:        &spec,
 		Unit:        req.Unit,
-		Weight:      req.Weight,
-		Volume:      req.Volume,
+		Weight:      &weight,
+		Volume:      &volume,
 		MinStock:    req.MinStock,
 		MaxStock:    req.MaxStock,
 		Status:      req.Status,
-		Remark:      req.Remark,
+		Remark:      &remark,
 	}
 
 	_, err = l.svcCtx.ProductModel.Insert(product)

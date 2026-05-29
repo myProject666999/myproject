@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { instanceToPlain } from 'class-transformer';
 import { Note } from '../entities/note.entity';
 import { RedisService } from '../redis/redis.service';
 
@@ -11,6 +12,15 @@ export class NotesService {
     private noteRepository: Repository<Note>,
     private redisService: RedisService,
   ) {}
+
+  private sanitizeNote(note: any) {
+    const plain = instanceToPlain(note) as any;
+    if (plain.user) {
+      const { password, ...userWithoutPassword } = plain.user;
+      plain.user = userWithoutPassword;
+    }
+    return plain;
+  }
 
   async findNearby(lng: number, lat: number, radius: number = 5, category?: string) {
     let query = this.noteRepository
@@ -29,7 +39,7 @@ export class NotesService {
       .getMany();
 
     return notes.map(note => ({
-      ...note,
+      ...this.sanitizeNote(note),
       distance: this.calculateDistance(lat, lng, note.lat, note.lng),
     })).sort((a, b) => a.distance - b.distance).slice(0, 20);
   }
@@ -51,10 +61,11 @@ export class NotesService {
   }
 
   async findById(id: number) {
-    return this.noteRepository.findOne({
+    const note = await this.noteRepository.findOne({
       where: { id },
       relations: ['user', 'shop'],
     });
+    return note ? this.sanitizeNote(note) : null;
   }
 
   async findByShopId(shopId: number, page: number = 1, limit: number = 20) {
@@ -65,7 +76,12 @@ export class NotesService {
       skip: (page - 1) * limit,
       take: limit,
     });
-    return { list: notes, total, page, limit };
+    return {
+      list: notes.map(note => this.sanitizeNote(note)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async create(userId: number, data: any) {
@@ -76,7 +92,7 @@ export class NotesService {
     });
     const savedNote = await this.noteRepository.save(note);
 
-    await this.redisService.geoAdd('geo:notes', data.lng, data.lat, savedNote.id.toString());
+    await this.redisService.geoAdd('geo:notes', data.lng, data.lat, (savedNote as any).id.toString());
 
     return savedNote;
   }

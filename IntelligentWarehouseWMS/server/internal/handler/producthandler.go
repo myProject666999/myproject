@@ -40,19 +40,40 @@ func ProductDetailHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		category := ""
+		if product.Category != nil {
+			category = *product.Category
+		}
+		spec := ""
+		if product.Spec != nil {
+			spec = *product.Spec
+		}
+		weight := 0.0
+		if product.Weight != nil {
+			weight = *product.Weight
+		}
+		volume := 0.0
+		if product.Volume != nil {
+			volume = *product.Volume
+		}
+		remark := ""
+		if product.Remark != nil {
+			remark = *product.Remark
+		}
+
 		resp := types.ProductInfo{
 			Id:          product.Id,
 			Sku:         product.Sku,
 			ProductName: product.ProductName,
-			Category:    product.Category,
-			Spec:        product.Spec,
+			Category:    category,
+			Spec:        spec,
 			Unit:        product.Unit,
-			Weight:      product.Weight,
-			Volume:      product.Volume,
+			Weight:      weight,
+			Volume:      volume,
 			MinStock:    product.MinStock,
 			MaxStock:    product.MaxStock,
 			Status:      product.Status,
-			Remark:      product.Remark,
+			Remark:      remark,
 			CreateTime:  product.CreateTime.Format("2006-01-02 15:04:05"),
 		}
 		httpx.OkJsonCtx(r.Context(), w, resp)
@@ -93,15 +114,20 @@ func ProductUpdateHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 
 		product.Sku = req.Sku
 		product.ProductName = req.ProductName
-		product.Category = req.Category
-		product.Spec = req.Spec
+		category := req.Category
+		product.Category = &category
+		spec := req.Spec
+		product.Spec = &spec
 		product.Unit = req.Unit
-		product.Weight = req.Weight
-		product.Volume = req.Volume
+		weight := req.Weight
+		product.Weight = &weight
+		volume := req.Volume
+		product.Volume = &volume
 		product.MinStock = req.MinStock
 		product.MaxStock = req.MaxStock
 		product.Status = req.Status
-		product.Remark = req.Remark
+		remark := req.Remark
+		product.Remark = &remark
 
 		err = svcCtx.ProductModel.Update(product)
 		if err != nil {

@@ -37,7 +37,7 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 file:
-  upload-path: ./uploads/
+  upload-path: d:/data/Workspace/myproject/InternalCorporateNotification/backend/uploads/
 
 jwt:
   secret: notification-system-secret-key-for-jwt-token-generation-please-change

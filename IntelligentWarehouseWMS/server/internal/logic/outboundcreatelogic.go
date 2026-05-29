@@ -31,6 +31,7 @@ func (l *OutboundCreateLogic) OutboundCreate(req *types.OutboundOrderCreateReq) 
 		orderNo = generateOutboundOrderNo()
 	}
 
+	remark := req.Remark
 	outboundOrder := &model.OutboundOrder{
 		OrderNo:     orderNo,
 		WarehouseId: req.WarehouseId,
@@ -40,7 +41,7 @@ func (l *OutboundCreateLogic) OutboundCreate(req *types.OutboundOrderCreateReq) 
 		OutboundQty: 0,
 		Status:      1,
 		Operator:    req.Operator,
-		Remark:      req.Remark,
+		Remark:      &remark,
 		CreateTime:  time.Now(),
 		UpdateTime:  time.Now(),
 	}
@@ -113,6 +114,10 @@ func convertOutboundOrderInfo(item *model.OutboundOrder) types.OutboundOrderInfo
 	if item.CompleteTime != nil {
 		completeTime = item.CompleteTime.Format("2006-01-02 15:04:05")
 	}
+	remark := ""
+	if item.Remark != nil {
+		remark = *item.Remark
+	}
 
 	return types.OutboundOrderInfo{
 		Id:           item.Id,
@@ -126,7 +131,7 @@ func convertOutboundOrderInfo(item *model.OutboundOrder) types.OutboundOrderInfo
 		Operator:     item.Operator,
 		AuditTime:    auditTime,
 		CompleteTime: completeTime,
-		Remark:       item.Remark,
+		Remark:       remark,
 		CreateTime:   item.CreateTime.Format("2006-01-02 15:04:05"),
 	}
 }
@@ -259,6 +264,10 @@ func convertPickingTaskInfo(item *model.PickingTask) types.PickingTaskInfo {
 	if item.CompleteTime != nil {
 		completeTime = item.CompleteTime.Format("2006-01-02 15:04:05")
 	}
+	remark := ""
+	if item.Remark != nil {
+		remark = *item.Remark
+	}
 
 	return types.PickingTaskInfo{
 		Id:           item.Id,
@@ -275,7 +284,7 @@ func convertPickingTaskInfo(item *model.PickingTask) types.PickingTaskInfo {
 		Status:       item.Status,
 		Operator:     item.Operator,
 		CompleteTime: completeTime,
-		Remark:       item.Remark,
+		Remark:       remark,
 		CreateTime:   item.CreateTime.Format("2006-01-02 15:04:05"),
 	}
 }
@@ -352,6 +361,7 @@ func (l *PickingCompleteLogic) PickingComplete(req *types.PickingTaskCompleteReq
 				return nil, err
 			}
 
+			remarkLog := "出库拣货"
 			inventoryLog := &model.InventoryLog{
 				LogNo:        generateLogNo(),
 				WarehouseId:  inventory.WarehouseId,
@@ -365,7 +375,7 @@ func (l *PickingCompleteLogic) PickingComplete(req *types.PickingTaskCompleteReq
 				ChangeQty:    -req.PickQty,
 				AfterQty:     newQuantity,
 				Operator:     req.Operator,
-				Remark:       "出库拣货",
+				Remark:       &remarkLog,
 				CreateTime:   now,
 			}
 			_, err = l.svcCtx.InventoryLogModel.Insert(inventoryLog)

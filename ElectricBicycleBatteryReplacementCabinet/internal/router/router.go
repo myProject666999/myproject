@@ -3,10 +3,28 @@ package router
 import (
 	"battery-cabinet/internal/handler"
 	"net/http"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+func CleanQueryParamsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		query := c.Request.URL.Query()
+		for key, values := range query {
+			for i, v := range values {
+				lowerV := strings.ToLower(v)
+				if lowerV == "null" || lowerV == "undefined" || lowerV == "" {
+					values[i] = ""
+				}
+			}
+			query[key] = values
+		}
+		c.Request.URL.RawQuery = query.Encode()
+		c.Next()
+	}
+}
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
@@ -18,6 +36,7 @@ func SetupRouter() *gin.Engine {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
+	r.Use(CleanQueryParamsMiddleware())
 
 	r.StaticFS("/web", http.Dir("./web"))
 	r.GET("/", func(c *gin.Context) {

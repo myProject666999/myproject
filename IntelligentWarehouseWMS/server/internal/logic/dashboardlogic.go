@@ -201,6 +201,10 @@ func (l *InventoryLogListLogic) InventoryLogList(req *types.InventoryLogListReq)
 }
 
 func convertInventoryLogInfo(item *model.InventoryLog) types.InventoryLogInfo {
+	remark := ""
+	if item.Remark != nil {
+		remark = *item.Remark
+	}
 	return types.InventoryLogInfo{
 		Id:           item.Id,
 		LogNo:        item.LogNo,
@@ -215,7 +219,7 @@ func convertInventoryLogInfo(item *model.InventoryLog) types.InventoryLogInfo {
 		ChangeQty:    item.ChangeQty,
 		AfterQty:     item.AfterQty,
 		Operator:     item.Operator,
-		Remark:       item.Remark,
+		Remark:       remark,
 		CreateTime:   item.CreateTime.Format("2006-01-02 15:04:05"),
 	}
 }

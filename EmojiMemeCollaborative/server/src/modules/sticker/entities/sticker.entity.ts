@@ -22,7 +22,7 @@ export class Sticker {
   @Column({ length: 50, nullable: true })
   category: string;
 
-  @Column({ name: 'created_by', nullable: true })
+  @Column({ name: 'created_by', type: 'int', nullable: true })
   created_by: number;
 
   @ManyToOne(() => User)

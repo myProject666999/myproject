@@ -410,8 +410,16 @@
             if (pageId === 'assign') loadOrderList();
             if (pageId === 'track') { document.getElementById('orderDetail').innerHTML = ''; document.getElementById('trackOrderId').value = ''; }
             if (pageId === 'evaluate') loadMyOrdersToEvaluate();
-            if (pageId === 'hotspot') setTimeout(loadHotspot, 100, 'today');
+            if (pageId === 'hotspot') {
+                setTimeout(() => {
+                    if (!map) initMap();
+                    else map.invalidateSize();
+                    loadHotspot('today');
+                }, 100);
+            }
             if (pageId === 'report') {
+                if (!map) initMap();
+                else map.invalidateSize();
                 document.getElementById('reportTitle').value = '';
                 document.getElementById('reportDesc').value = '';
                 document.getElementById('reportAddress').value = '';
@@ -901,8 +909,9 @@
         function initMap() {
             if (map) { map.remove(); }
             map = L.map('map').setView([39.91, 116.34], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+            L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+                subdomains: ['1', '2', '3', '4'],
+                attribution: '© 高德地图'
             }).addTo(map);
             map.on('click', function(e) {
                 if (document.getElementById('pageReport').classList.contains('active')) {
@@ -923,6 +932,10 @@
         }
 
         function renderHotspotMap(data) {
+            if (!map) {
+                setTimeout(() => renderHotspotMap(data), 100);
+                return;
+            }
             markers.forEach(m => map.removeLayer(m));
             markers = [];
             if (data.length === 0) {

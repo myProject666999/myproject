@@ -25,10 +25,19 @@ func StartCall(c *gin.Context) {
 		return
 	}
 
-	isOnline, err := cacheManager.IsUserOnline(req.CalleeID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Response{Code: 500, Message: "failed to check user status"})
+	if uint(callerID) == req.CalleeID {
+		c.JSON(http.StatusBadRequest, model.Response{Code: 400, Message: "cannot call yourself"})
 		return
+	}
+
+	isOnline := false
+	if online, err := cacheManager.IsUserOnline(req.CalleeID); err == nil {
+		isOnline = online
+	} else {
+		var userStatus model.UserStatus
+		if db.Where("user_id = ?", req.CalleeID).First(&userStatus).Error == nil {
+			isOnline = userStatus.OnlineStatus != 0
+		}
 	}
 
 	if !isOnline {
@@ -36,15 +45,17 @@ func StartCall(c *gin.Context) {
 		return
 	}
 
-	statusMap, err := cacheManager.GetUserStatus(req.CalleeID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Response{Code: 500, Message: "failed to get user status"})
-		return
-	}
-
 	busyMode := 0
-	if val, ok := statusMap["busy_mode"]; ok {
-		busyMode, _ = strconv.Atoi(val)
+	statusMap, err := cacheManager.GetUserStatus(req.CalleeID)
+	if err == nil && len(statusMap) > 0 {
+		if val, ok := statusMap["busy_mode"]; ok {
+			busyMode, _ = strconv.Atoi(val)
+		}
+	} else {
+		var userStatus model.UserStatus
+		if db.Where("user_id = ?", req.CalleeID).First(&userStatus).Error == nil {
+			busyMode = int(userStatus.BusyMode)
+		}
 	}
 
 	if busyMode == 1 {
@@ -85,6 +96,8 @@ func StartCall(c *gin.Context) {
 			"call_type":  req.Type,
 		},
 	}
+
+	CreateActivity(uint(callerID), 6, "", nil, &req.CalleeID)
 
 	c.JSON(http.StatusOK, model.Response{
 		Code:    0,

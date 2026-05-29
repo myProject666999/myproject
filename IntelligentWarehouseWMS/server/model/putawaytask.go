@@ -25,7 +25,7 @@ type (
 		Status              int64      `db:"status"`
 		Operator            string     `db:"operator"`
 		CompleteTime        *time.Time `db:"complete_time"`
-		Remark              string     `db:"remark"`
+		Remark              *string     `db:"remark"`
 		CreateTime          time.Time  `db:"create_time"`
 		UpdateTime          time.Time  `db:"update_time"`
 	}

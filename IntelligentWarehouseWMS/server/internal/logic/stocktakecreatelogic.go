@@ -31,6 +31,7 @@ func (l *StocktakeCreateLogic) StocktakeCreate(req *types.StocktakeTaskCreateReq
 		taskNo = generateStocktakeTaskNo()
 	}
 
+	remark := req.Remark
 	stocktakeTask := &model.StocktakeTask{
 		TaskNo:      taskNo,
 		WarehouseId: req.WarehouseId,
@@ -40,7 +41,7 @@ func (l *StocktakeCreateLogic) StocktakeCreate(req *types.StocktakeTaskCreateReq
 		CheckedSku:  0,
 		Status:      1,
 		Operator:    req.Operator,
-		Remark:      req.Remark,
+		Remark:      &remark,
 		CreateTime:  time.Now(),
 		UpdateTime:  time.Now(),
 	}
@@ -126,6 +127,10 @@ func convertStocktakeTaskInfo(item *model.StocktakeTask) types.StocktakeTaskInfo
 	if item.EndTime != nil {
 		endTime = item.EndTime.Format("2006-01-02 15:04:05")
 	}
+	remark := ""
+	if item.Remark != nil {
+		remark = *item.Remark
+	}
 
 	return types.StocktakeTaskInfo{
 		Id:          item.Id,
@@ -139,7 +144,7 @@ func convertStocktakeTaskInfo(item *model.StocktakeTask) types.StocktakeTaskInfo
 		Operator:    item.Operator,
 		StartTime:   startTime,
 		EndTime:     endTime,
-		Remark:      item.Remark,
+		Remark:      remark,
 		CreateTime:  item.CreateTime.Format("2006-01-02 15:04:05"),
 	}
 }
@@ -248,6 +253,7 @@ func (l *StocktakeCompleteLogic) StocktakeComplete(req *types.StocktakeTaskCompl
 					logType = 2
 				}
 
+				remarkLog := "盘点盈亏调整"
 				inventoryLog := &model.InventoryLog{
 					LogNo:        generateLogNo(),
 					WarehouseId:  inventory.WarehouseId,
@@ -261,7 +267,7 @@ func (l *StocktakeCompleteLogic) StocktakeComplete(req *types.StocktakeTaskCompl
 					ChangeQty:    item.DifferenceQty,
 					AfterQty:     newQty,
 					Operator:     req.Operator,
-					Remark:       "盘点盈亏调整",
+					Remark:       &remarkLog,
 					CreateTime:   now,
 				}
 				_, err = l.svcCtx.InventoryLogModel.Insert(inventoryLog)

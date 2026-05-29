@@ -11,7 +11,7 @@
             <el-icon><DataAnalysis /></el-icon>
             查看统计
           </el-button>
-          <el-button type="success" size="small" @click="editAnnouncement" v-if="announcement.status === 1">
+          <el-button type="success" size="small" @click="editAnnouncement" v-if="announcement?.status === 1">
             <el-icon><Edit /></el-icon>
             编辑
           </el-button>

@@ -157,11 +157,11 @@ CREATE TABLE `reviews` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='评价表';
 
 INSERT INTO `users` (`phone`, `password`, `nickname`, `credit_score`, `role`, `is_verified`) VALUES
-('13800138001', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '张三', 95, 3, 1),
-('13800138002', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '李四', 98, 3, 1),
-('13800138003', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '王五', 88, 1, 0),
-('13800138004', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '赵六', 92, 2, 1),
-('13800138005', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '钱七', 90, 3, 0);
+('13800138001', '$2a$10$MYqfd2qmS/L.X6gjD5s/X.hcWdW0rgFEYh9ppFTn89zwizfWu3Lpe', '张三', 95, 3, 1),
+('13800138002', '$2a$10$MYqfd2qmS/L.X6gjD5s/X.hcWdW0rgFEYh9ppFTn89zwizfWu3Lpe', '李四', 98, 3, 1),
+('13800138003', '$2a$10$MYqfd2qmS/L.X6gjD5s/X.hcWdW0rgFEYh9ppFTn89zwizfWu3Lpe', '王五', 88, 1, 0),
+('13800138004', '$2a$10$MYqfd2qmS/L.X6gjD5s/X.hcWdW0rgFEYh9ppFTn89zwizfWu3Lpe', '赵六', 92, 2, 1),
+('13800138005', '$2a$10$MYqfd2qmS/L.X6gjD5s/X.hcWdW0rgFEYh9ppFTn89zwizfWu3Lpe', '钱七', 90, 3, 0);
 
 INSERT INTO `vehicles` (`owner_id`, `plate_number`, `brand`, `model`, `color`, `seats`, `is_verified`) VALUES
 (1, '京A12345', '丰田', '凯美瑞', '黑色', 5, 1),

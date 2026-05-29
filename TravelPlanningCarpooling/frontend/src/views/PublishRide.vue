@@ -3,7 +3,7 @@
     <el-card shadow="never" class="main-card">
       <template #header>
         <div class="card-header">
-          <el-icon :size="20" color="#409EFF"><Car /></el-icon>
+          <el-icon :size="20" color="#409EFF"><Van /></el-icon>
           <span>发布行程</span>
         </div>
       </template>
@@ -148,7 +148,7 @@
                 style="width: 100%"
               >
                 <template #prepend>
-                  <el-icon><Price /></el-icon>
+                  <el-icon><PriceTag /></el-icon>
                 </template>
               </el-input-number>
             </el-form-item>
@@ -187,9 +187,9 @@ import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import {
   Location,
-  Price,
-  Car,
-  Map,
+  PriceTag,
+  Van,
+  Position,
   Plus
 } from '@element-plus/icons-vue'
 import { rideApi, vehicleApi } from '../api'

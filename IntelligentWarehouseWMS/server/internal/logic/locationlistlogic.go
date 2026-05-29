@@ -59,6 +59,10 @@ func (l *LocationListLogic) LocationList(req *types.LocationListReq) (resp *type
 
 	locationList := make([]types.LocationInfo, 0, len(list))
 	for _, location := range list {
+		remark := ""
+		if location.Remark != nil {
+			remark = *location.Remark
+		}
 		locationList = append(locationList, types.LocationInfo{
 			Id:           location.Id,
 			WarehouseId:  location.WarehouseId,
@@ -69,7 +73,7 @@ func (l *LocationListLogic) LocationList(req *types.LocationListReq) (resp *type
 			Capacity:     location.Capacity,
 			UsedCapacity: location.UsedCapacity,
 			Status:       location.Status,
-			Remark:       location.Remark,
+			Remark:       remark,
 			CreateTime:   location.CreateTime.Format("2006-01-02 15:04:05"),
 		})
 	}

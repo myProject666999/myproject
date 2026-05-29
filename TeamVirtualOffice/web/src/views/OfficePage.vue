@@ -13,22 +13,22 @@
             </el-avatar>
             <div class="status-controls">
               <el-select v-model="selectedStatus" size="small" @change="handleStatusChange">
-                <el-option label="Online" value="online">
+                <el-option label="Online" :value="1">
                   <span class="status-option">
                     <span class="status-dot online"></span> Online
                   </span>
                 </el-option>
-                <el-option label="Busy" value="busy">
+                <el-option label="Busy" :value="2">
                   <span class="status-option">
                     <span class="status-dot busy"></span> Busy
                   </span>
                 </el-option>
-                <el-option label="Away" value="away">
+                <el-option label="Away" :value="3">
                   <span class="status-option">
                     <span class="status-dot away"></span> Away
                   </span>
                 </el-option>
-                <el-option label="Offline" value="offline">
+                <el-option label="Offline" :value="0">
                   <span class="status-option">
                     <span class="status-dot offline"></span> Offline
                   </span>
@@ -76,7 +76,7 @@
             shadow="hover"
           >
             <div class="room-header">
-              <div class="room-icon" :class="room.type">
+              <div class="room-icon" :class="getRoomTypeClass(room.type)">
                 <el-icon :size="24">
                   <component :is="getRoomIcon(room.type)" />
                 </el-icon>
@@ -89,26 +89,14 @@
             <p class="room-desc">{{ room.description }}</p>
             <div class="room-footer">
               <div class="room-members">
-                <el-avatar-group>
-                  <el-avatar
-                    v-for="user in (room.users || []).slice(0, 3)"
-                    :key="user.id"
-                    :size="24"
-                  >
-                    {{ (user.nickname || user.username)?.charAt(0) }}
-                  </el-avatar>
-                  <el-avatar v-if="(room.userCount || 0) > 3" :size="24">
-                    +{{ (room.userCount || 0) - 3 }}
-                  </el-avatar>
-                </el-avatar-group>
                 <span class="member-count">
-                  {{ room.userCount || 0 }}/{{ room.maxCapacity || 10 }}
+                  {{ room.member_count || 0 }}/{{ room.max_capacity || 10 }}
                 </span>
               </div>
               <el-button
                 type="primary"
                 size="small"
-                :disabled="(room.userCount || 0) >= (room.maxCapacity || 10)"
+                :disabled="(room.member_count || 0) >= (room.max_capacity || 10)"
                 @click="joinRoom(room.id)"
               >
                 Join
@@ -135,8 +123,8 @@
                 </el-avatar>
                 <div class="user-details">
                   <span class="user-name">{{ user.nickname || user.username }}</span>
-                  <span class="user-status" :class="user.status">
-                    {{ user.status }}
+                  <span class="user-status" :class="getStatusClass(user.online_status)">
+                    {{ getStatusLabel(user.online_status) }}
                   </span>
                 </div>
               </div>
@@ -146,13 +134,22 @@
                   circle
                   size="small"
                   type="success"
-                  @click="callUser(user, 'voice')"
+                  :disabled="user.online_status === 0 || user.id === currentUserId"
+                  @click="callUser(user, 1)"
+                />
+                <el-button
+                  :icon="VideoCamera"
+                  circle
+                  size="small"
+                  type="primary"
+                  :disabled="user.online_status === 0 || user.id === currentUserId"
+                  @click="callUser(user, 2)"
                 />
                 <el-button
                   :icon="ChatDotRound"
                   circle
                   size="small"
-                  type="primary"
+                  type="warning"
                   @click="sendMessage(user)"
                 />
               </div>
@@ -161,11 +158,61 @@
         </el-card>
       </div>
     </div>
+
+    <el-dialog v-model="chatDialogVisible" :title="`Chat with ${chatTarget?.nickname || chatTarget?.username || ''}`" width="500px">
+      <div class="chat-dialog-messages" ref="chatMessagesRef">
+        <div
+          v-for="msg in chatMessages"
+          :key="msg.id"
+          class="chat-msg-item"
+          :class="{ own: msg.sender_id === currentUserId }"
+        >
+          <div class="chat-msg-bubble" :class="{ own: msg.sender_id === currentUserId }">
+            {{ msg.content }}
+          </div>
+          <div class="chat-msg-time">{{ formatTime(msg.created_at) }}</div>
+        </div>
+        <div v-if="chatMessages.length === 0" class="no-chat-messages">
+          <p>No messages yet. Start a conversation!</p>
+        </div>
+      </div>
+      <div class="chat-dialog-input">
+        <el-input
+          v-model="chatInput"
+          placeholder="Type a message..."
+          @keyup.enter="sendPrivateMessage"
+        >
+          <template #append>
+            <el-button type="primary" :disabled="!chatInput.trim()" @click="sendPrivateMessage">
+              Send
+            </el-button>
+          </template>
+        </el-input>
+      </div>
+    </el-dialog>
+
+    <el-dialog v-model="callDialogVisible" :title="callType === 1 ? 'Voice Call' : 'Video Call'" width="400px" :close-on-click-modal="false">
+      <div class="call-dialog-content">
+        <el-avatar :size="80" class="call-avatar">
+          {{ (callTarget?.nickname || 'U')?.charAt(0) }}
+        </el-avatar>
+        <h3>{{ callTarget?.nickname || callTarget?.username }}</h3>
+        <p v-if="callState === 'calling'" class="call-status">Calling...</p>
+        <p v-else-if="callState === 'connected'" class="call-status connected">Connected</p>
+        <p v-else-if="callState === 'rejected'" class="call-status rejected">Rejected</p>
+        <p v-else-if="callState === 'dnd'" class="call-status rejected">Do Not Disturb</p>
+      </div>
+      <template #footer>
+        <el-button type="danger" size="large" @click="hangupCall" :disabled="callState === 'rejected' || callState === 'dnd'">
+          Hang Up
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -174,6 +221,7 @@ import {
   Clock,
   SwitchButton,
   Phone,
+  VideoCamera,
   ChatDotRound,
   OfficeBuilding,
   Briefcase,
@@ -190,49 +238,73 @@ const userStore = useUserStore()
 const roomStore = useRoomStore()
 const wsStore = useWsStore()
 
-const selectedStatus = ref('online')
+const selectedStatus = ref(1)
 const busyMode = ref(false)
 const allUsers = ref([])
 
+const chatDialogVisible = ref(false)
+const chatTarget = ref(null)
+const chatMessages = ref([])
+const chatInput = ref('')
+const chatMessagesRef = ref(null)
+
+const callDialogVisible = ref(false)
+const callTarget = ref(null)
+const callType = ref(1)
+const callState = ref('idle')
+const currentCallId = ref(null)
+
+const currentUserId = computed(() => userStore.userInfo?.id)
+
 const onlineUsers = computed(() => {
-  return allUsers.value.filter(u => u.status !== 'offline')
+  return allUsers.value.filter(u => u.online_status !== 0)
 })
 
+function getStatusClass(status) {
+  const map = { 1: 'online', 2: 'busy', 3: 'away', 0: 'offline' }
+  return map[status] || 'offline'
+}
+
+function getStatusLabel(status) {
+  const map = { 1: 'Online', 2: 'Busy', 3: 'Away', 0: 'Offline' }
+  return map[status] || 'Offline'
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return ''
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
 const roomIcons = {
-  open_office: OfficeBuilding,
-  meeting: Briefcase,
-  lounge: CoffeeCup,
-  private: Lock
+  1: OfficeBuilding,
+  2: Briefcase,
+  3: CoffeeCup,
+  4: Lock
 }
 
 function getRoomIcon(type) {
   return roomIcons[type] || OfficeBuilding
 }
 
+function getRoomTypeClass(type) {
+  const map = { 1: 'open_office', 2: 'meeting', 3: 'lounge', 4: 'private' }
+  return map[type] || 'open_office'
+}
+
 function getRoomTagType(type) {
-  const types = {
-    open_office: 'success',
-    meeting: 'primary',
-    lounge: 'warning',
-    private: 'info'
-  }
+  const types = { 1: 'success', 2: 'primary', 3: 'warning', 4: 'info' }
   return types[type] || 'info'
 }
 
 function formatRoomType(type) {
-  const types = {
-    open_office: 'Open Office',
-    meeting: 'Meeting',
-    lounge: 'Lounge',
-    private: 'Private'
-  }
-  return types[type] || type
+  const types = { 1: 'Open Office', 2: 'Meeting', 3: 'Lounge', 4: 'Private' }
+  return types[type] || 'Room'
 }
 
 async function handleStatusChange(status) {
   try {
-    await userStore.updateStatus(status)
-    wsStore.sendStatusUpdate(status)
+    await userStore.updateStatus(status, busyMode.value ? 1 : 0, '')
     ElMessage.success('Status updated')
   } catch (e) {
     ElMessage.error('Failed to update status')
@@ -276,17 +348,87 @@ async function joinRoom(roomId) {
     await roomStore.joinRoom(roomId)
     router.push(`/room/${roomId}`)
   } catch (e) {
-    ElMessage.error(e.response?.data?.message || 'Failed to join room')
+    ElMessage.error(e?.response?.data?.message || e?.message || 'Failed to join room')
   }
 }
 
-function callUser(user, type) {
-  wsStore.startCall(user.id, type)
-  ElMessage.info(`Starting ${type} call with ${user.nickname || user.username}`)
+async function callUser(user, type) {
+  callTarget.value = user
+  callType.value = type
+  callState.value = 'calling'
+  callDialogVisible.value = true
+
+  try {
+    const response = await request.post('/api/call/start', {
+      callee_id: user.id,
+      type: type
+    })
+    currentCallId.value = response.data?.call_id
+  } catch (e) {
+    const msg = e?.response?.data?.message || e?.message || 'Failed to start call'
+    if (msg.includes('DND') || msg.includes('dnd') || msg.includes('DND mode')) {
+      callState.value = 'dnd'
+    } else {
+      callState.value = 'rejected'
+      ElMessage.error(msg)
+    }
+  }
 }
 
-function sendMessage(user) {
-  ElMessage.info(`Opening chat with ${user.nickname || user.username}`)
+async function hangupCall() {
+  if (currentCallId.value) {
+    try {
+      await request.post(`/api/call/hangup/${currentCallId.value}`)
+    } catch {}
+  }
+  callDialogVisible.value = false
+  callState.value = 'idle'
+  currentCallId.value = null
+  callTarget.value = null
+}
+
+async function sendMessage(user) {
+  chatTarget.value = user
+  chatDialogVisible.value = true
+  chatMessages.value = []
+  chatInput.value = ''
+  await fetchPrivateMessages(user.id)
+}
+
+async function fetchPrivateMessages(userId) {
+  try {
+    const response = await request.get(`/api/message/private/${userId}`, {
+      params: { page: 1, page_size: 50 }
+    })
+    const list = response.data?.list || response.data || []
+    chatMessages.value = list.reverse()
+    scrollChatToBottom()
+  } catch (e) {
+    console.error('Failed to fetch messages')
+  }
+}
+
+async function sendPrivateMessage() {
+  if (!chatInput.value.trim() || !chatTarget.value) return
+  try {
+    await request.post('/api/message/private', {
+      receiver_id: chatTarget.value.id,
+      content: chatInput.value,
+      type: 1
+    })
+    chatInput.value = ''
+    await fetchPrivateMessages(chatTarget.value.id)
+  } catch (e) {
+    ElMessage.error('Failed to send message')
+  }
+}
+
+function scrollChatToBottom() {
+  nextTick(() => {
+    if (chatMessagesRef.value) {
+      chatMessagesRef.value.scrollTop = chatMessagesRef.value.scrollHeight
+    }
+  })
 }
 
 async function fetchOnlineUsers() {
@@ -298,15 +440,54 @@ async function fetchOnlineUsers() {
   }
 }
 
+watch(() => wsStore.messages, (newMessages) => {
+  const latest = newMessages[newMessages.length - 1]
+  if (!latest) return
+
+  if (latest.type === 'call_answered' && currentCallId.value === latest.call_id) {
+    callState.value = 'connected'
+  }
+  if (latest.type === 'call_rejected' && currentCallId.value === latest.call_id) {
+    callState.value = 'rejected'
+  }
+  if (latest.type === 'call_ended' && currentCallId.value === latest.call_id) {
+    callDialogVisible.value = false
+    callState.value = 'idle'
+    currentCallId.value = null
+    callTarget.value = null
+  }
+  if (latest.type === 'private_message' && chatDialogVisible.value && chatTarget.value) {
+    if (latest.sender_id === chatTarget.value.id || latest.sender_id === currentUserId.value) {
+      chatMessages.value.push({
+        id: Date.now(),
+        sender_id: latest.sender_id,
+        content: latest.content,
+        created_at: latest.created_at || new Date().toISOString()
+      })
+      scrollChatToBottom()
+    }
+  }
+  if (latest.type === 'call_incoming') {
+    ElMessage.info(`Incoming ${latest.call_type === 2 ? 'video' : 'voice'} call from ${latest.nickname}`)
+  }
+  if (latest.type === 'status_update') {
+    fetchOnlineUsers()
+  }
+}, { deep: true })
+
 onMounted(async () => {
   await Promise.all([
     roomStore.fetchRooms(),
     fetchOnlineUsers()
   ])
-  if (userStore.userInfo?.status) {
-    selectedStatus.value = userStore.userInfo.status
+  const userStatus = userStore.userInfo?.user_status
+  if (userStatus) {
+    selectedStatus.value = userStatus.online_status ?? 1
+    busyMode.value = userStatus.busy_mode === 1
   }
 })
+
+onUnmounted(() => {})
 </script>
 
 <style lang="scss" scoped>
@@ -595,6 +776,78 @@ onMounted(async () => {
     &.offline {
       background: #909399;
     }
+  }
+}
+
+.chat-dialog-messages {
+  height: 350px;
+  overflow-y: auto;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  margin-bottom: 12px;
+
+  .chat-msg-item {
+    margin-bottom: 12px;
+    &.own { text-align: right; }
+
+    .chat-msg-bubble {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 12px 12px 12px 4px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      max-width: 70%;
+      word-break: break-word;
+      font-size: 14px;
+      color: #303133;
+
+      &.own {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        border-radius: 12px 12px 4px 12px;
+      }
+    }
+
+    .chat-msg-time {
+      font-size: 11px;
+      color: #c0c4cc;
+      margin-top: 4px;
+    }
+  }
+
+  .no-chat-messages {
+    text-align: center;
+    padding: 40px;
+    color: #909399;
+    p { margin: 0; }
+  }
+}
+
+.chat-dialog-input {
+  :deep(.el-input__wrapper) { border-radius: 20px; }
+}
+
+.call-dialog-content {
+  text-align: center;
+  padding: 20px 0;
+
+  .call-avatar {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  h3 { margin: 0 0 8px 0; color: #303133; }
+
+  .call-status {
+    color: #909399;
+    font-size: 14px;
+    margin: 0;
+
+    &.connected { color: #67c23a; }
+    &.rejected { color: #f56c6c; }
   }
 }
 </style>

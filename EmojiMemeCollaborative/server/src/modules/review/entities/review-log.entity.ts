@@ -29,7 +29,7 @@ export class ReviewLog {
   @Column({ type: 'enum', enum: ['approve', 'reject'] })
   action: 'approve' | 'reject';
 
-  @Column({ length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   reason: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

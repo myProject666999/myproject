@@ -174,17 +174,17 @@ type ShelfDeleteReq struct {
 }
 
 type LocationInfo struct {
-	Id           int64  `json:"id"`
-	WarehouseId  int64  `json:"warehouseId"`
-	ShelfId      int64  `json:"shelfId"`
-	LocationCode string `json:"locationCode"`
-	RowNo        int    `json:"rowNo"`
-	ColNo        int    `json:"colNo"`
-	Capacity     int    `json:"capacity"`
-	UsedCapacity int    `json:"usedCapacity"`
-	Status       int64  `json:"status"`
-	Remark       string `json:"remark"`
-	CreateTime   string `json:"createTime"`
+	Id           int64   `json:"id"`
+	WarehouseId  int64   `json:"warehouseId"`
+	ShelfId      int64   `json:"shelfId"`
+	LocationCode string  `json:"locationCode"`
+	RowNo        int     `json:"rowNo"`
+	ColNo        int     `json:"colNo"`
+	Capacity     float64 `json:"capacity"`
+	UsedCapacity float64 `json:"usedCapacity"`
+	Status       int64   `json:"status"`
+	Remark       string  `json:"remark"`
+	CreateTime   string  `json:"createTime"`
 }
 
 type LocationListReq struct {
@@ -202,28 +202,28 @@ type LocationListResp struct {
 }
 
 type LocationCreateReq struct {
-	WarehouseId  int64  `json:"warehouseId"`
-	ShelfId      int64  `json:"shelfId"`
-	LocationCode string `json:"locationCode"`
-	RowNo        int    `json:"rowNo"`
-	ColNo        int    `json:"colNo"`
-	Capacity     int    `json:"capacity"`
-	UsedCapacity int    `json:"usedCapacity"`
-	Status       int64  `json:"status"`
-	Remark       string `json:"remark"`
+	WarehouseId  int64   `json:"warehouseId"`
+	ShelfId      int64   `json:"shelfId"`
+	LocationCode string  `json:"locationCode"`
+	RowNo        int     `json:"rowNo"`
+	ColNo        int     `json:"colNo"`
+	Capacity     float64 `json:"capacity"`
+	UsedCapacity float64 `json:"usedCapacity"`
+	Status       int64   `json:"status"`
+	Remark       string  `json:"remark"`
 }
 
 type LocationUpdateReq struct {
-	Id           int64  `json:"id"`
-	WarehouseId  int64  `json:"warehouseId"`
-	ShelfId      int64  `json:"shelfId"`
-	LocationCode string `json:"locationCode"`
-	RowNo        int    `json:"rowNo"`
-	ColNo        int    `json:"colNo"`
-	Capacity     int    `json:"capacity"`
-	UsedCapacity int    `json:"usedCapacity"`
-	Status       int64  `json:"status"`
-	Remark       string `json:"remark"`
+	Id           int64   `json:"id"`
+	WarehouseId  int64   `json:"warehouseId"`
+	ShelfId      int64   `json:"shelfId"`
+	LocationCode string  `json:"locationCode"`
+	RowNo        int     `json:"rowNo"`
+	ColNo        int     `json:"colNo"`
+	Capacity     float64 `json:"capacity"`
+	UsedCapacity float64 `json:"usedCapacity"`
+	Status       int64   `json:"status"`
+	Remark       string  `json:"remark"`
 }
 
 type LocationDeleteReq struct {

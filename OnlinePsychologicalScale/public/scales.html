@@ -132,7 +132,7 @@
                     <div class="scale-detail-header">
                         <div class="scale-detail-info">
                             <h3>${scale.name}</h3>
-                            <span class="scale-code">${scale.short_name || scale.code} · v${scale.version || '1.0'}</span>
+                            <span class="scale-code">${scale.short_name || scale.code}</span>
                             <div class="scale-detail-meta">
                                 <span class="scale-category">${scale.category}</span>
                                 <span>⏱ ${scale.estimated_minutes} 分钟</span>
@@ -210,16 +210,36 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function startScale(id) {
+        async function startScale(id) {
             if (!Common.requireLogin()) return;
             Common.showToast('即将开始测评...', 'info');
+            try {
+                const data = await API.answers.startSession(id);
+                if (data.success && data.data && data.data.session_uuid) {
+                    location.href = `answer.html?session_uuid=${data.data.session_uuid}`;
+                } else {
+                    Common.showToast('启动失败，请重试', 'error');
+                }
+            } catch (error) {
+                console.error('启动测评失败:', error);
+                Common.showToast('启动失败，请重试', 'error');
+            }
         }
 
         async function loadScales() {
             try {
                 const data = await API.scales.list();
-                state.allScales = data.data || data.list || mockScales;
+                if (data.success && data.data && Array.isArray(data.data.scales)) {
+                    state.allScales = data.data.scales;
+                    if (Array.isArray(data.data.categories) && data.data.categories.length > 0) {
+                        categories.length = 0;
+                        categories.push('全部', ...data.data.categories);
+                    }
+                } else {
+                    state.allScales = [...mockScales];
+                }
             } catch (error) {
+                console.error('加载量表失败:', error);
                 state.allScales = [...mockScales];
             }
             state.filteredScales = [...state.allScales];
@@ -240,6 +260,7 @@
 
             renderScales();
             renderPagination();
+            renderFilterTabs();
         }
 
         document.addEventListener('DOMContentLoaded', () => {

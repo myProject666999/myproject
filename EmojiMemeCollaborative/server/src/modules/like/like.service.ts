@@ -1,7 +1,6 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { Like } from './entities/like.entity';
 import { Meme } from '../meme/entities/meme.entity';
@@ -19,7 +18,7 @@ export class LikeService {
     private likeRepository: Repository<Like>,
     @InjectRepository(Meme)
     private memeRepository: Repository<Meme>,
-    @InjectRedis() private redis: Redis,
+    @Inject('REDIS_CLIENT') private redis: Redis,
   ) {}
 
   async toggleLike(memeId: number, userId: number, type: 'like' | 'favorite', ip: string) {

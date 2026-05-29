@@ -31,16 +31,17 @@ func (l *InboundCreateLogic) InboundCreate(req *types.InboundOrderCreateReq) (*t
 		orderNo = generateInboundOrderNo()
 	}
 
+	remark := req.Remark
 	inboundOrder := &model.InboundOrder{
 		OrderNo:     orderNo,
 		WarehouseId: req.WarehouseId,
 		OrderType:   req.OrderType,
 		Supplier:    req.Supplier,
 		TotalQty:    req.TotalQty,
-		InboundQty: 0,
+		InboundQty:  0,
 		Status:      1,
 		Operator:    req.Operator,
-		Remark:      req.Remark,
+		Remark:      &remark,
 		CreateTime:  time.Now(),
 		UpdateTime:  time.Now(),
 	}
@@ -113,6 +114,10 @@ func convertInboundOrderInfo(item *model.InboundOrder) types.InboundOrderInfo {
 	if item.CompleteTime != nil {
 		completeTime = item.CompleteTime.Format("2006-01-02 15:04:05")
 	}
+	remark := ""
+	if item.Remark != nil {
+		remark = *item.Remark
+	}
 
 	return types.InboundOrderInfo{
 		Id:           item.Id,
@@ -126,7 +131,7 @@ func convertInboundOrderInfo(item *model.InboundOrder) types.InboundOrderInfo {
 		Operator:     item.Operator,
 		AuditTime:    auditTime,
 		CompleteTime: completeTime,
-		Remark:       item.Remark,
+		Remark:       remark,
 		CreateTime:   item.CreateTime.Format("2006-01-02 15:04:05"),
 	}
 }
@@ -274,6 +279,7 @@ func (l *InboundPutawayLogic) InboundPutaway(req *types.InboundOrderPutawayReq) 
 		}
 	}
 
+	remarkLog := "入库上架"
 	inventoryLog := &model.InventoryLog{
 		LogNo:        generateLogNo(),
 		WarehouseId:  order.WarehouseId,
@@ -287,7 +293,7 @@ func (l *InboundPutawayLogic) InboundPutaway(req *types.InboundOrderPutawayReq) 
 		ChangeQty:    req.PutawayQty,
 		AfterQty:     0,
 		Operator:     req.Operator,
-		Remark:       "入库上架",
+		Remark:       &remarkLog,
 		CreateTime:   now,
 	}
 	_, err = l.svcCtx.InventoryLogModel.Insert(inventoryLog)

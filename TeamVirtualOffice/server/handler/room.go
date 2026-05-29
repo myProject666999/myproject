@@ -324,9 +324,27 @@ func OccupySeat(c *gin.Context) {
 		return
 	}
 
-	if seat.IsOccupied == 1 && (seat.UserID == nil || *seat.UserID != uint(userID)) {
+	var member model.RoomMember
+	if err := db.Where("room_id = ? AND user_id = ?", seat.RoomID, userID).First(&member).Error; err != nil {
+		c.JSON(http.StatusBadRequest, model.Response{Code: 400, Message: "please join the room first"})
+		return
+	}
+
+	if seat.IsOccupied == 1 {
+		if seat.UserID != nil && *seat.UserID == uint(userID) {
+			c.JSON(http.StatusOK, model.Response{Code: 0, Message: "already occupied this seat"})
+			return
+		}
 		c.JSON(http.StatusBadRequest, model.Response{Code: 400, Message: "seat is occupied"})
 		return
+	}
+
+	var existingSeat model.Seat
+	if db.Where("user_id = ? AND is_occupied = 1", userID).First(&existingSeat).Error == nil {
+		existingSeat.UserID = nil
+		existingSeat.IsOccupied = 0
+		db.Save(&existingSeat)
+		CreateActivity(uint(userID), 4, "", &existingSeat.RoomID, nil)
 	}
 
 	uid := uint(userID)
@@ -335,6 +353,18 @@ func OccupySeat(c *gin.Context) {
 	db.Save(&seat)
 
 	db.Model(&model.UserStatus{}).Where("user_id = ?", userID).Update("current_seat_id", seatID)
+
+	var user model.User
+	db.First(&user, userID)
+	hub.BroadcastToRoom(seat.RoomID, map[string]interface{}{
+		"type": "seat_occupied",
+		"seat_id": seat.ID,
+		"user_id": user.ID,
+		"nickname": user.Nickname,
+		"avatar_url": user.AvatarURL,
+	})
+
+	CreateActivity(uint(userID), 3, "", &seat.RoomID, nil)
 
 	c.JSON(http.StatusOK, model.Response{
 		Code:    0,
@@ -363,6 +393,17 @@ func LeaveSeat(c *gin.Context) {
 	db.Save(&seat)
 
 	db.Model(&model.UserStatus{}).Where("user_id = ?", userID).Update("current_seat_id", nil)
+
+	var user model.User
+	db.First(&user, userID)
+	hub.BroadcastToRoom(seat.RoomID, map[string]interface{}{
+		"type": "seat_left",
+		"seat_id": seat.ID,
+		"user_id": user.ID,
+		"nickname": user.Nickname,
+	})
+
+	CreateActivity(uint(userID), 4, "", &seat.RoomID, nil)
 
 	c.JSON(http.StatusOK, model.Response{
 		Code:    0,

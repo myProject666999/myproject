@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,6 +23,18 @@ public class AttachmentService extends ServiceImpl<AttachmentMapper, Attachment>
     @Value("${file.upload-path}")
     private String uploadPath;
 
+    @PostConstruct
+    public void init() {
+        try {
+            Path uploadDir = Paths.get(uploadPath).toAbsolutePath().normalize();
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("创建上传目录失败: " + uploadPath, e);
+        }
+    }
+
     public Result<Attachment> upload(MultipartFile file, Long announcementId) throws IOException {
         String originalFilename = file.getOriginalFilename();
         String extension = originalFilename != null && originalFilename.contains(".")
@@ -29,7 +42,7 @@ public class AttachmentService extends ServiceImpl<AttachmentMapper, Attachment>
                 : "";
         String newFilename = UUID.randomUUID().toString().replace("-", "") + extension;
 
-        Path uploadDir = Paths.get(uploadPath);
+        Path uploadDir = Paths.get(uploadPath).toAbsolutePath().normalize();
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
         }
@@ -60,6 +73,6 @@ public class AttachmentService extends ServiceImpl<AttachmentMapper, Attachment>
     }
 
     public File getAttachmentFile(String filePath) {
-        return Paths.get(uploadPath, filePath).toFile();
+        return Paths.get(uploadPath).toAbsolutePath().normalize().resolve(filePath).toFile();
     }
 }

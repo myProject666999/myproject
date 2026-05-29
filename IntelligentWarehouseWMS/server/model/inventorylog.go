@@ -24,7 +24,7 @@ type (
 		ChangeQty    int64     `db:"change_qty"`
 		AfterQty     int64     `db:"after_qty"`
 		Operator     string    `db:"operator"`
-		Remark       string    `db:"remark"`
+		Remark       *string    `db:"remark"`
 		CreateTime   time.Time `db:"create_time"`
 	}
 

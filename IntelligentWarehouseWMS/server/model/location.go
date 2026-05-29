@@ -17,10 +17,10 @@ type (
 		LocationCode string    `db:"location_code"`
 		RowNo        int       `db:"row_no"`
 		ColNo        int       `db:"col_no"`
-		Capacity     int       `db:"capacity"`
-		UsedCapacity int       `db:"used_capacity"`
+		Capacity     float64   `db:"capacity"`
+		UsedCapacity float64   `db:"used_capacity"`
 		Status       int64     `db:"status"`
-		Remark       string    `db:"remark"`
+		Remark       *string   `db:"remark"`
 		CreateTime   time.Time `db:"create_time"`
 		UpdateTime   time.Time `db:"update_time"`
 	}
