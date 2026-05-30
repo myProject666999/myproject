@@ -33,7 +33,7 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    @Column(columnDefinition = "TINYINT DEFAULT 1")
+    @Column(columnDefinition = "TINYINT")
     private Integer status = 1;
 
     @CreationTimestamp

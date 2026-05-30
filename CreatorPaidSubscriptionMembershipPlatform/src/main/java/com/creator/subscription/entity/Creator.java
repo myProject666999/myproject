@@ -27,22 +27,22 @@ public class Creator {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "total_subscribers", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "total_subscribers", columnDefinition = "INT")
     private Integer totalSubscribers = 0;
 
-    @Column(name = "total_earnings", columnDefinition = "BIGINT DEFAULT 0")
+    @Column(name = "total_earnings", columnDefinition = "BIGINT")
     private Long totalEarnings = 0L;
 
-    @Column(name = "pending_earnings", columnDefinition = "BIGINT DEFAULT 0")
+    @Column(name = "pending_earnings", columnDefinition = "BIGINT")
     private Long pendingEarnings = 0L;
 
-    @Column(name = "available_earnings", columnDefinition = "BIGINT DEFAULT 0")
+    @Column(name = "available_earnings", columnDefinition = "BIGINT")
     private Long availableEarnings = 0L;
 
-    @Column(name = "is_verified", columnDefinition = "TINYINT DEFAULT 0")
+    @Column(name = "is_verified", columnDefinition = "TINYINT")
     private Integer isVerified = 0;
 
-    @Column(columnDefinition = "TINYINT DEFAULT 1")
+    @Column(columnDefinition = "TINYINT")
     private Integer status = 1;
 
     @CreationTimestamp

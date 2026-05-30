@@ -4,10 +4,9 @@
       <span class="page-title">对账管理</span>
       <div class="header-actions">
         <el-select v-model="statusFilter" placeholder="状态筛选" style="width: 150px; margin-right: 10px" clearable>
-          <el-option label="待对账" value="pending" />
-          <el-option label="对账中" value="processing" />
-          <el-option label="已完成" value="completed" />
-          <el-option label="有差异" value="discrepancy" />
+          <el-option label="待对账" :value="1" />
+          <el-option label="已完成" :value="2" />
+          <el-option label="有差异" :value="3" />
         </el-select>
         <el-button type="primary" @click="handleCreate">
           <el-icon><Plus /></el-icon>
@@ -19,10 +18,13 @@
     <div class="table-container">
       <el-table :data="tableData" style="width: 100%" v-loading="loading">
         <el-table-column prop="reconciliation_no" label="对账编号" width="180" />
-        <el-table-column prop="settlement_id" label="结算单ID" width="120" />
-        <el-table-column prop="platform_amount" label="平台金额" width="120" />
-        <el-table-column prop="actual_amount" label="实际金额" width="120" />
-        <el-table-column prop="difference_amount" label="差异金额" width="120" />
+        <el-table-column prop="drama_id" label="剧集ID" width="100" />
+        <el-table-column prop="settlement_period" label="结算周期" width="120" />
+        <el-table-column prop="system_play_count" label="系统播放量" width="120" />
+        <el-table-column prop="third_party_play_count" label="第三方播放量" width="120" />
+        <el-table-column prop="play_count_diff" label="播放量差异" width="120" />
+        <el-table-column prop="system_payment_amount" label="系统付费" width="110" />
+        <el-table-column prop="payment_amount_diff" label="付费差异" width="110" />
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
@@ -30,13 +32,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="reconciliation_date" label="对账日期" width="120" />
-        <el-table-column prop="completed_at" label="完成时间" width="180" />
+        <el-table-column prop="created_at" label="创建时间" width="180" />
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" link @click="handleView(row)">查看</el-button>
             <el-button
-              v-if="row.status === 'pending'"
+              v-if="row.status === 1"
               size="small"
               type="success"
               link
@@ -45,7 +46,7 @@
               开始对账
             </el-button>
             <el-button
-              v-if="row.status === 'discrepancy'"
+              v-if="row.status === 2"
               size="small"
               type="warning"
               link
@@ -70,23 +71,18 @@
     />
 
     <el-dialog v-model="createDialogVisible" title="创建对账" width="500px">
-      <el-form :model="createForm" label-width="100px">
-        <el-form-item label="结算单ID">
-          <el-input-number v-model="createForm.settlement_id" :min="1" style="width: 100%" />
+      <el-form :model="createForm" label-width="120px">
+        <el-form-item label="剧集ID" prop="drama_id">
+          <el-input-number v-model="createForm.drama_id" :min="1" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="平台金额">
-          <el-input-number v-model="createForm.platform_amount" :min="0" :precision="2" style="width: 100%" />
+        <el-form-item label="结算周期" prop="settlement_period">
+          <el-input v-model="createForm.settlement_period" placeholder="如：202605" />
         </el-form-item>
-        <el-form-item label="实际金额">
-          <el-input-number v-model="createForm.actual_amount" :min="0" :precision="2" style="width: 100%" />
+        <el-form-item label="第三方播放量">
+          <el-input-number v-model="createForm.third_party_play_count" :min="0" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="对账日期">
-          <el-date-picker
-            v-model="createForm.reconciliation_date"
-            type="date"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-          />
+        <el-form-item label="第三方付费金额">
+          <el-input-number v-model="createForm.third_party_payment_amount" :min="0" :precision="2" style="width: 100%" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -112,30 +108,20 @@ const total = ref(0)
 const createDialogVisible = ref(false)
 
 const createForm = reactive({
-  settlement_id: 1,
-  platform_amount: 0,
-  actual_amount: 0,
-  reconciliation_date: ''
+  drama_id: 1,
+  settlement_period: '202605',
+  third_party_play_count: 0,
+  third_party_payment_amount: 0
 })
 
 const getStatusType = (status) => {
-  const map = {
-    pending: 'warning',
-    processing: 'primary',
-    completed: 'success',
-    discrepancy: 'danger'
-  }
-  return map[status] || 'info'
+  const types = ['warning', 'success', 'danger', 'primary']
+  return types[status - 1] || 'info'
 }
 
 const getStatusText = (status) => {
-  const map = {
-    pending: '待对账',
-    processing: '对账中',
-    completed: '已完成',
-    discrepancy: '有差异'
-  }
-  return map[status] || status
+  const texts = ['待对账', '已完成', '有差异', '已调整']
+  return texts[status - 1] || status
 }
 
 const loadData = async () => {

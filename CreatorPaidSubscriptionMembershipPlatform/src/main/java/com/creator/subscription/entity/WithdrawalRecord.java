@@ -28,7 +28,7 @@ public class WithdrawalRecord {
     @Column(nullable = false)
     private Long amount;
 
-    @Column(columnDefinition = "BIGINT DEFAULT 0")
+    @Column(columnDefinition = "BIGINT")
     private Long fee = 0L;
 
     @Column(name = "actual_amount", nullable = false)

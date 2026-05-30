@@ -39,19 +39,19 @@ public class Content {
     @Column(name = "thumbnail_url", length = 500)
     private String thumbnailUrl;
 
-    @Column(name = "min_tier_level", nullable = false, columnDefinition = "INT DEFAULT 0")
+    @Column(name = "min_tier_level", nullable = false, columnDefinition = "INT")
     private Integer minTierLevel = 0;
 
-    @Column(name = "is_published", columnDefinition = "TINYINT DEFAULT 1")
+    @Column(name = "is_published", columnDefinition = "TINYINT")
     private Integer isPublished = 1;
 
-    @Column(name = "view_count", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "view_count", columnDefinition = "INT")
     private Integer viewCount = 0;
 
-    @Column(name = "like_count", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "like_count", columnDefinition = "INT")
     private Integer likeCount = 0;
 
-    @Column(name = "comment_count", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "comment_count", columnDefinition = "INT")
     private Integer commentCount = 0;
 
     @Column(name = "scheduled_at")

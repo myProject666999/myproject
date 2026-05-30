@@ -64,23 +64,46 @@
         <el-button type="primary" @click="handleSubmit">确定</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="bindDialogVisible" title="绑定剧集" width="500px">
+      <el-form :model="bindForm" ref="bindFormRef" label-width="100px">
+        <el-form-item label="规则编号">
+          <el-input v-model="bindForm.rule_no" disabled />
+        </el-form-item>
+        <el-form-item label="剧集ID" prop="drama_id">
+          <el-input-number v-model="bindForm.drama_id" :min="1" style="width: 100%" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="bindDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleBindSubmit">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getRuleList, createRule, deleteRule } from '@/api/rule'
+import { getRuleList, createRule, deleteRule, bindRuleToDrama } from '@/api/rule'
 
 const loading = ref(false)
 const tableData = ref([])
 const dialogVisible = ref(false)
+const bindDialogVisible = ref(false)
 const formRef = ref(null)
+const bindFormRef = ref(null)
 
 const form = reactive({
   rule_name: '',
   rule_type: 1,
   priority: 10
+})
+
+const bindForm = reactive({
+  rule_id: 0,
+  rule_no: '',
+  drama_id: 1
 })
 
 const dslText = ref('{"base_ratio": 70, "platform_ratio": 30}')
@@ -108,7 +131,23 @@ const handleEdit = (row) => {
 }
 
 const handleBind = (row) => {
-  ElMessage.info('绑定剧集功能开发中')
+  bindForm.rule_id = row.id
+  bindForm.rule_no = row.rule_no
+  bindForm.drama_id = 1
+  bindDialogVisible.value = true
+}
+
+const handleBindSubmit = async () => {
+  try {
+    await bindRuleToDrama({
+      rule_id: bindForm.rule_id,
+      drama_id: bindForm.drama_id
+    })
+    ElMessage.success('绑定成功')
+    bindDialogVisible.value = false
+  } catch (error) {
+    console.error('绑定失败', error)
+  }
 }
 
 const handleSubmit = async () => {

@@ -29,7 +29,7 @@ public class Subscription {
     @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private SubscriptionStatus status = SubscriptionStatus.PENDING;
 
-    @Column(name = "auto_renew", columnDefinition = "TINYINT DEFAULT 1")
+    @Column(name = "auto_renew", columnDefinition = "TINYINT")
     private Integer autoRenew = 1;
 
     @Column(name = "current_period_start", nullable = false)
@@ -38,7 +38,7 @@ public class Subscription {
     @Column(name = "current_period_end", nullable = false)
     private LocalDateTime currentPeriodEnd;
 
-    @Column(name = "cancel_at_period_end", columnDefinition = "TINYINT DEFAULT 0")
+    @Column(name = "cancel_at_period_end", columnDefinition = "TINYINT")
     private Integer cancelAtPeriodEnd = 0;
 
     @Column(name = "canceled_at")

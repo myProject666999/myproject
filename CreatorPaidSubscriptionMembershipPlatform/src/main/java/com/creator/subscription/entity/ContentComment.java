@@ -27,10 +27,10 @@ public class ContentComment {
     @Column(name = "comment_text", nullable = false, columnDefinition = "TEXT")
     private String commentText;
 
-    @Column(name = "like_count", columnDefinition = "INT DEFAULT 0")
+    @Column(name = "like_count", columnDefinition = "INT")
     private Integer likeCount = 0;
 
-    @Column(name = "is_deleted", columnDefinition = "TINYINT DEFAULT 0")
+    @Column(name = "is_deleted", columnDefinition = "TINYINT")
     private Integer isDeleted = 0;
 
     @CreationTimestamp

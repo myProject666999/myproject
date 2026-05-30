@@ -3,16 +3,7 @@
     <div class="page-header">
       <span class="page-title">分账明细</span>
       <div class="header-actions">
-        <el-input
-          v-model="searchQuery"
-          placeholder="搜索剧集或权益方"
-          style="width: 200px; margin-right: 10px"
-          clearable
-        />
-        <el-button type="primary" @click="loadData">
-          <el-icon><Search /></el-icon>
-          查询
-        </el-button>
+        <el-tag v-if="taskId" type="info">任务ID: {{ taskId }}</el-tag>
       </div>
     </div>
 
@@ -29,43 +20,31 @@
         <el-table-column prop="created_at" label="创建时间" width="180" />
       </el-table>
     </div>
-
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :total="total"
-      :page-sizes="[10, 20, 50, 100]"
-      layout="total, sizes, prev, pager, next, jumper"
-      @size-change="loadData"
-      @current-change="loadData"
-      style="margin-top: 20px; justify-content: flex-end"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
-import { getShareDetailList } from '@/api/share'
+import { getShareDetails } from '@/api/share'
 
+const route = useRoute()
 const loading = ref(false)
 const tableData = ref([])
-const searchQuery = ref('')
-const currentPage = ref(1)
-const pageSize = ref(20)
-const total = ref(0)
+const taskId = ref('')
 
 const loadData = async () => {
+  const tid = route.query.task_id
+  if (!tid) {
+    return
+  }
+  taskId.value = tid
   loading.value = true
   try {
-    const res = await getShareDetailList({
-      page: currentPage.value,
-      page_size: pageSize.value,
-      keyword: searchQuery.value
-    })
+    const res = await getShareDetails(tid)
     if (res) {
-      tableData.value = res.list || []
-      total.value = res.total || 0
+      tableData.value = res || []
     }
   } catch (error) {
     console.error('加载数据失败', error)

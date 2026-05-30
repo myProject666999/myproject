@@ -40,7 +40,7 @@ public class MembershipTier {
     @Column(name = "discord_role", length = 100)
     private String discordRole;
 
-    @Column(name = "is_active", columnDefinition = "TINYINT DEFAULT 1")
+    @Column(name = "is_active", columnDefinition = "TINYINT")
     private Integer isActive = 1;
 
     @CreationTimestamp

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Space, message, Spin, Empty, Breadcrumb, Tooltip, Tag, Modal } from 'antd';
+import { Button, Space, message, Spin, Empty, Breadcrumb, Tooltip, Tag, Modal, List, Descriptions } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
   HistoryOutlined,
   DownloadOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import { marked } from 'marked';
 import { documentApi } from '../services/api';
@@ -16,6 +17,9 @@ const DocumentView = () => {
   const navigate = useNavigate();
   const [docData, setDocData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [versionModalVisible, setVersionModalVisible] = useState(false);
+  const [versions, setVersions] = useState([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
 
   const loadDocument = useCallback(async () => {
     setLoading(true);
@@ -72,6 +76,26 @@ const DocumentView = () => {
     message.success('导出成功');
   };
 
+  const loadVersions = useCallback(async () => {
+    if (!docId) return;
+    setVersionsLoading(true);
+    try {
+      const res = await documentApi.getVersions(docId);
+      if (res.data.code === 200) {
+        setVersions(res.data.data);
+      }
+    } catch (error) {
+      message.error('加载版本历史失败');
+    } finally {
+      setVersionsLoading(false);
+    }
+  }, [docId]);
+
+  const handleShowVersions = () => {
+    setVersionModalVisible(true);
+    loadVersions();
+  };
+
   const renderBreadcrumb = () => {
     if (!docData) return null;
     const paths = docData.path.split('/').filter(Boolean);
@@ -104,7 +128,7 @@ const DocumentView = () => {
             编辑
           </Button>
           <Tooltip title="版本历史">
-            <Button icon={<HistoryOutlined />} />
+            <Button icon={<HistoryOutlined />} onClick={handleShowVersions} />
           </Tooltip>
           <Tooltip title="导出">
             <Button icon={<DownloadOutlined />} onClick={handleExport} />
@@ -128,6 +152,33 @@ const DocumentView = () => {
           dangerouslySetInnerHTML={{ __html: docData?.contentHtml || marked.parse(docData?.content || '') }}
         />
       </div>
+      <Modal
+        title="版本历史"
+        open={versionModalVisible}
+        onCancel={() => setVersionModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        <List
+          loading={versionsLoading}
+          dataSource={versions}
+          renderItem={(version) => (
+            <List.Item key={version.id}>
+              <List.Item.Meta
+                avatar={<ClockCircleOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+                title={<span>v{version.version} - {version.title}</span>}
+                description={
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="编辑说明">{version.editSummary || '无'}</Descriptions.Item>
+                    <Descriptions.Item label="编辑时间">{version.createdAt}</Descriptions.Item>
+                    <Descriptions.Item label="编辑人">用户{version.editorId}</Descriptions.Item>
+                  </Descriptions>
+                }
+              />
+            </List.Item>
+          )}
+        />
+      </Modal>
     </Spin>
   );
 };

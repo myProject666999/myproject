@@ -46,29 +46,57 @@ public class PublishTimeAnalysisService {
     private static final int ANALYSIS_DAYS = 30;
 
     public PublishTimeAnalysisVO getPublishTimeAnalysis(Long creatorId, Long platformId) {
-        String cacheKey = ANALYSIS_CACHE_KEY + creatorId + ":" + (platformId != null ? platformId : "all");
-        PublishTimeAnalysisVO cached = redisCacheService.get(cacheKey, PublishTimeAnalysisVO.class);
-        if (cached != null) {
-            return cached;
-        }
+        try {
+            String cacheKey = ANALYSIS_CACHE_KEY + creatorId + ":" + (platformId != null ? platformId : "all");
+            PublishTimeAnalysisVO cached = null;
+            try {
+                cached = redisCacheService.get(cacheKey, PublishTimeAnalysisVO.class);
+            } catch (Exception e) {
+                log.warn("Redis缓存读取失败", e);
+            }
+            if (cached != null) {
+                return cached;
+            }
 
-        PublishTimeAnalysisVO vo = calculatePublishTimeAnalysis(creatorId, platformId);
-        redisCacheService.set(cacheKey, vo, CACHE_MINUTES, TimeUnit.MINUTES);
-        return vo;
+            PublishTimeAnalysisVO vo = calculatePublishTimeAnalysis(creatorId, platformId);
+            try {
+                redisCacheService.set(cacheKey, vo, CACHE_MINUTES, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                log.warn("Redis缓存写入失败", e);
+            }
+            return vo;
+        } catch (Exception e) {
+            log.error("获取发布时段分析失败", e);
+            PublishTimeAnalysisVO vo = new PublishTimeAnalysisVO();
+            vo.setCreatorId(creatorId);
+            vo.setPlatformId(platformId);
+            vo.setHourAnalysis(new ArrayList<>());
+            vo.setRecommendedHours(new ArrayList<>());
+            return vo;
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void generatePublishTimeAnalysis(Long creatorId) {
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(ANALYSIS_DAYS);
+        try {
+            LocalDate endDate = LocalDate.now();
+            LocalDate startDate = endDate.minusDays(ANALYSIS_DAYS);
 
-        List<CreatorAccount> accounts = getCreatorAccounts(creatorId);
-        if (accounts.isEmpty()) {
-            return;
-        }
+            List<CreatorAccount> accounts = getCreatorAccounts(creatorId);
+            if (accounts.isEmpty()) {
+                log.warn("没有找到创作者的账号，creatorId: {}", creatorId);
+                return;
+            }
+            log.info("开始生成发布时段分析，creatorId: {}, 账号数: {}", creatorId, accounts.size());
 
-        for (CreatorAccount account : accounts) {
-            analyzeAndSave(creatorId, account.getPlatformId(), startDate, endDate);
+            for (CreatorAccount account : accounts) {
+                analyzeAndSave(creatorId, account.getPlatformId(), startDate, endDate);
+            }
+            evictCache(creatorId);
+            log.info("发布时段分析生成完成，creatorId: {}", creatorId);
+        } catch (Exception e) {
+            log.error("生成发布时段分析失败", e);
+            throw new RuntimeException("生成发布时段分析失败", e);
         }
     }
 
@@ -165,7 +193,7 @@ public class PublishTimeAnalysisService {
         List<PublishTimeAnalysis> analysisList = publishTimeAnalysisMapper.selectList(
                 new LambdaQueryWrapper<PublishTimeAnalysis>()
                         .eq(PublishTimeAnalysis::getCreatorId, creatorId)
-                        .apply(platformId != null, "platform_id = {0}", platformId)
+                        .eq(platformId != null, PublishTimeAnalysis::getPlatformId, platformId)
         );
 
         if (analysisList.isEmpty()) {

@@ -4,7 +4,9 @@ import { Layout, Input, Space, Dropdown, Avatar, message } from 'antd';
 import {
   BookOutlined,
   SearchOutlined,
-  UserOutlined
+  UserOutlined,
+  SettingOutlined,
+  LogoutOutlined
 } from '@ant-design/icons';
 import DocumentTree from './components/DocumentTree';
 import HomePage from './pages/HomePage';
@@ -12,6 +14,8 @@ import DocumentView from './pages/DocumentView';
 import DocumentEdit from './pages/DocumentEdit';
 import SearchResults from './pages/SearchResults';
 import RecycleBin from './pages/RecycleBin';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import { spaceApi } from './services/api';
 
 const { Header, Sider, Content } = Layout;
@@ -60,9 +64,9 @@ function App() {
 
   const handleMenuClick = ({ key }) => {
     if (key === 'profile') {
-      message.info('个人中心功能开发中');
+      navigate('/profile');
     } else if (key === 'settings') {
-      message.info('系统设置功能开发中');
+      navigate('/settings');
     } else if (key === 'logout') {
       message.info('已退出登录');
     }
@@ -90,9 +94,9 @@ function App() {
             menu={{
               items: [
                 { key: 'profile', label: '个人中心', icon: <UserOutlined /> },
-                { key: 'settings', label: '系统设置' },
+                { key: 'settings', label: '系统设置', icon: <SettingOutlined /> },
                 { type: 'divider' },
-                { key: 'logout', label: '退出登录' }
+                { key: 'logout', label: '退出登录', icon: <LogoutOutlined /> }
               ],
               onClick: handleMenuClick
             }}
@@ -117,6 +121,8 @@ function App() {
         <Content className="main-content">
           <Routes>
             <Route path="/" element={<HomePage spaces={spaces} />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/space/:spaceId" element={<DocumentView />} />
             <Route path="/space/:spaceId/document/:docId" element={<DocumentView />} />
             <Route path="/space/:spaceId/edit/:docId" element={<DocumentEdit />} />
