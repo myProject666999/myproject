@@ -49,7 +49,7 @@ router.post('/upload', upload.single('audio'), async (req, res) => {
 
         const audioInfo = await audioProcessor.getAudioInfo(filePath);
 
-        const [result] = await db.query(
+        const result = await db.query(
             `INSERT INTO episodes (podcast_id, title, original_file, duration, file_size, sample_rate, channels, bitrate, status)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'processing')`,
             [podcastId || 1, title || req.file.originalname, fileName, audioInfo.duration, audioInfo.fileSize, 

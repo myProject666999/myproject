@@ -4,6 +4,14 @@ const cors = require('cors');
 const path = require('path');
 const db = require('./src/models/db');
 
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+});
+
 const audioRoutes = require('./src/routes/audio');
 const editRoutes = require('./src/routes/edit');
 const publishRoutes = require('./src/routes/publish');

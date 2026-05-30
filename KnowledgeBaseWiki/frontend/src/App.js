@@ -58,6 +58,16 @@ function App() {
     }
   };
 
+  const handleMenuClick = ({ key }) => {
+    if (key === 'profile') {
+      message.info('个人中心功能开发中');
+    } else if (key === 'settings') {
+      message.info('系统设置功能开发中');
+    } else if (key === 'logout') {
+      message.info('已退出登录');
+    }
+  };
+
   return (
     <Layout className="app-layout">
       <Header style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -83,7 +93,8 @@ function App() {
                 { key: 'settings', label: '系统设置' },
                 { type: 'divider' },
                 { key: 'logout', label: '退出登录' }
-              ]
+              ],
+              onClick: handleMenuClick
             }}
           >
             <Avatar icon={<UserOutlined />} style={{ cursor: 'pointer' }} />

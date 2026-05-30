@@ -46,11 +46,11 @@ public class PaymentRecord {
     private BigDecimal feeRate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", length = 20)
+    @Column(name = "payment_method", length = 20, columnDefinition = "VARCHAR(20)")
     private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status", nullable = false, length = 20)
+    @Column(name = "payment_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
     @Column(name = "transaction_id", length = 100)

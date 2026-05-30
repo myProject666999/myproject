@@ -32,7 +32,7 @@ public class SubscriptionService {
         MembershipTier tier = membershipTierRepository.findById(request.getTierId())
                 .orElseThrow(() -> new RuntimeException("会员等级不存在"));
 
-        if (tier.getCreatorId().equals(request.getCreatorId())) {
+        if (!tier.getCreatorId().equals(request.getCreatorId())) {
             throw new RuntimeException("会员等级与创作者不匹配");
         }
 

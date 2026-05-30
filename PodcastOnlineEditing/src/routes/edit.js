@@ -10,10 +10,10 @@ router.post('/chapters', async (req, res) => {
             return res.status(400).json({ error: '缺少必要参数' });
         }
 
-        const [result] = await db.query(
+        const result = await db.query(
             `INSERT INTO chapters (episode_id, title, start_time, end_time, description, link_url, image_url)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [episodeId, title, startTime, endTime, description, linkUrl, imageUrl]
+            [episodeId, title, startTime, endTime ?? null, description ?? null, linkUrl ?? null, imageUrl ?? null]
         );
 
         res.json({
@@ -40,7 +40,7 @@ router.put('/chapters/:id', async (req, res) => {
         await db.query(
             `UPDATE chapters SET title = ?, start_time = ?, end_time = ?, description = ?, link_url = ?, image_url = ?, sort_order = ?
              WHERE id = ?`,
-            [title, startTime, endTime, description, linkUrl, imageUrl, sortOrder, id]
+            [title, startTime, endTime ?? null, description ?? null, linkUrl ?? null, imageUrl ?? null, sortOrder ?? null, id]
         );
 
         res.json({
@@ -101,10 +101,10 @@ router.post('/edits', async (req, res) => {
             return res.status(400).json({ error: '缺少必要参数' });
         }
 
-        const [result] = await db.query(
+        const result = await db.query(
             `INSERT INTO edits (episode_id, edit_type, start_time, end_time, parameters)
              VALUES (?, ?, ?, ?, ?)`,
-            [episodeId, editType, startTime, endTime, parameters ? JSON.stringify(parameters) : null]
+            [episodeId, editType, startTime, endTime ?? null, parameters ? JSON.stringify(parameters) : null]
         );
 
         res.json({
@@ -167,17 +167,17 @@ router.post('/shownotes', async (req, res) => {
             await db.query(
                 `UPDATE show_notes SET content = ?, transcription = ?, keywords = ?, summary = ?
                  WHERE episode_id = ?`,
-                [content, transcription, keywords, summary, episodeId]
+                [content ?? null, transcription ?? null, keywords ?? null, summary ?? null, episodeId]
             );
             res.json({
                 success: true,
                 message: 'Show Notes 更新成功'
             });
         } else {
-            const [result] = await db.query(
+            const result = await db.query(
                 `INSERT INTO show_notes (episode_id, content, transcription, keywords, summary)
                  VALUES (?, ?, ?, ?, ?)`,
-                [episodeId, content, transcription, keywords, summary]
+                [episodeId, content ?? null, transcription ?? null, keywords ?? null, summary ?? null]
             );
             res.json({
                 success: true,

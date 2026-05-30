@@ -37,7 +37,7 @@ public class EarningDetail {
     private Long platformFee;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "settlement_status", nullable = false, length = 20)
+    @Column(name = "settlement_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private SettlementStatus settlementStatus = SettlementStatus.PENDING;
 
     @Column(name = "settled_at")

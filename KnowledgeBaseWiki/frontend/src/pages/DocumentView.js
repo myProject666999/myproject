@@ -14,7 +14,7 @@ import { documentApi } from '../services/api';
 const DocumentView = () => {
   const { spaceId, docId } = useParams();
   const navigate = useNavigate();
-  const [document, setDocument] = useState(null);
+  const [docData, setDocData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const loadDocument = useCallback(async () => {
@@ -22,7 +22,7 @@ const DocumentView = () => {
     try {
       const res = await documentApi.getDocument(docId);
       if (res.data.code === 200) {
-        setDocument(res.data.data);
+        setDocData(res.data.data);
       }
     } catch (error) {
       message.error('加载文档失败');
@@ -60,21 +60,21 @@ const DocumentView = () => {
   };
 
   const handleExport = () => {
-    if (!document) return;
-    const content = `# ${document.title}\n\n${document.content}`;
+    if (!docData) return;
+    const content = `# ${docData.title}\n\n${docData.content}`;
     const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = window.document.createElement('a');
     a.href = url;
-    a.download = `${document.title}.md`;
+    a.download = `${docData.title}.md`;
     a.click();
     URL.revokeObjectURL(url);
     message.success('导出成功');
   };
 
   const renderBreadcrumb = () => {
-    if (!document) return null;
-    const paths = document.path.split('/').filter(Boolean);
+    if (!docData) return null;
+    const paths = docData.path.split('/').filter(Boolean);
     return (
       <Breadcrumb style={{ marginBottom: 16 }}>
         <Breadcrumb.Item>首页</Breadcrumb.Item>
@@ -114,18 +114,18 @@ const DocumentView = () => {
           </Tooltip>
         </Space>
         <Space>
-          <Tag color="blue">v{document?.version}</Tag>
+          <Tag color="blue">v{docData?.version}</Tag>
         </Space>
       </div>
       <div style={{ padding: '24px 48px' }}>
         {renderBreadcrumb()}
-        <h1 className="doc-title">{document?.title}</h1>
+        <h1 className="doc-title">{docData?.title}</h1>
         <div className="doc-meta">
-          创建于 {document?.createdAt} · 最后更新于 {document?.updatedAt}
+          创建于 {docData?.createdAt} · 最后更新于 {docData?.updatedAt}
         </div>
         <div
           className="markdown-content"
-          dangerouslySetInnerHTML={{ __html: document?.contentHtml || marked.parse(document?.content || '') }}
+          dangerouslySetInnerHTML={{ __html: docData?.contentHtml || marked.parse(docData?.content || '') }}
         />
       </div>
     </Spin>

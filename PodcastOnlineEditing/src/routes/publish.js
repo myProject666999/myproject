@@ -21,7 +21,7 @@ router.post('/export', async (req, res) => {
 
         const episode = episodes[0];
 
-        const [taskResult] = await db.query(
+        const taskResult = await db.query(
             `INSERT INTO export_tasks (episode_id, task_type, format, quality, status)
              VALUES (?, 'audio', ?, ?, 'pending')`,
             [episodeId, format, quality]
@@ -203,10 +203,10 @@ router.post('/podcasts', async (req, res) => {
             return res.status(400).json({ error: '标题不能为空' });
         }
 
-        const [result] = await db.query(
+        const result = await db.query(
             `INSERT INTO podcasts (user_id, title, description, author, category, cover_image, website)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [userId, title, description, author, category, coverImage, website]
+            [userId, title, description ?? null, author ?? null, category ?? null, coverImage ?? null, website ?? null]
         );
 
         const podcastId = result.insertId;

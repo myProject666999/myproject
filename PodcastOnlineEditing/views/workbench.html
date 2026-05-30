@@ -398,9 +398,12 @@
                 if (result.success) {
                     document.getElementById('chapterTitle').value = '';
                     loadEpisode();
+                } else {
+                    alert('添加章节失败: ' + (result.error || '未知错误'));
                 }
             } catch (err) {
                 console.error('添加章节失败:', err);
+                alert('添加章节失败: ' + err.message);
             }
         }
 

@@ -26,7 +26,7 @@ public class Content {
     private String title;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "content_type", nullable = false, length = 20)
+    @Column(name = "content_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private ContentType contentType;
 
     @Column(columnDefinition = "TEXT")

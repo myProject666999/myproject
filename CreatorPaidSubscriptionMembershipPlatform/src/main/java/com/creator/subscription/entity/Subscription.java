@@ -26,7 +26,7 @@ public class Subscription {
     private Long tierId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private SubscriptionStatus status = SubscriptionStatus.PENDING;
 
     @Column(name = "auto_renew", columnDefinition = "TINYINT DEFAULT 1")
