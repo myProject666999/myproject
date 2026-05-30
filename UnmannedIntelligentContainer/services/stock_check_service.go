@@ -103,6 +103,7 @@ func (s *StockCheckService) CreateCheck(data *models.StockCheckCreate) (*models.
 		totalDamageAmount += damageAmount
 
 		checkItem := models.StockCheckItem{
+			BaseModel:        models.BaseModel{ID: 0},
 			ProductID:        item.ProductID,
 			ExpectedQuantity: item.ExpectedQuantity,
 			ActualQuantity:   item.ActualQuantity,
@@ -126,7 +127,6 @@ func (s *StockCheckService) CreateCheck(data *models.StockCheckCreate) (*models.
 		DamageAmount:    totalDamageAmount,
 		Status:          0,
 		Remark:          data.Remark,
-		Items:           checkItems,
 	}
 
 	tx := config.DB.Begin()
@@ -139,21 +139,25 @@ func (s *StockCheckService) CreateCheck(data *models.StockCheckCreate) (*models.
 		return nil, err
 	}
 
-	for i := range check.Items {
-		check.Items[i].CheckID = check.ID
+	for i := range checkItems {
+		checkItems[i].BaseModel = models.BaseModel{ID: 0}
+		checkItems[i].CheckID = check.ID
 	}
 
-	if len(check.Items) > 0 {
-		if err := tx.Create(&check.Items).Error; err != nil {
+	if len(checkItems) > 0 {
+		if err := tx.Create(&checkItems).Error; err != nil {
 			tx.Rollback()
 			return nil, err
 		}
 	}
 
+	check.Items = checkItems
+
 	for _, item := range data.Items {
 		if item.DamageQuantity > 0 {
 			product, _ := s.productService.GetByID(item.ProductID)
 			damageRecord := &models.DamageRecord{
+				BaseModel:   models.BaseModel{ID: 0},
 				RecordNo:    utils.GenerateDamageNo(),
 				ContainerID: data.ContainerID,
 				ProductID:   item.ProductID,

@@ -260,6 +260,66 @@ async function submitAnswers(req, res, next) {
   }
 }
 
+async function getSession(req, res, next) {
+  const conn = await pool.getConnection();
+  try {
+    const { session_uuid } = req.params;
+    if (!session_uuid) {
+      return next(new ValidationError("缺少会话ID"));
+    }
+
+    const [sessions] = await conn.query(
+      `SELECT 
+        s.session_uuid, 
+        s.scale_id, 
+        s.user_id, 
+        s.status,
+        s.started_at,
+        sc.name as scale_name,
+        sc.short_name,
+        sc.code,
+        sc.estimated_minutes,
+        sc.category,
+        sc.description
+      FROM answer_sessions s
+      JOIN scales sc ON s.scale_id = sc.id
+      WHERE s.session_uuid = ?`,
+      [session_uuid]
+    );
+
+    if (sessions.length === 0) {
+      return next(new NotFoundError("会话不存在"));
+    }
+
+    const session = sessions[0];
+
+    res.json({
+      success: true,
+      data: {
+        session_uuid: session.session_uuid,
+        scale_id: session.scale_id,
+        user_id: session.user_id,
+        status: session.status,
+        started_at: session.started_at,
+        scale_name: session.scale_name,
+        scale: {
+          id: session.scale_id,
+          name: session.scale_name,
+          short_name: session.short_name,
+          code: session.code,
+          estimated_minutes: session.estimated_minutes,
+          category: session.category,
+          description: session.description,
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  } finally {
+    conn.release();
+  }
+}
+
 async function getSessionResult(req, res, next) {
   try {
     const { session_uuid } = req.params;
@@ -341,5 +401,6 @@ module.exports = {
   autoSaveAnswers,
   getAutoSavedAnswers,
   submitAnswers,
+  getSession,
   getSessionResult,
 };

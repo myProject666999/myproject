@@ -96,6 +96,10 @@ const API = {
             return API.post('/answers/start', { scale_id: scaleId });
         },
 
+        getSession(sessionUuid) {
+            return API.get(`/answers/${sessionUuid}`);
+        },
+
         autoSave(sessionUuid, answers) {
             return API.put(`/answers/${sessionUuid}/auto-save`, { answers });
         },
@@ -118,8 +122,14 @@ const API = {
     },
 
     trends: {
-        getMyTrends(params) {
-            return API.get('/trends/my', params);
+        getHistory(params) {
+            return API.get('/trends/history', params);
+        },
+        getTrend(scaleId, params) {
+            return API.get(`/trends/trend/${scaleId}`, params);
+        },
+        getComparison(params) {
+            return API.get('/trends/comparison', params);
         }
     },
 

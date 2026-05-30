@@ -13,11 +13,36 @@ const Answer = {
     hasUnsavedChanges: false,
 
     async init() {
+        this.sessionUuid = Common.getQueryParam('session_uuid') || Common.getQueryParam('sessionUuid');
         this.scaleId = Common.getQueryParam('scale_id') || Common.getQueryParam('scaleId');
-        if (!this.scaleId) {
+
+        if (!this.scaleId && !this.sessionUuid) {
             Common.showToast('请先选择量表', 'error');
             setTimeout(() => location.href = 'scales.html', 1500);
             return;
+        }
+
+        if (!this.scaleId && this.sessionUuid) {
+            try {
+                const sessionData = await API.answers.getSession(this.sessionUuid);
+                if (sessionData.success && sessionData.data && sessionData.data.scale_id) {
+                    this.scaleId = sessionData.data.scale_id;
+                    if (sessionData.data.status === 'completed') {
+                        Common.showToast('该测评已完成，跳转至结果页', 'info');
+                        setTimeout(() => {
+                            location.href = `result.html?session_uuid=${this.sessionUuid}`;
+                        }, 1500);
+                        return;
+                    }
+                } else {
+                    throw new Error('会话不存在');
+                }
+            } catch (error) {
+                console.error('获取会话信息失败:', error);
+                Common.showToast('获取会话信息失败，请重新选择量表', 'error');
+                setTimeout(() => location.href = 'scales.html', 1500);
+                return;
+            }
         }
 
         document.getElementById('privacyAgree').addEventListener('change', (e) => {
@@ -58,8 +83,10 @@ const Answer = {
         document.getElementById('privacyModal').style.display = 'none';
 
         try {
-            const sessionData = await API.answers.startSession(this.scaleId);
-            this.sessionUuid = sessionData.data.session_uuid;
+            if (!this.sessionUuid) {
+                const sessionData = await API.answers.startSession(this.scaleId);
+                this.sessionUuid = sessionData.data.session_uuid;
+            }
             this.startTime = Date.now();
             this.startTimer();
             this.startAutoSave();

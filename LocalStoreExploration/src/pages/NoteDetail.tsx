@@ -1,119 +1,43 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Heart, Share2, Bookmark, MessageCircle, Eye, Clock, ChevronRight } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, MapPin, Heart, Share2, Bookmark, MessageCircle, Eye, Clock, ChevronRight, Loader2 } from 'lucide-react';
 import RatingStars from '../components/RatingStars';
 import { Note, Comment } from '../types';
 import { api } from '../services/api';
-
-const mockNote: Note = {
-  id: 1,
-  userId: 1,
-  shopId: 1,
-  title: '超赞的火锅店！必点毛肚和肥牛',
-  content: '今天来打卡这家网红火锅店，环境真的太棒了！毛肚特别新鲜，七上八下之后口感脆嫩。肥牛也是入口即化，麻辣锅底味道正宗。人均150左右，性价比很高！强烈推荐给各位火锅爱好者～\n\n店内装修很有特色，是那种复古工业风，拍照也很好看。服务员态度很好，会主动帮忙涮菜，换骨碟也很勤快。\n\n必点菜品：\n1. 鲜毛肚 - 真的超级新鲜，涮完脆脆的\n2. 雪花肥牛 - 肥瘦相间，入口即化\n3. 手打虾滑 - Q弹有嚼劲\n4. 麻辣牛肉 - 辣得过瘾',
-  images: [
-    'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1594983162858-89e53a1c5d50?w=800&h=600&fit=crop',
-  ],
-  ratingOverall: 4.8,
-  ratingTaste: 5,
-  ratingEnv: 4.5,
-  ratingService: 4.7,
-  ratingCost: 4.2,
-  lat: 39.9087,
-  lng: 116.4474,
-  address: '北京市朝阳区建国路88号SOHO现代城底商',
-  category: '火锅',
-  status: 'approved',
-  viewsCount: 2345,
-  likesCount: 186,
-  commentsCount: 45,
-  createdAt: '2024-01-15T10:00:00Z',
-  user: {
-    id: 1,
-    username: 'daren1',
-    nickname: '美食达人小王',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
-    bio: '专注美食探店10年，吃遍全城好吃的！',
-    followersCount: 12580,
-    notesCount: 156,
-    isVerified: 1,
-    createdAt: '2023-01-01T00:00:00Z',
-  },
-  shop: {
-    id: 1,
-    name: '老王火锅店',
-    address: '北京市朝阳区建国路88号SOHO现代城底商',
-    phone: '010-88888888',
-    category: '火锅',
-    coverImage: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop',
-    images: [],
-    rating: 4.8,
-    lat: 39.9087,
-    lng: 116.4474,
-    businessHours: '10:00-22:00',
-    notesCount: 36,
-    averageCost: 128,
-  },
-};
-
-const mockComments: Comment[] = [
-  {
-    id: 1,
-    userId: 2,
-    noteId: 1,
-    content: '这家我也去过！毛肚确实好吃，每次必点！',
-    likesCount: 23,
-    createdAt: '2024-01-15T12:00:00Z',
-    user: {
-      id: 2,
-      username: 'daren2',
-      nickname: '探店达人小美',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-      bio: '颜值与美食并存',
-      followersCount: 8950,
-      notesCount: 89,
-      isVerified: 1,
-      createdAt: '2023-02-01T00:00:00Z',
-    },
-  },
-  {
-    id: 2,
-    userId: 3,
-    noteId: 1,
-    content: '收藏了，周末去打卡！人均大概多少呀？',
-    likesCount: 15,
-    createdAt: '2024-01-15T14:30:00Z',
-    user: {
-      id: 3,
-      username: 'daren3',
-      nickname: '吃货老张',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-      bio: '不是在吃，就是在去吃的路上',
-      followersCount: 5680,
-      notesCount: 72,
-      isVerified: 1,
-      createdAt: '2023-03-01T00:00:00Z',
-    },
-  },
-];
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function NoteDetail() {
   const { id } = useParams<{ id: string }>();
-  const [note, setNote] = useState<Note>(mockNote);
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+  const [note, setNote] = useState<Note | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setNote(mockNote);
-        setComments(mockComments);
+        const noteId = parseInt(id || '1');
+        const [noteData, commentsData] = await Promise.all([
+          api.getNoteById(noteId),
+          api.getCommentsByNoteId(noteId),
+        ]);
+        setNote(noteData as Note);
+        setComments((commentsData as any).list || []);
+        const [likeStatus, favStatus, followStatus] = await Promise.all([
+          api.checkLike(noteId, 'note').catch(() => ({ isLiked: false })),
+          api.checkFavorite(noteId, 'note').catch(() => ({ isFavorite: false })),
+          api.checkFollow((noteData as any).user?.id || 0).catch(() => ({ isFollowing: false })),
+        ]);
+        setIsLiked(likeStatus.isLiked);
+        setIsFavorited(favStatus.isFavorite);
+        setIsFollowing(followStatus.isFollowing);
       } catch (error) {
         console.error('Failed to fetch note:', error);
       } finally {
@@ -121,40 +45,96 @@ export default function NoteDetail() {
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, isAuthenticated]);
+
+  const requireAuth = (action: () => void) => {
+    if (!isAuthenticated) {
+      alert('请先登录');
+      navigate('/profile');
+      return;
+    }
+    action();
+  };
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
+    requireAuth(async () => {
+      if (actionLoading) return;
+      setActionLoading('like');
+      try {
+        const result = await api.toggleLike(note!.id, 'note');
+        setIsLiked(result.liked);
+        setNote(prev => prev ? {
+          ...prev,
+          likesCount: result.liked ? prev.likesCount + 1 : prev.likesCount - 1,
+        } : null);
+      } catch (error) {
+        console.error('Like failed:', error);
+        alert('操作失败，请重试');
+      } finally {
+        setActionLoading(null);
+      }
+    });
   };
 
   const handleFavorite = () => {
-    setIsFavorited(!isFavorited);
+    requireAuth(async () => {
+      if (actionLoading) return;
+      setActionLoading('favorite');
+      try {
+        if (isFavorited) {
+          await api.removeFavorite(note!.id, 'note');
+          setIsFavorited(false);
+        } else {
+          await api.addFavorite(note!.id, 'note', 'want');
+          setIsFavorited(true);
+        }
+      } catch (error) {
+        console.error('Favorite failed:', error);
+        alert('操作失败，请重试');
+      } finally {
+        setActionLoading(null);
+      }
+    });
+  };
+
+  const handleFollow = () => {
+    requireAuth(async () => {
+      if (actionLoading) return;
+      setActionLoading('follow');
+      try {
+        const result = await api.toggleFollow(note!.user.id);
+        setIsFollowing(result.following);
+        setNote(prev => prev ? {
+          ...prev,
+          user: {
+            ...prev.user,
+            followersCount: result.following ? prev.user.followersCount + 1 : prev.user.followersCount - 1,
+          },
+        } : null);
+      } catch (error) {
+        console.error('Follow failed:', error);
+        alert('操作失败，请重试');
+      } finally {
+        setActionLoading(null);
+      }
+    });
   };
 
   const handleSubmitComment = () => {
-    if (newComment.trim()) {
-      const comment: Comment = {
-        id: comments.length + 1,
-        userId: 1,
-        noteId: parseInt(id || '1'),
-        content: newComment,
-        likesCount: 0,
-        createdAt: new Date().toISOString(),
-        user: {
-          id: 1,
-          username: 'me',
-          nickname: '我',
-          avatar: 'https://picsum.photos/40/40',
-          bio: '',
-          followersCount: 0,
-          notesCount: 0,
-          isVerified: 0,
-          createdAt: new Date().toISOString(),
-        },
-      };
-      setComments([comment, ...comments]);
-      setNewComment('');
-    }
+    requireAuth(async () => {
+      if (!newComment.trim() || actionLoading) return;
+      setActionLoading('comment');
+      try {
+        const comment = await api.createComment(note!.id, newComment);
+        setComments([comment as Comment, ...comments]);
+        setNewComment('');
+      } catch (error) {
+        console.error('Comment failed:', error);
+        alert('评论失败，请重试');
+      } finally {
+        setActionLoading(null);
+      }
+    });
   };
 
   if (loading) {
@@ -162,6 +142,14 @@ export default function NoteDetail() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-500">加载中...</div>
       </div>
+    );
+  }
+
+  if (!note) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+      <div className="text-gray-500">笔记不存在</div>
+    </div>
     );
   }
 
@@ -233,8 +221,17 @@ export default function NoteDetail() {
             </div>
             <p className="text-sm text-gray-500">{note.user.followersCount} 粉丝</p>
           </div>
-          <button className="px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-full">
-            关注
+          <button
+            onClick={handleFollow}
+            disabled={actionLoading === 'follow'}
+            className={`px-4 py-2 text-sm font-medium rounded-full transition-all flex items-center gap-2 ${
+              isFollowing
+                ? 'bg-gray-200 text-gray-600'
+                : 'bg-orange-500 text-white'
+            }`}
+          >
+            {actionLoading === 'follow' && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isFollowing ? '已关注' : '关注'}
           </button>
         </div>
 
@@ -325,23 +322,34 @@ export default function NoteDetail() {
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment()}
+          disabled={actionLoading === 'comment'}
           className="flex-1 px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-300"
         />
         <button
           onClick={handleLike}
+          disabled={actionLoading === 'like'}
           className={`p-2 rounded-full transition-all ${
             isLiked ? 'bg-red-50 text-red-500' : 'text-gray-500 hover:bg-gray-100'
           }`}
         >
-          <Heart className={`w-6 h-6 ${isLiked ? 'fill-red-500' : ''}`} />
+          {actionLoading === 'like' ? (
+            <Loader2 className="w-6 h-6 animate-spin" />
+          ) : (
+            <Heart className={`w-6 h-6 ${isLiked ? 'fill-red-500' : ''}`} />
+          )}
         </button>
         <button
           onClick={handleFavorite}
+          disabled={actionLoading === 'favorite'}
           className={`p-2 rounded-full transition-all ${
             isFavorited ? 'bg-orange-50 text-orange-500' : 'text-gray-500 hover:bg-gray-100'
           }`}
         >
-          <Bookmark className={`w-6 h-6 ${isFavorited ? 'fill-orange-500' : ''}`} />
+          {actionLoading === 'favorite' ? (
+            <Loader2 className="w-6 h-6 animate-spin" />
+          ) : (
+            <Bookmark className={`w-6 h-6 ${isFavorited ? 'fill-orange-500' : ''}`} />
+          )}
         </button>
         <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full">
           <MessageCircle className="w-6 h-6" />

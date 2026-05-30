@@ -8,6 +8,8 @@ import { FavoritesModule } from './favorites/favorites.module';
 import { CommentsModule } from './comments/comments.module';
 import { RankingModule } from './ranking/ranking.module';
 import { UploadModule } from './upload/upload.module';
+import { LikesModule } from './likes/likes.module';
+import { FollowsModule } from './follows/follows.module';
 import { RedisModule } from './redis/redis.module';
 
 @Module({
@@ -32,6 +34,8 @@ import { RedisModule } from './redis/redis.module';
     CommentsModule,
     RankingModule,
     UploadModule,
+    LikesModule,
+    FollowsModule,
   ],
 })
 export class AppModule {}

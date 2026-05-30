@@ -62,6 +62,35 @@ class ApiService {
     });
   }
 
+  async uploadImage(base64Image: string) {
+    return this.request('/upload/image', {
+      method: 'POST',
+      body: JSON.stringify({ image: base64Image }),
+    });
+  }
+
+  async toggleLike(targetId: number, targetType: 'note' | 'comment') {
+    return this.request('/likes/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ targetId, targetType }),
+    });
+  }
+
+  async checkLike(targetId: number, targetType: 'note' | 'comment') {
+    return this.request(`/likes/check?targetId=${targetId}&targetType=${targetType}`);
+  }
+
+  async toggleFollow(followingId: number) {
+    return this.request('/follows/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ followingId }),
+    });
+  }
+
+  async checkFollow(followingId: number) {
+    return this.request(`/follows/check?followingId=${followingId}`);
+  }
+
   async getNearbyNotes(lng: number, lat: number, radius = 5, category?: string) {
     const params = new URLSearchParams({
       lng: lng.toString(),

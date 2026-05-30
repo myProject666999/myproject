@@ -505,54 +505,6 @@
                         </tr>
                     </thead>
                     <tbody id="historyTable">
-                        <tr>
-                            <td>2024-01-15 14:30</td>
-                            <td>PHQ-9 患者健康问卷抑郁量表</td>
-                            <td><strong>8</strong></td>
-                            <td><span class="severity-badge mild">轻度</span></td>
-                            <td>3分20秒</td>
-                            <td><button class="btn btn-link">查看详情</button></td>
-                        </tr>
-                        <tr>
-                            <td>2024-01-01 10:15</td>
-                            <td>PHQ-9 患者健康问卷抑郁量表</td>
-                            <td><strong>12</strong></td>
-                            <td><span class="severity-badge moderate">中度</span></td>
-                            <td>2分50秒</td>
-                            <td><button class="btn btn-link">查看详情</button></td>
-                        </tr>
-                        <tr>
-                            <td>2023-12-18 16:45</td>
-                            <td>GAD-7 广泛性焦虑量表</td>
-                            <td><strong>6</strong></td>
-                            <td><span class="severity-badge mild">轻度</span></td>
-                            <td>3分10秒</td>
-                            <td><button class="btn btn-link">查看详情</button></td>
-                        </tr>
-                        <tr>
-                            <td>2023-12-05 09:20</td>
-                            <td>PHQ-9 患者健康问卷抑郁量表</td>
-                            <td><strong>15</strong></td>
-                            <td><span class="severity-badge severe">重度</span></td>
-                            <td>4分05秒</td>
-                            <td><button class="btn btn-link">查看详情</button></td>
-                        </tr>
-                        <tr>
-                            <td>2023-11-20 11:30</td>
-                            <td>PSQI 匹兹堡睡眠质量指数</td>
-                            <td><strong>12</strong></td>
-                            <td><span class="severity-badge moderate">中度</span></td>
-                            <td>8分45秒</td>
-                            <td><button class="btn btn-link">查看详情</button></td>
-                        </tr>
-                        <tr>
-                            <td>2023-11-08 15:00</td>
-                            <td>PSS-10 知觉压力量表</td>
-                            <td><strong>22</strong></td>
-                            <td><span class="severity-badge moderate">中度</span></td>
-                            <td>4分30秒</td>
-                            <td><button class="btn btn-link">查看详情</button></td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -766,15 +718,107 @@
             }).join('');
         }
 
+        function getSeverityClass(level) {
+            const map = {
+                '正常': 'normal',
+                '正常范围': 'normal',
+                '无或极轻微': 'normal',
+                '轻度': 'mild',
+                '中度': 'moderate',
+                '重度': 'severe',
+                '极重度': 'severe',
+            };
+            return map[level] || 'mild';
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return '--';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}分${secs}秒`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '--';
+            try {
+                const d = new Date(dateStr);
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                return `${y}-${m}-${day} ${hh}:${mm}`;
+            } catch(e) { return dateStr; }
+        }
+
+        function viewResult(sessionUuid) {
+            location.href = `result.html?session_uuid=${sessionUuid}`;
+        }
+
+        async function loadHistory() {
+            const tableBody = document.getElementById('historyTable');
+            const scaleId = document.getElementById('scaleSelect').value;
+
+            tableBody.innerHTML = `
+                <tr><td colspan="6" style="text-align:center; padding: 30px;">
+                    <div style="font-size:16px;">⏳ 加载中...</div>
+                </td></tr>
+            `;
+
+            try {
+                const params = { pageSize: 20 };
+                if (scaleId) params.scale_id = scaleId;
+
+                const data = await API.trends.getHistory(params);
+
+                if (data.success && data.data && Array.isArray(data.data.records)) {
+                    const records = data.data.records;
+
+                    if (records.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr><td colspan="6" style="text-align:center; padding: 40px; color: #8c8c8c;">
+                                <div style="font-size: 32px; margin-bottom: 8px;">📭</div>
+                                <div>暂无测评记录</div>
+                                <div style="font-size: 13px; margin-top: 4px;">去<a href="scales.html" style="color:#1890ff;">量表列表</a>开始第一次测评吧</div>
+                            </td></tr>
+                        `;
+                        return;
+                    }
+
+                    tableBody.innerHTML = records.map(r => `
+                        <tr>
+                            <td>${formatDate(r.completed_at || r.started_at)}</td>
+                            <td>${r.scale_name}</td>
+                            <td><strong>${r.total_score}</strong></td>
+                            <td><span class="severity-badge ${getSeverityClass(r.severity_level)}">${r.severity_level}</span></td>
+                            <td>${formatDuration(r.duration_seconds)}</td>
+                            <td><button class="btn btn-link" onclick="viewResult('${r.session_uuid}')">查看详情</button></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    throw new Error('数据加载失败');
+                }
+            } catch (error) {
+                console.error('加载历史记录失败:', error);
+                tableBody.innerHTML = `
+                    <tr><td colspan="6" style="text-align:center; padding: 40px; color: #8c8c8c;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">⚠️</div>
+                        <div>加载失败，请稍后重试</div>
+                    </td></tr>
+                `;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             if (!Common.requireLogin()) return;
             
             initTrendChart();
             initRadarChart();
             renderScoreList();
+            loadHistory();
 
             document.getElementById('scaleSelect').addEventListener('change', (e) => {
-                Common.showToast('已切换量表', 'info');
+                loadHistory();
             });
         });
     </script>

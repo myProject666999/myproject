@@ -35,6 +35,8 @@ public class EmissionCalculationService extends ServiceImpl<EmissionCalculationM
     public Map<String, Object> calculateEmission(Long orgId, Integer periodType, String periodValue) {
         Map<String, Object> result = new HashMap<>();
         
+        baseMapper.physicalDeleteByPeriod(orgId, periodType, periodValue);
+
         List<Organization> childOrgs = organizationService.getChildOrganizations(orgId);
         List<Long> orgIds = childOrgs.stream().map(Organization::getId).collect(Collectors.toList());
         orgIds.add(orgId);
@@ -165,11 +167,14 @@ public class EmissionCalculationService extends ServiceImpl<EmissionCalculationM
         if (periodType == 1) {
             return periodValue;
         } else if (periodType == 2) {
-            int quarter = Integer.parseInt(periodValue.substring(6));
-            int year = Integer.parseInt(periodValue.substring(0, 4));
-            return year + "-" + String.format("%02d", (quarter - 1) * 3 + 1);
+            String year = periodValue.substring(0, 4);
+            String quarterStr = periodValue.length() > 5 ? periodValue.substring(5) : "1";
+            int quarter = Integer.parseInt(quarterStr.replaceAll("[^0-9]", ""));
+            int startMonth = (quarter - 1) * 3 + 1;
+            int endMonth = startMonth + 2;
+            return year + "-" + String.format("%02d", startMonth);
         } else {
-            return periodValue + "-01";
+            return periodValue;
         }
     }
 

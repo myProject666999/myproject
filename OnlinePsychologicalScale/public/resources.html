@@ -764,32 +764,29 @@
             const modalTitle = document.getElementById('modalTitle');
             const modalBody = document.getElementById('modalBody');
 
-            const localResource = allResources.find(r => r.id === id);
-
-            modalTitle.textContent = localResource ? localResource.title : '资源详情';
-            modalBody.innerHTML = '<div style="text-align:center; padding:40px;"><div style="font-size:24px; margin-bottom:12px;">⏳</div><p>正在加载资源详情...</p></div>';
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
+
+            modalTitle.textContent = '加载中...';
+            modalBody.innerHTML = '<div style="text-align:center; padding:40px;"><div style="font-size:24px; margin-bottom:12px;">⏳</div><p>正在加载资源详情...</p></div>';
 
             let resource = null;
 
             try {
                 const data = await API.resources.getDetail(id);
-                if (data.success && data.data) {
+                if (data && data.success && data.data) {
                     resource = mapResourceFromApi(data.data);
                 }
             } catch (error) {
-                console.warn('获取资源详情失败:', error);
-                if (localResource && localResource.content) {
-                    resource = localResource;
-                }
+                console.error('获取资源详情失败:', error);
             }
 
             if (!resource) {
-                resource = localResource;
+                resource = getMockResources().find(function(r) { return r.id === id; });
             }
 
             if (!resource) {
+                modalTitle.textContent = '加载失败';
                 modalBody.innerHTML = '<div style="text-align:center; padding:40px;"><p>资源不存在或加载失败</p></div>';
                 return;
             }
