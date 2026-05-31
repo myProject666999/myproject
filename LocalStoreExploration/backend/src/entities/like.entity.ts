@@ -1,6 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
-export type LikeTargetType = 'note' | 'comment';
+export enum LikeTargetType {
+  NOTE = 'note',
+  COMMENT = 'comment',
+}
 
 @Entity('likes')
 export class Like {
@@ -13,7 +16,7 @@ export class Like {
   @Column({ name: 'target_id' })
   targetId: number;
 
-  @Column({ name: 'target_type', type: 'enum', enum: ['note', 'comment'] })
+  @Column({ name: 'target_type', type: 'enum', enum: LikeTargetType })
   targetType: LikeTargetType;
 
   @CreateDateColumn({ name: 'created_at' })

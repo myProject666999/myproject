@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Heart, Share2, Download, ArrowLeft, User, MessageCircle, Flag } from 'lucide-react';
+import { Heart, Star, Share2, Download, ArrowLeft, User, MessageCircle, Flag, UserPlus, UserCheck } from 'lucide-react';
 
 const mockMeme = {
   id: 1,
@@ -26,12 +26,18 @@ const MemeDetail = () => {
   const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(mockMeme.likeCount);
+  const [favorited, setFavorited] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState(mockComments);
+  const [following, setFollowing] = useState(false);
 
   const handleLike = () => {
     setLiked(!liked);
     setLikes(liked ? likes - 1 : likes + 1);
+  };
+
+  const handleFavorite = () => {
+    setFavorited(!favorited);
   };
 
   const handleComment = () => {
@@ -53,6 +59,10 @@ const MemeDetail = () => {
     link.href = mockMeme.image;
     link.download = `meme-${id}.png`;
     link.click();
+  };
+
+  const handleFollow = () => {
+    setFollowing(!following);
   };
 
   return (
@@ -97,12 +107,21 @@ const MemeDetail = () => {
                 <div className="flex items-center gap-6">
                   <button
                     onClick={handleLike}
-                    className={`flex items-center gap-2 transition-colors ${
-                      liked ? 'text-primary' : 'text-gray-400 hover:text-primary'
+                    className={`flex items-center gap-2 transition-all duration-200 ${
+                      liked ? 'text-primary scale-110' : 'text-gray-400 hover:text-primary'
                     }`}
                   >
                     <Heart size={24} fill={liked ? 'currentColor' : 'none'} />
                     <span>{likes}</span>
+                  </button>
+                  <button
+                    onClick={handleFavorite}
+                    className={`flex items-center gap-2 transition-all duration-200 ${
+                      favorited ? 'text-accent scale-110' : 'text-gray-400 hover:text-accent'
+                    }`}
+                  >
+                    <Star size={24} fill={favorited ? 'currentColor' : 'none'} />
+                    <span>收藏</span>
                   </button>
                   <span className="flex items-center gap-2 text-gray-400">
                     <MessageCircle size={20} />
@@ -188,8 +207,26 @@ const MemeDetail = () => {
                   <p className="text-xs text-gray-500">发布于 {mockMeme.createdAt}</p>
                 </div>
               </div>
-              <button className="w-full py-2 cyber-btn-outline rounded-lg text-sm font-medium">
-                关注
+              <button
+                type="button"
+                onClick={handleFollow}
+                className={`w-full py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                  following
+                    ? 'bg-secondary/20 text-secondary border border-secondary/50 hover:bg-secondary/30'
+                    : 'bg-primary/10 text-primary border border-primary/50 hover:bg-primary/20'
+                }`}
+              >
+                {following ? (
+                  <>
+                    <UserCheck size={16} />
+                    已关注
+                  </>
+                ) : (
+                  <>
+                    <UserPlus size={16} />
+                    关注
+                  </>
+                )}
               </button>
             </div>
 

@@ -52,4 +52,15 @@ public class ReductionTargetService extends ServiceImpl<ReductionTargetMapper, R
         updateById(target);
         return target;
     }
+
+    @Override
+    public boolean save(ReductionTarget entity) {
+        if (entity.getTargetNo() == null || entity.getTargetNo().isEmpty()) {
+            entity.setTargetNo("RT" + System.currentTimeMillis());
+        }
+        if (entity.getStatus() == null) {
+            entity.setStatus(1);
+        }
+        return super.save(entity);
+    }
 }

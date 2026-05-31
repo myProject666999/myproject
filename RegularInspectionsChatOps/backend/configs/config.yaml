@@ -1,0 +1,31 @@
+server:
+  port: 8080
+  mode: debug
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  username: root
+  password: "123456"
+  database: inspection_chatops
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime: 3600
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+  pool_size: 10
+
+jwt:
+  secret: inspection-chatops-secret-key
+  expire_hours: 24
+
+log:
+  level: info
+  filename: logs/app.log
+  max_size: 100
+  max_backups: 10
+  max_age: 30

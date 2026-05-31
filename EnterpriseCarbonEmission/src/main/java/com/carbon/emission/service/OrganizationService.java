@@ -15,7 +15,6 @@ public class OrganizationService extends ServiceImpl<OrganizationMapper, Organiz
 
     public List<Organization> getOrganizationTree() {
         List<Organization> allOrgs = list(new LambdaQueryWrapper<Organization>()
-                .eq(Organization::getStatus, 1)
                 .orderByAsc(Organization::getSortOrder));
         
         return buildTree(allOrgs, 0L);

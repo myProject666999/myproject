@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Grid3X3, LayoutGrid, Sparkles } from 'lucide-react';
+import { Search, Grid3X3, LayoutList, Sparkles } from 'lucide-react';
 import TemplateCard from '../components/TemplateCard';
 
 const categories = ['全部', '搞笑', '动漫', '影视', '游戏', '动物', '职场'];
@@ -54,22 +54,30 @@ const Plaza = () => {
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-dark/60 rounded-lg p-1">
               <button
+                type="button"
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === 'grid' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-white'
+                className={`p-2.5 rounded-md transition-all duration-200 ${
+                  viewMode === 'grid'
+                    ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
+                title="网格视图"
               >
-                <Grid3X3 size={20} />
+                <Grid3X3 size={18} />
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === 'list' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-white'
+                className={`p-2.5 rounded-md transition-all duration-200 ${
+                  viewMode === 'list'
+                    ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
+                title="列表视图"
               >
-                <LayoutGrid size={20} />
+                <LayoutList size={18} />
               </button>
             </div>
           </div>
@@ -91,11 +99,19 @@ const Plaza = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredTemplates.map((template) => (
-            <TemplateCard key={template.id} {...template} />
-          ))}
-        </div>
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredTemplates.map((template) => (
+              <TemplateCard key={template.id} {...template} viewMode="grid" />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {filteredTemplates.map((template) => (
+              <TemplateCard key={template.id} {...template} viewMode="list" />
+            ))}
+          </div>
+        )}
 
         {filteredTemplates.length === 0 && (
           <div className="text-center py-20">

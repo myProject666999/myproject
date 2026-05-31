@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Target, X } from 'lucide-react';
 import { getReductionTargetPage, saveReductionTarget, updateTargetProgress, deleteReductionTarget } from '@/api/reductionTarget';
-import type { ReductionTarget } from '@/types';
+import { getOrganizationList } from '@/api/organization';
+import type { ReductionTarget, Organization } from '@/types';
 
 const STATUS_MAP: Record<number, { label: string; cls: string }> = {
   0: { label: '未开始', cls: 'bg-gray-100 text-gray-600' },
@@ -22,9 +23,9 @@ function progressColor(rate: number) {
 }
 
 const EMPTY_TARGET: Partial<ReductionTarget> = {
-  orgId: 0, targetName: '', targetType: 1, emissionScope: 1,
+  orgId: 1, targetName: '', targetType: 1, emissionScope: 4,
   baseYear: '', baseEmission: 0, targetYear: '', targetReductionRate: 0,
-  targetEmission: 0, description: '', measures: '',
+  targetEmission: 0, description: '', measures: '', status: 1,
 };
 
 export default function ReductionTargetPage() {
@@ -36,6 +37,11 @@ export default function ReductionTargetPage() {
   const [actualEmission, setActualEmission] = useState('');
   const [form, setForm] = useState<Partial<ReductionTarget>>({ ...EMPTY_TARGET });
   const [loading, setLoading] = useState(false);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+
+  useEffect(() => {
+    getOrganizationList().then(res => setOrganizations(res)).catch(() => setOrganizations([]));
+  }, []);
 
   const fetchTargets = useCallback(async () => {
     setLoading(true);
@@ -149,13 +155,15 @@ export default function ReductionTargetPage() {
               <button onClick={() => setShowAddModal(false)}><X size={20} className="text-slate-400" /></button>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <input placeholder="组织ID" type="number" className="input-field" value={form.orgId || ''} onChange={e => updateForm('orgId', Number(e.target.value))} />
+              <select className="input-field" value={form.orgId ?? 1} onChange={e => updateForm('orgId', Number(e.target.value))}>
+                {organizations.map(org => <option key={org.id} value={org.id}>{org.orgName}</option>)}
+              </select>
               <input placeholder="目标名称" className="input-field col-span-2" value={form.targetName} onChange={e => updateForm('targetName', e.target.value)} />
               <select className="input-field" value={form.targetType} onChange={e => updateForm('targetType', Number(e.target.value))}>
                 <option value={1}>绝对减排</option><option value={2}>强度减排</option>
               </select>
               <select className="input-field" value={form.emissionScope} onChange={e => updateForm('emissionScope', Number(e.target.value))}>
-                <option value={1}>范围1</option><option value={2}>范围2</option><option value={3}>范围3</option>
+                <option value={1}>范围一</option><option value={2}>范围二</option><option value={3}>范围三</option><option value={4}>全范围</option>
               </select>
               <input placeholder="基准年份" className="input-field" value={form.baseYear} onChange={e => updateForm('baseYear', e.target.value)} />
               <input placeholder="基准排放量" type="number" className="input-field" value={form.baseEmission || ''} onChange={e => updateForm('baseEmission', Number(e.target.value))} />

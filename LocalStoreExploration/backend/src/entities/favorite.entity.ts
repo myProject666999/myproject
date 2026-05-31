@@ -3,8 +3,15 @@ import { User } from './user.entity';
 import { Note } from './note.entity';
 import { Shop } from './shop.entity';
 
-export type TargetType = 'note' | 'shop';
-export type ListType = 'want' | 'visited';
+export enum TargetType {
+  NOTE = 'note',
+  SHOP = 'shop',
+}
+
+export enum ListType {
+  WANT = 'want',
+  VISITED = 'visited',
+}
 
 @Entity('favorites')
 export class Favorite {
@@ -17,10 +24,10 @@ export class Favorite {
   @Column({ name: 'target_id' })
   targetId: number;
 
-  @Column({ name: 'target_type', type: 'enum', enum: ['note', 'shop'] })
+  @Column({ name: 'target_type', type: 'enum', enum: TargetType })
   targetType: TargetType;
 
-  @Column({ name: 'list_type', type: 'enum', enum: ['want', 'visited'], default: 'want' })
+  @Column({ name: 'list_type', type: 'enum', enum: ListType, default: ListType.WANT })
   listType: ListType;
 
   @CreateDateColumn({ name: 'created_at' })

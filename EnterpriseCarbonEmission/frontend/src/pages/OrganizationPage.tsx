@@ -26,7 +26,8 @@ function TreeNode({ node, selectedId, onSelect, expanded, toggleExpand }: TreeNo
       <button
         onClick={() => { onSelect(node); if (hasChildren) toggleExpand(node.id); }}
         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm transition ${
-          selectedId === node.id ? 'bg-teal-50 text-teal-800 border border-teal-200' : 'hover:bg-slate-50 text-slate-700'
+          selectedId === node.id ? 'bg-teal-50 text-teal-800 border border-teal-200' : 
+          node.status === 0 ? 'opacity-50 text-slate-400' : 'hover:bg-slate-50 text-slate-700'
         }`}
       >
         {hasChildren ? (

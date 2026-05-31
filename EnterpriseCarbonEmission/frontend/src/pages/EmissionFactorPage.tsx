@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, Layers, Pencil, Trash2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getCurrentVersionFactors, getFactorsByType, saveEmissionFactor, addNewVersion, deleteEmissionFactor } from '@/api/emissionFactor'
+import { getCurrentVersionFactors, getFactorsByType, saveEmissionFactor, addNewVersion, updateEmissionFactor, deleteEmissionFactor } from '@/api/emissionFactor'
 import type { EmissionFactor } from '@/types'
 
 const FACTOR_TYPES = [
@@ -48,6 +48,7 @@ export default function EmissionFactorPage() {
   const [activeType, setActiveType] = useState(0)
   const [showModal, setShowModal] = useState(false)
   const [isNewVersion, setIsNewVersion] = useState(false)
+  const [isEdit, setIsEdit] = useState(false)
   const [form, setForm] = useState<Partial<EmissionFactor>>({ ...emptyFactor })
 
   const loadFactors = useCallback(async () => {
@@ -65,19 +66,30 @@ export default function EmissionFactorPage() {
 
   const openAddModal = () => {
     setIsNewVersion(false)
+    setIsEdit(false)
     setForm({ ...emptyFactor })
     setShowModal(true)
   }
 
   const openVersionModal = () => {
     setIsNewVersion(true)
+    setIsEdit(false)
     setForm({ ...emptyFactor })
+    setShowModal(true)
+  }
+
+  const openEditModal = (factor: EmissionFactor) => {
+    setIsNewVersion(false)
+    setIsEdit(true)
+    setForm({ ...factor })
     setShowModal(true)
   }
 
   const handleSubmit = async () => {
     try {
-      if (isNewVersion) {
+      if (isEdit) {
+        await updateEmissionFactor(form as EmissionFactor)
+      } else if (isNewVersion) {
         await addNewVersion(form as EmissionFactor)
       } else {
         await saveEmissionFactor(form as EmissionFactor)
@@ -165,7 +177,7 @@ export default function EmissionFactorPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"><Pencil size={15} /></button>
+                      <button onClick={() => openEditModal(f)} className="p-1.5 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"><Pencil size={15} /></button>
                       <button onClick={() => handleDelete(f.id)} className="p-1.5 rounded-md hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={15} /></button>
                     </div>
                   </td>
@@ -183,7 +195,7 @@ export default function EmissionFactorPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-800">{isNewVersion ? '新增版本' : '新增因子'}</h2>
+              <h2 className="text-lg font-semibold text-slate-800">{isEdit ? '编辑因子' : isNewVersion ? '新增版本' : '新增因子'}</h2>
               <button onClick={() => setShowModal(false)} className="p-1 rounded-md hover:bg-slate-100 text-slate-400"><X size={18} /></button>
             </div>
             <div className="px-6 py-4 space-y-3">

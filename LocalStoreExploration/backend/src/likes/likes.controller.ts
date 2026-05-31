@@ -1,7 +1,18 @@
 import { Controller, Post, Delete, Body, UseGuards, Request, Get, Query } from '@nestjs/common';
+import { IsInt, IsEnum, IsNotEmpty } from 'class-validator';
 import { LikesService } from './likes.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LikeTargetType } from '../entities/like.entity';
+
+class ToggleLikeDto {
+  @IsInt()
+  @IsNotEmpty()
+  targetId: number;
+
+  @IsEnum(LikeTargetType)
+  @IsNotEmpty()
+  targetType: LikeTargetType;
+}
 
 @Controller('likes')
 export class LikesController {
@@ -11,7 +22,7 @@ export class LikesController {
   @UseGuards(JwtAuthGuard)
   async toggle(
     @Request() req,
-    @Body() body: { targetId: number; targetType: LikeTargetType },
+    @Body() body: ToggleLikeDto,
   ) {
     return this.likesService.toggle(
       req.user.userId,

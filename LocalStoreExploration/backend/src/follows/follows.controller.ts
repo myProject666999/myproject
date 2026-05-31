@@ -1,6 +1,13 @@
 import { Controller, Post, Body, UseGuards, Request, Get, Query } from '@nestjs/common';
+import { IsInt, IsNotEmpty } from 'class-validator';
 import { FollowsService } from './follows.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+
+class ToggleFollowDto {
+  @IsInt()
+  @IsNotEmpty()
+  followingId: number;
+}
 
 @Controller('follows')
 export class FollowsController {
@@ -10,7 +17,7 @@ export class FollowsController {
   @UseGuards(JwtAuthGuard)
   async toggle(
     @Request() req,
-    @Body() body: { followingId: number },
+    @Body() body: ToggleFollowDto,
   ) {
     return this.followsService.toggle(
       req.user.userId,

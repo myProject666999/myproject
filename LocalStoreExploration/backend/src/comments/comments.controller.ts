@@ -1,6 +1,17 @@
 import { Controller, Get, Post, Body, Query, UseGuards, Request, Param } from '@nestjs/common';
+import { IsInt, IsString, IsNotEmpty } from 'class-validator';
 import { CommentsService } from './comments.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+
+class CreateCommentDto {
+  @IsInt()
+  @IsNotEmpty()
+  noteId: number;
+
+  @IsString()
+  @IsNotEmpty()
+  content: string;
+}
 
 @Controller('comments')
 export class CommentsController {
@@ -21,7 +32,7 @@ export class CommentsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@Request() req, @Body() body: { noteId: number; content: string }) {
+  async create(@Request() req, @Body() body: CreateCommentDto) {
     return this.commentsService.create(req.user.userId, body.noteId, body.content);
   }
 }

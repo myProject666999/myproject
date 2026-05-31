@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Leaf, Users, Shield, ClipboardList, X } from 'lucide-react';
 import { getIndicatorsByDimension, getIndicatorDataPage, saveIndicatorData } from '@/api/esgIndicator';
-import type { EsgIndicator, EsgIndicatorData } from '@/types';
+import { getOrganizationList } from '@/api/organization';
+import type { EsgIndicator, EsgIndicatorData, Organization } from '@/types';
 
 const DIMENSIONS = [
   { key: 1, label: '环境 (E)', color: 'bg-green-600', activeColor: 'bg-green-600 text-white', icon: Leaf },
@@ -22,7 +23,7 @@ const PERIOD_TYPES = [
 ];
 
 const EMPTY_DATA: Partial<EsgIndicatorData> = {
-  indicatorId: 0, periodType: 1, periodValue: '', indicatorValue: 0, indicatorText: '',
+  indicatorId: 0, orgId: 1, periodType: 1, periodValue: '', indicatorValue: 0, indicatorText: '',
 };
 
 export default function EsgIndicatorPage() {
@@ -33,6 +34,11 @@ export default function EsgIndicatorPage() {
   const [showDataModal, setShowDataModal] = useState(false);
   const [dataForm, setDataForm] = useState<Partial<EsgIndicatorData>>({ ...EMPTY_DATA });
   const [loading, setLoading] = useState(false);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+
+  useEffect(() => {
+    getOrganizationList().then(res => setOrganizations(res)).catch(() => setOrganizations([]));
+  }, []);
 
   const fetchIndicators = useCallback(async () => {
     setLoading(true);
@@ -173,6 +179,12 @@ export default function EsgIndicatorPage() {
               <button onClick={() => setShowDataModal(false)}><X size={20} className="text-slate-400" /></button>
             </div>
             <div className="space-y-3 text-sm">
+              <div>
+                <label className="text-slate-600 mb-1 block">所属组织</label>
+                <select className="input-field" value={dataForm.orgId ?? 1} onChange={e => updateDataForm('orgId', Number(e.target.value))}>
+                  {organizations.map(org => <option key={org.id} value={org.id}>{org.orgName}</option>)}
+                </select>
+              </div>
               <div>
                 <label className="text-slate-600 mb-1 block">周期类型</label>
                 <select className="input-field" value={dataForm.periodType} onChange={e => updateDataForm('periodType', Number(e.target.value))}>

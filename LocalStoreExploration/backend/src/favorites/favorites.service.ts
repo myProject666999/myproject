@@ -21,7 +21,7 @@ export class FavoritesService {
     });
   }
 
-  async add(userId: number, targetId: number, targetType: TargetType, listType: ListType = 'want') {
+  async add(userId: number, targetId: number, targetType: TargetType, listType: ListType = ListType.WANT) {
     const existing = await this.favoriteRepository.findOne({
       where: { userId, targetId, targetType },
     });

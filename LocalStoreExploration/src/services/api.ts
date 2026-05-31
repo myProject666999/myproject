@@ -1,5 +1,34 @@
 const API_BASE = 'http://localhost:3000/api';
 
+interface LoginResponse {
+  token: string;
+  user: any;
+}
+
+interface ToggleLikeResponse {
+  liked: boolean;
+}
+
+interface CheckLikeResponse {
+  isLiked: boolean;
+}
+
+interface ToggleFollowResponse {
+  following: boolean;
+}
+
+interface CheckFollowResponse {
+  isFollowing: boolean;
+}
+
+interface CheckFavoriteResponse {
+  isFavorite: boolean;
+}
+
+interface UploadImageResponse {
+  url: string;
+}
+
 class ApiService {
   private token: string | null = null;
 
@@ -48,47 +77,47 @@ class ApiService {
     return response.json();
   }
 
-  async login(username: string, password: string) {
-    return this.request('/auth/login', {
+  async login(username: string, password: string): Promise<LoginResponse> {
+    return this.request<LoginResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
     });
   }
 
-  async register(username: string, password: string, nickname: string) {
-    return this.request('/auth/register', {
+  async register(username: string, password: string, nickname: string): Promise<LoginResponse> {
+    return this.request<LoginResponse>('/auth/register', {
       method: 'POST',
       body: JSON.stringify({ username, password, nickname }),
     });
   }
 
-  async uploadImage(base64Image: string) {
-    return this.request('/upload/image', {
+  async uploadImage(base64Image: string): Promise<UploadImageResponse> {
+    return this.request<UploadImageResponse>('/upload/image', {
       method: 'POST',
       body: JSON.stringify({ image: base64Image }),
     });
   }
 
-  async toggleLike(targetId: number, targetType: 'note' | 'comment') {
-    return this.request('/likes/toggle', {
+  async toggleLike(targetId: number, targetType: 'note' | 'comment'): Promise<ToggleLikeResponse> {
+    return this.request<ToggleLikeResponse>('/likes/toggle', {
       method: 'POST',
       body: JSON.stringify({ targetId, targetType }),
     });
   }
 
-  async checkLike(targetId: number, targetType: 'note' | 'comment') {
-    return this.request(`/likes/check?targetId=${targetId}&targetType=${targetType}`);
+  async checkLike(targetId: number, targetType: 'note' | 'comment'): Promise<CheckLikeResponse> {
+    return this.request<CheckLikeResponse>(`/likes/check?targetId=${targetId}&targetType=${targetType}`);
   }
 
-  async toggleFollow(followingId: number) {
-    return this.request('/follows/toggle', {
+  async toggleFollow(followingId: number): Promise<ToggleFollowResponse> {
+    return this.request<ToggleFollowResponse>('/follows/toggle', {
       method: 'POST',
       body: JSON.stringify({ followingId }),
     });
   }
 
-  async checkFollow(followingId: number) {
-    return this.request(`/follows/check?followingId=${followingId}`);
+  async checkFollow(followingId: number): Promise<CheckFollowResponse> {
+    return this.request<CheckFollowResponse>(`/follows/check?followingId=${followingId}`);
   }
 
   async getNearbyNotes(lng: number, lat: number, radius = 5, category?: string) {
@@ -163,8 +192,8 @@ class ApiService {
     });
   }
 
-  async checkFavorite(targetId: number, targetType: 'note' | 'shop') {
-    return this.request(`/favorites/check?targetId=${targetId}&targetType=${targetType}`);
+  async checkFavorite(targetId: number, targetType: 'note' | 'shop'): Promise<CheckFavoriteResponse> {
+    return this.request<CheckFavoriteResponse>(`/favorites/check?targetId=${targetId}&targetType=${targetType}`);
   }
 
   async getDarenRanking(limit = 20) {
