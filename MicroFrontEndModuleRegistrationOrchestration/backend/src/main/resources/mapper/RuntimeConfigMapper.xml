@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.RuntimeConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.RuntimeConfig">
+        <id column="id" property="id"/>
+        <result column="config_key" property="configKey"/>
+        <result column="config_value" property="configValue"/>
+        <result column="config_type" property="configType"/>
+        <result column="description" property="description"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_code" property="appCode"/>
+        <result column="is_global" property="isGlobal"/>
+        <result column="version" property="version"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="selectByKeyAndAppCode" resultMap="BaseResultMap">
+        SELECT * FROM runtime_config
+        WHERE config_key = #{configKey}
+          AND (app_code = #{appCode} OR (app_code IS NULL AND #{appCode} IS NULL))
+          AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM runtime_config
+        <where>
+            deleted = 0
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (config_key LIKE CONCAT('%', #{keyword}, '%') OR config_value LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY is_global DESC, app_code, config_key
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM runtime_config
+        <where>
+            deleted = 0
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (config_key LIKE CONCAT('%', #{keyword}, '%') OR config_value LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <select id="selectByAppId" resultMap="BaseResultMap">
+        SELECT * FROM runtime_config WHERE app_id = #{appId} AND status = 1 AND deleted = 0
+        ORDER BY config_key
+    </select>
+
+    <select id="selectGlobalConfigs" resultMap="BaseResultMap">
+        SELECT * FROM runtime_config WHERE is_global = 1 AND status = 1 AND deleted = 0
+        ORDER BY config_key
+    </select>
+
+    <select id="selectAllActiveConfigs" resultMap="BaseResultMap">
+        SELECT * FROM runtime_config WHERE status = 1 AND deleted = 0
+        ORDER BY is_global DESC, app_code, config_key
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.RuntimeConfig" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO runtime_config (
+            config_key, config_value, config_type, description,
+            app_id, app_code, is_global, version, status,
+            created_at, updated_at, updated_by, deleted
+        ) VALUES (
+            #{configKey}, #{configValue}, #{configType}, #{description},
+            #{appId}, #{appCode}, #{isGlobal}, #{version}, #{status},
+            #{createdAt}, #{updatedAt}, #{updatedBy}, #{deleted}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.micro.frontend.entity.RuntimeConfig">
+        UPDATE runtime_config
+        <set>
+            <if test="configKey != null">config_key = #{configKey},</if>
+            <if test="configValue != null">config_value = #{configValue},</if>
+            <if test="configType != null">config_type = #{configType},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="appId != null">app_id = #{appId},</if>
+            <if test="appCode != null">app_code = #{appCode},</if>
+            <if test="isGlobal != null">is_global = #{isGlobal},</if>
+            <if test="version != null">version = #{version},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE runtime_config SET status = #{status}, updated_at = NOW() WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        UPDATE runtime_config SET deleted = 1, updated_at = NOW() WHERE id = #{id}
+    </delete>
+</mapper>

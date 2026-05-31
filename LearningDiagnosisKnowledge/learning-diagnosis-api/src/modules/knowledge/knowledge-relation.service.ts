@@ -22,7 +22,7 @@ export class KnowledgeRelationService {
     await this.validateKpExists(kpId);
     return this.relationRepository.find({
       where: [{ fromKpId: kpId }, { toKpId: kpId }],
-      relations: { fromKp: true, toKp: true } as any,
+      relations: { fromKp: true, toKp: true },
     });
   }
 

@@ -18,7 +18,7 @@ import type { RequestUser } from '../../common/types';
 import { KnowledgeMastery } from '../../entities/knowledge-mastery.entity';
 
 @ApiTags('掌握度管理')
-@Controller('api/mastery')
+@Controller('mastery')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class MasteryController {

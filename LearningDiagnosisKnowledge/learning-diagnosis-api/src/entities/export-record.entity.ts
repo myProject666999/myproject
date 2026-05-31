@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { User } from './user.entity';
 import { ExportType, ExportFormat } from '../common/types';
@@ -52,5 +52,6 @@ export class ExportRecord extends BaseEntity {
   completedAt?: Date;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'requester_id' })
   requester: User;
 }

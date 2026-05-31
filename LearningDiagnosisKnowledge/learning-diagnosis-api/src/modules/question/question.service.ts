@@ -73,12 +73,13 @@ export class QuestionService {
   async findOne(id: number): Promise<Question> {
     const question = await this.questionRepository.findOne({
       where: { id },
-      relations: [
-        'questionKnowledges',
-        'questionKnowledges.knowledgePoint',
-        'subject',
-        'creator',
-      ],
+      relations: {
+        questionKnowledges: {
+          knowledgePoint: true,
+        },
+        subject: true,
+        creator: true,
+      },
     });
     if (!question) {
       throw new NotFoundException('题目不存在');

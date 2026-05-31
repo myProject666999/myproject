@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { User } from './user.entity';
 import { ClassEntity } from './class.entity';
@@ -75,14 +75,18 @@ export class LearningReport extends BaseEntity {
   status: number;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'student_id' })
   student?: User;
 
   @ManyToOne(() => ClassEntity)
+  @JoinColumn({ name: 'class_id' })
   class?: ClassEntity;
 
   @ManyToOne(() => Subject)
+  @JoinColumn({ name: 'subject_id' })
   subject: Subject;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'creator_id' })
   creator?: User;
 }

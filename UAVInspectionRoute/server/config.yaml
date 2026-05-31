@@ -1,0 +1,17 @@
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "123456"
+  dbname: uav_inspection
+
+redis:
+  addr: 127.0.0.1:6379
+  password: ""
+
+server:
+  port: 8080
+
+jwt:
+  secret: uav-inspection-jwt-secret-key
+  expire: 24

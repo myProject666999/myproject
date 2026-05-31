@@ -41,16 +41,16 @@ export class AuthService {
 
     const userInfo = await this.userRepository.findOne({
       where: { id: user.id },
-      select: [
-        'id',
-        'username',
-        'realName',
-        'role',
-        'email',
-        'phone',
-        'avatar',
-        'lastLoginAt',
-      ],
+      select: {
+        id: true,
+        username: true,
+        realName: true,
+        role: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        lastLoginAt: true,
+      },
     });
 
     await this.auditService.log(
@@ -148,17 +148,17 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.userRepository.findOne({
       where: { id: userId, status: 1 },
-      select: [
-        'id',
-        'username',
-        'realName',
-        'role',
-        'email',
-        'phone',
-        'avatar',
-        'createdAt',
-        'lastLoginAt',
-      ],
+      select: {
+        id: true,
+        username: true,
+        realName: true,
+        role: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        createdAt: true,
+        lastLoginAt: true,
+      },
     });
 
     if (!user) {

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.AppVersionMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.AppVersion">
+        <id column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_code" property="appCode"/>
+        <result column="version" property="version"/>
+        <result column="entry_url" property="entryUrl"/>
+        <result column="change_log" property="changeLog"/>
+        <result column="is_active" property="isActive"/>
+        <result column="compatible_framework" property="compatibleFramework"/>
+        <result column="package_size" property="packageSize"/>
+        <result column="publish_time" property="publishTime"/>
+        <result column="publisher" property="publisher"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="selectByAppId" resultMap="BaseResultMap">
+        SELECT * FROM app_version WHERE app_id = #{appId} AND deleted = 0 ORDER BY created_at DESC
+    </select>
+
+    <select id="selectByAppIdAndVersion" resultMap="BaseResultMap">
+        SELECT * FROM app_version WHERE app_id = #{appId} AND version = #{version} AND deleted = 0 LIMIT 1
+    </select>
+
+    <select id="selectActiveVersion" resultMap="BaseResultMap">
+        SELECT * FROM app_version WHERE app_id = #{appId} AND is_active = 1 AND deleted = 0 LIMIT 1
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM app_version
+        <where>
+            deleted = 0
+            <if test="status != null">AND is_active = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (version LIKE CONCAT('%', #{keyword}, '%') OR change_log LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM app_version
+        <where>
+            deleted = 0
+            <if test="status != null">AND is_active = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (version LIKE CONCAT('%', #{keyword}, '%') OR change_log LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.AppVersion" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app_version (
+            app_id, app_code, version, entry_url, change_log,
+            is_active, compatible_framework, package_size, publish_time,
+            publisher, created_at, deleted
+        ) VALUES (
+            #{appId}, #{appCode}, #{version}, #{entryUrl}, #{changeLog},
+            #{isActive}, #{compatibleFramework}, #{packageSize}, #{publishTime},
+            #{publisher}, #{createdAt}, #{deleted}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.micro.frontend.entity.AppVersion">
+        UPDATE app_version
+        <set>
+            <if test="entryUrl != null">entry_url = #{entryUrl},</if>
+            <if test="changeLog != null">change_log = #{changeLog},</if>
+            <if test="isActive != null">is_active = #{isActive},</if>
+            <if test="compatibleFramework != null">compatible_framework = #{compatibleFramework},</if>
+            <if test="packageSize != null">package_size = #{packageSize},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            <if test="publisher != null">publisher = #{publisher}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="setActive">
+        UPDATE app_version SET is_active = 0 WHERE app_id = #{appId} AND deleted = 0;
+        UPDATE app_version SET is_active = 1 WHERE id = #{id};
+    </update>
+
+    <delete id="deleteById">
+        UPDATE app_version SET deleted = 1 WHERE id = #{id}
+    </delete>
+</mapper>

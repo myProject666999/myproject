@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.ClientRegistryMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.ClientRegistry">
+        <id column="id" property="id"/>
+        <result column="client_id" property="clientId"/>
+        <result column="client_type" property="clientType"/>
+        <result column="app_code" property="appCode"/>
+        <result column="app_version" property="appVersion"/>
+        <result column="config_version" property="configVersion"/>
+        <result column="ip_address" property="ipAddress"/>
+        <result column="user_agent" property="userAgent"/>
+        <result column="user_id" property="userId"/>
+        <result column="last_heartbeat" property="lastHeartbeat"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectByClientId" resultMap="BaseResultMap">
+        SELECT * FROM client_registry WHERE client_id = #{clientId}
+    </select>
+
+    <select id="selectOnlineCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM client_registry WHERE status = 1 AND last_heartbeat >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+    </select>
+
+    <select id="selectOnlineByAppCode" resultMap="BaseResultMap">
+        SELECT * FROM client_registry
+        WHERE app_code = #{appCode} AND status = 1 AND last_heartbeat >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM client_registry
+        <where>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (client_id LIKE CONCAT('%', #{keyword}, '%') OR app_code LIKE CONCAT('%', #{keyword}, '%') OR user_id LIKE CONCAT('%', #{keyword}, '%') OR ip_address LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY last_heartbeat DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM client_registry
+        <where>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (client_id LIKE CONCAT('%', #{keyword}, '%') OR app_code LIKE CONCAT('%', #{keyword}, '%') OR user_id LIKE CONCAT('%', #{keyword}, '%') OR ip_address LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.ClientRegistry" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO client_registry (
+            client_id, client_type, app_code, app_version, config_version,
+            ip_address, user_agent, user_id, last_heartbeat, status,
+            created_at, updated_at
+        ) VALUES (
+            #{clientId}, #{clientType}, #{appCode}, #{appVersion}, #{configVersion},
+            #{ipAddress}, #{userAgent}, #{userId}, #{lastHeartbeat}, #{status},
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateHeartbeat">
+        UPDATE client_registry
+        SET last_heartbeat = NOW(),
+            status = 1,
+            app_code = #{appCode},
+            app_version = #{appVersion},
+            config_version = #{configVersion},
+            updated_at = NOW()
+        WHERE client_id = #{clientId}
+    </update>
+
+    <update id="updateOffline">
+        UPDATE client_registry SET status = 0, updated_at = NOW()
+        WHERE last_heartbeat &lt; DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+    </update>
+
+    <delete id="cleanOffline">
+        DELETE FROM client_registry WHERE last_heartbeat &lt; DATE_SUB(NOW(), INTERVAL 24 HOUR)
+    </delete>
+</mapper>

@@ -65,8 +65,8 @@ export class AnswerService {
       answerRecord.isCorrect = isCorrect ? 1 : 0;
       answerRecord.score = score;
     } else {
-      answerRecord.isCorrect = null;
-      answerRecord.score = null;
+      answerRecord.isCorrect = undefined;
+      answerRecord.score = undefined;
     }
 
     const savedRecord = await this.answerRecordRepository.save(answerRecord);
@@ -87,7 +87,9 @@ export class AnswerService {
       isCorrect,
       exerciseId,
     } = queryDto;
-    const skip = (page - 1) * pageSize;
+    const pageNum = page || 1;
+    const pageSizeNum = pageSize || 20;
+    const skip = (pageNum - 1) * pageSizeNum;
 
     const queryBuilder = this.answerRecordRepository
       .createQueryBuilder('ar')
@@ -122,14 +124,14 @@ export class AnswerService {
     const [list, total] = await queryBuilder
       .orderBy('ar.submitTime', 'DESC')
       .skip(skip)
-      .take(pageSize)
+      .take(pageSizeNum)
       .getManyAndCount();
 
     return {
       list,
       total,
-      page,
-      pageSize,
+      page: pageNum,
+      pageSize: pageSizeNum,
     };
   }
 
@@ -139,7 +141,7 @@ export class AnswerService {
   ): Promise<AnswerRecord> {
     const record = await this.answerRecordRepository.findOne({
       where: { id },
-      relations: ['question', 'subject', 'exercise'],
+      relations: { question: true, subject: true, exercise: true },
     });
 
     if (!record) {
@@ -182,7 +184,9 @@ export class AnswerService {
     currentUser: RequestUser,
   ): Promise<PaginationResult<AnswerRecord>> {
     const { page, pageSize, subjectId, startTime, endTime } = queryDto;
-    const skip = (page - 1) * pageSize;
+    const pageNum = page || 1;
+    const pageSizeNum = pageSize || 20;
+    const skip = (pageNum - 1) * pageSizeNum;
 
     const queryBuilder = this.answerRecordRepository
       .createQueryBuilder('ar')
@@ -210,14 +214,14 @@ export class AnswerService {
     const [list, total] = await queryBuilder
       .orderBy('ar.submitTime', 'DESC')
       .skip(skip)
-      .take(pageSize)
+      .take(pageSizeNum)
       .getManyAndCount();
 
     return {
       list,
       total,
-      page,
-      pageSize,
+      page: pageNum,
+      pageSize: pageSizeNum,
     };
   }
 
@@ -299,7 +303,7 @@ export class AnswerService {
         break;
 
       default:
-        return { isCorrect: false, score: null };
+        return { isCorrect: false, score: 0 };
     }
 
     const score = isCorrect ? question.score : 0;

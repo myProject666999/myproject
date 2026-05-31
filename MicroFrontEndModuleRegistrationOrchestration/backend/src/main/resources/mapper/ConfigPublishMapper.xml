@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.ConfigPublishMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.ConfigPublish">
+        <id column="id" property="id"/>
+        <result column="publish_no" property="publishNo"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_code" property="appCode"/>
+        <result column="config_snapshot" property="configSnapshot"/>
+        <result column="publish_type" property="publishType"/>
+        <result column="status" property="status"/>
+        <result column="push_status" property="pushStatus"/>
+        <result column="affected_clients" property="affectedClients"/>
+        <result column="publisher" property="publisher"/>
+        <result column="publish_time" property="publishTime"/>
+        <result column="remark" property="remark"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM config_publish WHERE id = #{id}
+    </select>
+
+    <select id="selectByPublishNo" resultMap="BaseResultMap">
+        SELECT * FROM config_publish WHERE publish_no = #{publishNo}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM config_publish
+        <where>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (publish_no LIKE CONCAT('%', #{keyword}, '%') OR remark LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM config_publish
+        <where>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (publish_no LIKE CONCAT('%', #{keyword}, '%') OR remark LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.ConfigPublish" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO config_publish (
+            publish_no, app_id, app_code, config_snapshot, publish_type,
+            status, push_status, affected_clients, publisher, publish_time,
+            remark, created_at
+        ) VALUES (
+            #{publishNo}, #{appId}, #{appCode}, #{configSnapshot}, #{publishType},
+            #{status}, #{pushStatus}, #{affectedClients}, #{publisher}, #{publishTime},
+            #{remark}, #{createdAt}
+        )
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE config_publish SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <update id="updatePushStatus">
+        UPDATE config_publish SET push_status = #{pushStatus} WHERE id = #{id}
+    </update>
+
+    <update id="updatePublishTime">
+        UPDATE config_publish SET publish_time = #{publishTime} WHERE id = #{id}
+    </update>
+</mapper>

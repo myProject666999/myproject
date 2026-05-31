@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.HealthCheckMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.HealthCheck">
+        <id column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_code" property="appCode"/>
+        <result column="check_url" property="checkUrl"/>
+        <result column="check_interval" property="checkInterval"/>
+        <result column="timeout" property="timeout"/>
+        <result column="success_threshold" property="successThreshold"/>
+        <result column="fail_threshold" property="failThreshold"/>
+        <result column="auto_offline" property="autoOffline"/>
+        <result column="status" property="status"/>
+        <result column="health_status" property="healthStatus"/>
+        <result column="last_check_time" property="lastCheckTime"/>
+        <result column="last_check_result" property="lastCheckResult"/>
+        <result column="last_response_time" property="lastResponseTime"/>
+        <result column="consecutive_success" property="consecutiveSuccess"/>
+        <result column="consecutive_fail" property="consecutiveFail"/>
+        <result column="last_offline_time" property="lastOfflineTime"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectByAppId" resultMap="BaseResultMap">
+        SELECT * FROM health_check WHERE app_id = #{appId}
+    </select>
+
+    <select id="selectActiveChecks" resultMap="BaseResultMap">
+        SELECT * FROM health_check WHERE status = 1
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM health_check
+        <where>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (app_code LIKE CONCAT('%', #{keyword}, '%') OR check_url LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY app_code
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM health_check
+        <where>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (app_code LIKE CONCAT('%', #{keyword}, '%') OR check_url LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <select id="selectStatusCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM health_check WHERE health_status = #{healthStatus}
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.HealthCheck" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO health_check (
+            app_id, app_code, check_url, check_interval, timeout,
+            success_threshold, fail_threshold, auto_offline, status,
+            health_status, last_check_time, last_check_result, last_response_time,
+            consecutive_success, consecutive_fail, last_offline_time,
+            created_at, updated_at
+        ) VALUES (
+            #{appId}, #{appCode}, #{checkUrl}, #{checkInterval}, #{timeout},
+            #{successThreshold}, #{failThreshold}, #{autoOffline}, #{status},
+            #{healthStatus}, #{lastCheckTime}, #{lastCheckResult}, #{lastResponseTime},
+            #{consecutiveSuccess}, #{consecutiveFail}, #{lastOfflineTime},
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.micro.frontend.entity.HealthCheck">
+        UPDATE health_check
+        <set>
+            <if test="checkUrl != null">check_url = #{checkUrl},</if>
+            <if test="checkInterval != null">check_interval = #{checkInterval},</if>
+            <if test="timeout != null">timeout = #{timeout},</if>
+            <if test="successThreshold != null">success_threshold = #{successThreshold},</if>
+            <if test="failThreshold != null">fail_threshold = #{failThreshold},</if>
+            <if test="autoOffline != null">auto_offline = #{autoOffline},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="healthStatus != null">health_status = #{healthStatus},</if>
+            <if test="lastCheckTime != null">last_check_time = #{lastCheckTime},</if>
+            <if test="lastCheckResult != null">last_check_result = #{lastCheckResult},</if>
+            <if test="lastResponseTime != null">last_response_time = #{lastResponseTime},</if>
+            <if test="consecutiveSuccess != null">consecutive_success = #{consecutiveSuccess},</if>
+            <if test="consecutiveFail != null">consecutive_fail = #{consecutiveFail},</if>
+            <if test="lastOfflineTime != null">last_offline_time = #{lastOfflineTime},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+</mapper>

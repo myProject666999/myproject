@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.GrayReleaseMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.GrayRelease">
+        <id column="id" property="id"/>
+        <result column="gray_no" property="grayNo"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_code" property="appCode"/>
+        <result column="target_version_id" property="targetVersionId"/>
+        <result column="target_version" property="targetVersion"/>
+        <result column="base_version_id" property="baseVersionId"/>
+        <result column="base_version" property="baseVersion"/>
+        <result column="gray_type" property="grayType"/>
+        <result column="gray_value" property="grayValue"/>
+        <result column="gray_rule" property="grayRule"/>
+        <result column="status" property="status"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="hit_count" property="hitCount"/>
+        <result column="total_count" property="totalCount"/>
+        <result column="creator" property="creator"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="selectByGrayNo" resultMap="BaseResultMap">
+        SELECT * FROM gray_release WHERE gray_no = #{grayNo} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM gray_release
+        <where>
+            deleted = 0
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (gray_no LIKE CONCAT('%', #{keyword}, '%') OR gray_type LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM gray_release
+        <where>
+            deleted = 0
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (gray_no LIKE CONCAT('%', #{keyword}, '%') OR gray_type LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <select id="selectActiveGray" resultMap="BaseResultMap">
+        SELECT * FROM gray_release
+        WHERE app_id = #{appId} AND status IN (0, 1, 2) AND deleted = 0
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.GrayRelease" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO gray_release (
+            gray_no, app_id, app_code, target_version_id, target_version,
+            base_version_id, base_version, gray_type, gray_value, gray_rule,
+            status, start_time, end_time, hit_count, total_count,
+            creator, created_at, updated_at
+        ) VALUES (
+            #{grayNo}, #{appId}, #{appCode}, #{targetVersionId}, #{targetVersion},
+            #{baseVersionId}, #{baseVersion}, #{grayType}, #{grayValue}, #{grayRule},
+            #{status}, #{startTime}, #{endTime}, #{hitCount}, #{totalCount},
+            #{creator}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.micro.frontend.entity.GrayRelease">
+        UPDATE gray_release
+        <set>
+            <if test="grayNo != null">gray_no = #{grayNo},</if>
+            <if test="appId != null">app_id = #{appId},</if>
+            <if test="appCode != null">app_code = #{appCode},</if>
+            <if test="targetVersionId != null">target_version_id = #{targetVersionId},</if>
+            <if test="targetVersion != null">target_version = #{targetVersion},</if>
+            <if test="baseVersionId != null">base_version_id = #{baseVersionId},</if>
+            <if test="baseVersion != null">base_version = #{baseVersion},</if>
+            <if test="grayType != null">gray_type = #{grayType},</if>
+            <if test="grayValue != null">gray_value = #{grayValue},</if>
+            <if test="grayRule != null">gray_rule = #{grayRule},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="hitCount != null">hit_count = #{hitCount},</if>
+            <if test="totalCount != null">total_count = #{totalCount},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE gray_release SET status = #{status}, updated_at = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="incrementHitCount">
+        UPDATE gray_release SET hit_count = hit_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrementTotalCount">
+        UPDATE gray_release SET total_count = total_count + 1 WHERE id = #{id}
+    </update>
+</mapper>

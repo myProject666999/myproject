@@ -37,7 +37,7 @@ import { UserRole } from '../../common/types';
 import type { PaginationResult, RequestUser } from '../../common/types';
 
 @ApiTags('班级管理')
-@Controller('api/classes')
+@Controller('classes')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClassController {
   constructor(

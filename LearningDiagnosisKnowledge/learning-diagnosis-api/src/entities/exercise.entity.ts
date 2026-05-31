@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { Subject } from './subject.entity';
 import { User } from './user.entity';
@@ -54,9 +54,11 @@ export class Exercise extends BaseEntity {
   status: number;
 
   @ManyToOne(() => Subject, (subject) => subject.exercises)
+  @JoinColumn({ name: 'subject_id' })
   subject: Subject;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'creator_id' })
   creator: User;
 
   @OneToMany(() => ExerciseQuestion, (eq) => eq.exercise)

@@ -57,7 +57,7 @@ export class ClassService {
     } else if (currentUser.role === UserRole.STUDENT) {
       const classStudents = await this.classStudentRepository.find({
         where: { studentId: currentUser.id, isActive: 1 },
-        select: { classId: true } as any,
+        select: { classId: true },
       });
       const classIds = classStudents.map((cs) => cs.classId);
       if (classIds.length === 0) {
@@ -69,7 +69,7 @@ export class ClassService {
     const [list, total] = await this.classRepository.findAndCount({
       where,
       order: { id: 'DESC' },
-      relations: { teacher: true } as any,
+      relations: { teacher: true },
       skip:
         query.page && query.pageSize
           ? (query.page - 1) * query.pageSize
@@ -91,14 +91,14 @@ export class ClassService {
   ): Promise<ClassEntity & { students?: User[] }> {
     const cls = await this.classRepository.findOne({
       where: { id, status: 1 },
-      relations: { teacher: true, classStudents: { student: true } } as any,
+      relations: { teacher: true, classStudents: { student: true } },
     });
 
     if (!cls) {
       throw new NotFoundException(`班级 ID ${id} 不存在`);
     }
 
-    this.checkClassPermission(cls, currentUser);
+    await this.checkClassPermission(cls, currentUser);
 
     const result = cls as any;
     result.students = cls.classStudents
@@ -172,7 +172,7 @@ export class ClassService {
     currentUser: RequestUser,
   ): Promise<ClassEntity> {
     const cls = await this.validateClassExists(id);
-    this.checkClassPermission(cls, currentUser);
+    await this.checkClassPermission(cls, currentUser);
 
     if (dto.teacherId && dto.teacherId !== cls.teacherId) {
       const teacher = await this.userRepository.findOne({
@@ -238,7 +238,7 @@ export class ClassService {
     currentUser: RequestUser,
   ): Promise<{ added: number; alreadyExists: number; failed: number }> {
     const cls = await this.validateClassExists(classId);
-    this.checkClassPermission(cls, currentUser);
+    await this.checkClassPermission(cls, currentUser);
 
     const result = { added: 0, alreadyExists: 0, failed: 0 };
 
@@ -303,7 +303,7 @@ export class ClassService {
     currentUser: RequestUser,
   ): Promise<void> {
     const cls = await this.validateClassExists(classId);
-    this.checkClassPermission(cls, currentUser);
+    await this.checkClassPermission(cls, currentUser);
 
     const classStudent = await this.classStudentRepository.findOne({
       where: { classId, studentId, isActive: 1 },
@@ -321,7 +321,7 @@ export class ClassService {
 
     const student = await this.userRepository.findOne({
       where: { id: studentId },
-      select: { realName: true } as any,
+      select: { realName: true },
     });
 
     await this.auditService.log(
@@ -353,7 +353,7 @@ export class ClassService {
     } else if (currentUser.role === UserRole.STUDENT) {
       const classStudents = await this.classStudentRepository.find({
         where: { studentId: currentUser.id, isActive: 1 },
-        relations: { class: true } as any,
+        relations: { class: true },
         order: { id: 'DESC' },
       });
 
@@ -380,11 +380,11 @@ export class ClassService {
 
   async getClassStudents(classId: number, currentUser: RequestUser): Promise<User[]> {
     const cls = await this.validateClassExists(classId);
-    this.checkClassPermission(cls, currentUser);
+    await this.checkClassPermission(cls, currentUser);
 
     const classStudents = await this.classStudentRepository.find({
       where: { classId, isActive: 1 },
-      relations: { student: true } as any,
+      relations: { student: true },
     });
 
     return classStudents.map((cs) => {
@@ -412,7 +412,7 @@ export class ClassService {
     return cls;
   }
 
-  private checkClassPermission(cls: ClassEntity, currentUser: RequestUser): void {
+  private async checkClassPermission(cls: ClassEntity, currentUser: RequestUser): Promise<void> {
     if (currentUser.role === UserRole.ADMIN) {
       return;
     }

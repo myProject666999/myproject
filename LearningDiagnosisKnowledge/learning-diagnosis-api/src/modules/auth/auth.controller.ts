@@ -22,14 +22,16 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { RequestUser } from '../../common/types';
 
 @ApiTags('用户认证')
-@Controller('api/auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @Public()
   @UseGuards(LocalAuthGuard)
   @ApiOperation({ summary: '用户登录' })
   @ApiBody({ type: LoginDto })
@@ -44,6 +46,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @Public()
   @ApiOperation({ summary: '学生注册' })
   @ApiBody({ type: RegisterDto })
   @ApiResponse({ status: 201, description: '注册成功' })

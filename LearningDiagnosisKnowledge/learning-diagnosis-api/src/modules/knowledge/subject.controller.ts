@@ -25,7 +25,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../common/types';
 
 @ApiTags('学科管理')
-@Controller('api/subjects')
+@Controller('subjects')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class SubjectController {
   constructor(private readonly subjectService: SubjectService) {}

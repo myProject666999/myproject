@@ -12,7 +12,7 @@ import { ExerciseSession } from '../../entities/exercise-session.entity';
 import { AnswerRecord } from '../../entities/answer-record.entity';
 
 @ApiTags('练习会话')
-@Controller('api/exercise-sessions')
+@Controller('exercise-sessions')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.STUDENT)
 @ApiBearerAuth()

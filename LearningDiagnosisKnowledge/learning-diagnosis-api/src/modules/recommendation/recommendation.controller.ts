@@ -21,7 +21,7 @@ import type { RequestUser } from '../../common/types';
 import { Recommendation } from '../../entities/recommendation.entity';
 
 @ApiTags('推荐练习')
-@Controller('api/recommendations')
+@Controller('recommendations')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.STUDENT)
 @ApiBearerAuth()

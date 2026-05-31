@@ -30,7 +30,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequestUser } from '../../common/types';
 
 @ApiTags('练习/试卷管理')
-@Controller('api/exercises')
+@Controller('exercises')
 export class ExerciseController {
   constructor(private readonly exerciseService: ExerciseService) {}
 

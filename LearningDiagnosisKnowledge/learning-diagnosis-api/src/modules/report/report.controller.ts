@@ -18,12 +18,13 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { UserRole, PaginationResult } from '../../common/types';
 import type { RequestUser } from '../../common/types';
 import { LearningReport } from '../../entities/learning-report.entity';
 
 @ApiTags('学情报告')
-@Controller('api/reports')
+@Controller('reports')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
@@ -89,6 +90,7 @@ export class ReportController {
   }
 
   @Get('share/:token')
+  @Public()
   @ApiOperation({ summary: '通过分享链接查看报告' })
   async getReportByShareToken(
     @Param('token') token: string,

@@ -39,6 +39,7 @@ export class KnowledgePoint extends BaseEntity {
   status: number;
 
   @ManyToOne(() => Subject, (subject) => subject.knowledgePoints)
+  @JoinColumn({ name: 'subject_id' })
   subject: Subject;
 
   @ManyToOne(() => KnowledgePoint, (kp) => kp.children, { nullable: true })

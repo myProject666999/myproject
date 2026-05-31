@@ -76,6 +76,12 @@ export function getPublishTimeAnalysis(creatorId: number, platformId?: number) {
   });
 }
 
+export function generateAnalysis(creatorId: number) {
+  return api.post<unknown, void>("/publish-time/generate", null, {
+    params: { creatorId },
+  });
+}
+
 export function getWeeklyReportDetail(params: {
   creatorId: number;
   reportType?: string;

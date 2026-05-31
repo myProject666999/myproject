@@ -231,6 +231,12 @@ func BindRuleToDrama(c *gin.Context) {
 		return
 	}
 
+	var existing model.DramaRuleRelation
+	if err := dao.DB.Where("drama_id = ? AND rule_id = ?", req.DramaID, req.RuleID).First(&existing).Error; err == nil {
+		utils.Error(c, "该规则已绑定此剧集，请勿重复绑定")
+		return
+	}
+
 	relation := &model.DramaRuleRelation{
 		DramaID:   req.DramaID,
 		RuleID:    req.RuleID,

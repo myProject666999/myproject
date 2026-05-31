@@ -43,7 +43,7 @@ public class PublishTimeAnalysisService {
 
     private static final String ANALYSIS_CACHE_KEY = "publish:time:analysis:";
     private static final int CACHE_MINUTES = 60;
-    private static final int ANALYSIS_DAYS = 30;
+    private static final int ANALYSIS_DAYS = 365;
 
     public PublishTimeAnalysisVO getPublishTimeAnalysis(Long creatorId, Long platformId) {
         try {
@@ -202,17 +202,65 @@ public class PublishTimeAnalysisService {
             return vo;
         }
 
-        List<HourAnalysisVO> hourAnalysis = analysisList.stream()
-                .map(a -> new HourAnalysisVO(
-                        a.getPublishHour(),
-                        a.getContentCount(),
-                        a.getAvgViews(),
-                        a.getAvgLikes(),
-                        a.getAvgEngagementRate(),
-                        a.getScore()
-                ))
-                .sorted(Comparator.comparing(HourAnalysisVO::getPublishHour))
-                .toList();
+        List<HourAnalysisVO> hourAnalysis;
+        if (platformId == null) {
+            Map<Integer, List<PublishTimeAnalysis>> groupedByHour = analysisList.stream()
+                    .collect(Collectors.groupingBy(PublishTimeAnalysis::getPublishHour));
+            
+            hourAnalysis = groupedByHour.entrySet().stream()
+                    .map(entry -> {
+                        Integer hour = entry.getKey();
+                        List<PublishTimeAnalysis> hourData = entry.getValue();
+                        
+                        int totalContentCount = hourData.stream()
+                                .mapToInt(PublishTimeAnalysis::getContentCount)
+                                .sum();
+                        
+                        BigDecimal totalWeight = hourData.stream()
+                                .map(a -> BigDecimal.valueOf(a.getContentCount()))
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                        
+                        BigDecimal avgViews = hourData.stream()
+                                .map(a -> a.getAvgViews().multiply(BigDecimal.valueOf(a.getContentCount())))
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                                .divide(totalWeight.max(BigDecimal.ONE), 2, RoundingMode.HALF_UP);
+                        
+                        BigDecimal avgLikes = hourData.stream()
+                                .map(a -> a.getAvgLikes().multiply(BigDecimal.valueOf(a.getContentCount())))
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                                .divide(totalWeight.max(BigDecimal.ONE), 2, RoundingMode.HALF_UP);
+                        
+                        BigDecimal avgEngagementRate = hourData.stream()
+                                .map(a -> a.getAvgEngagementRate().multiply(BigDecimal.valueOf(a.getContentCount())))
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                                .divide(totalWeight.max(BigDecimal.ONE), 4, RoundingMode.HALF_UP);
+                        
+                        BigDecimal score = calculateScore(avgViews, avgLikes, avgEngagementRate);
+                        
+                        return new HourAnalysisVO(
+                                hour,
+                                totalContentCount,
+                                avgViews,
+                                avgLikes,
+                                avgEngagementRate,
+                                score
+                        );
+                    })
+                    .sorted(Comparator.comparing(HourAnalysisVO::getPublishHour))
+                    .toList();
+        } else {
+            hourAnalysis = analysisList.stream()
+                    .map(a -> new HourAnalysisVO(
+                            a.getPublishHour(),
+                            a.getContentCount(),
+                            a.getAvgViews(),
+                            a.getAvgLikes(),
+                            a.getAvgEngagementRate(),
+                            a.getScore()
+                    ))
+                    .sorted(Comparator.comparing(HourAnalysisVO::getPublishHour))
+                    .toList();
+        }
 
         vo.setHourAnalysis(hourAnalysis);
 

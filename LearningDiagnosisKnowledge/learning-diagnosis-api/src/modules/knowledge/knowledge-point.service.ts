@@ -68,7 +68,7 @@ export class KnowledgePointService {
     const [list, total] = await this.kpRepository.findAndCount({
       where,
       order: { sortOrder: 'ASC', id: 'ASC' },
-      relations: { children: true } as any,
+      relations: { children: true },
       skip:
         query.page && query.pageSize
           ? (query.page - 1) * query.pageSize
@@ -109,7 +109,7 @@ export class KnowledgePointService {
   async findOne(id: number): Promise<KnowledgePointWithChildren> {
     const kp = await this.kpRepository.findOne({
       where: { id, status: 1 },
-      relations: { subject: true, parent: true, children: true } as any,
+      relations: { subject: true, parent: true, children: true },
     });
     if (!kp) {
       throw new NotFoundException(`知识点 ID ${id} 不存在`);
@@ -117,7 +117,7 @@ export class KnowledgePointService {
 
     const relations = await this.relationRepository.find({
       where: [{ fromKpId: id }, { toKpId: id }],
-      relations: { fromKp: true, toKp: true } as any,
+      relations: { fromKp: true, toKp: true },
     });
 
     const result = kp as KnowledgePointWithChildren;
@@ -339,7 +339,7 @@ export class KnowledgePointService {
   private async calculateDepth(parentId: number): Promise<number> {
     const parent = await this.kpRepository.findOne({
       where: { id: parentId },
-      select: { depth: true } as any,
+      select: { depth: true },
     });
     return parent?.depth || 0;
   }
@@ -347,7 +347,7 @@ export class KnowledgePointService {
   private async buildPath(parentId: number, code: string): Promise<string> {
     const parent = await this.kpRepository.findOne({
       where: { id: parentId },
-      select: { path: true } as any,
+      select: { path: true },
     });
     return parent?.path ? `${parent.path}/${code}` : code;
   }

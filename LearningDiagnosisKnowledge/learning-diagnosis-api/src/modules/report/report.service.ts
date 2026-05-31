@@ -106,7 +106,7 @@ export class ReportService {
         class: true,
         subject: true,
         creator: true,
-      } as any,
+      },
     });
 
     if (!report) {
@@ -128,6 +128,10 @@ export class ReportService {
     const { type, studentId, classId, subjectId, periodStart, periodEnd, title, comparisonClassIds } = generateDto;
 
     await this.checkGeneratePermission(generateDto, currentUser);
+
+    if (currentUser.role === UserRole.STUDENT && !generateDto.studentId) {
+      generateDto.studentId = Number(currentUser.id);
+    }
 
     let content: any;
     let overallScore: number;
@@ -216,14 +220,14 @@ export class ReportService {
       relations: {
         exercise: true,
         student: true,
-      } as any,
+      },
     });
 
     if (!session) {
       throw new NotFoundException('练习会话不存在');
     }
 
-    if (session.studentId !== currentUser.id && currentUser.role !== UserRole.ADMIN) {
+    if (Number(session.studentId) !== Number(currentUser.id) && currentUser.role !== UserRole.ADMIN) {
       if (currentUser.role === UserRole.TEACHER && session.classId) {
         const isClassTeacher = await this.checkIsClassTeacher(
           session.classId,
@@ -241,21 +245,21 @@ export class ReportService {
       where: { exerciseId: session.exerciseId, studentId: session.studentId },
       relations: {
         question: true,
-      } as any,
+      },
     });
 
     const masteries = await this.masteryRepository.find({
       where: { studentId: session.studentId, subjectId: session.exercise.subjectId },
       relations: {
         knowledgePoint: true,
-      } as any,
+      },
     });
 
     const weakPoints = await this.weakPointRepository.find({
       where: { studentId: session.studentId, subjectId: session.exercise.subjectId, isResolved: 0 },
       relations: {
         knowledgePoint: true,
-      } as any,
+      },
     });
 
     const content = this.buildDiagnosisContent(session, answerRecords, masteries, weakPoints);
@@ -320,7 +324,7 @@ export class ReportService {
         class: true,
         subject: true,
         creator: true,
-      } as any,
+      },
     });
 
     if (!report) {
@@ -338,14 +342,14 @@ export class ReportService {
       where: { studentId, subjectId },
       relations: {
         knowledgePoint: true,
-      } as any,
+      },
     });
 
     const weakPoints = await this.weakPointRepository.find({
       where: { studentId, subjectId, isResolved: 0 },
       relations: {
         knowledgePoint: true,
-      } as any,
+      },
     });
 
     const answerRecords = await this.answerRecordRepository.find({
@@ -408,14 +412,14 @@ export class ReportService {
       where: { studentId, subjectId },
       relations: {
         knowledgePoint: true,
-      } as any,
+      },
     });
 
     const weakPoints = await this.weakPointRepository.find({
       where: { studentId, subjectId, isResolved: 0 },
       relations: {
         knowledgePoint: true,
-      } as any,
+      },
     });
 
     const overallScore = this.calculateOverallScore(masteries);
@@ -446,7 +450,7 @@ export class ReportService {
       where: { classId },
       relations: {
         student: true,
-      } as any,
+      },
     });
 
     const studentIds = classStudents.map((cs) => cs.studentId);
@@ -460,14 +464,14 @@ export class ReportService {
       where: { studentId: In(studentIds), subjectId },
       relations: {
         knowledgePoint: true,
-      } as any,
+      },
     });
 
     const allWeakPoints = await this.weakPointRepository.find({
       where: { studentId: In(studentIds), subjectId, isResolved: 0 },
       relations: {
         knowledgePoint: true,
-      } as any,
+      },
     });
 
     const overallScore = classStats?.avgMastery || this.calculateClassOverallScore(allMasteries);
@@ -504,7 +508,7 @@ export class ReportService {
         order: { statDate: 'DESC' },
         relations: {
           class: true,
-        } as any,
+        },
       });
 
       const classStudents = await this.classStudentRepository.find({
@@ -718,7 +722,7 @@ export class ReportService {
       .map((wp) => ({
         knowledgePointId: wp.knowledgePointId,
         knowledgePointName: wp.knowledgePoint?.name,
-        masteryLevel: null,
+        masteryLevel: 0,
         reason: '严重薄弱点',
       }));
 
@@ -883,7 +887,7 @@ export class ReportService {
     }
 
     if (currentUser.role === UserRole.STUDENT) {
-      if (generateDto.studentId && generateDto.studentId !== currentUser.id) {
+      if (generateDto.studentId && Number(generateDto.studentId) !== Number(currentUser.id)) {
         throw new ForbiddenException('无权生成其他学生的报告');
       }
       if (generateDto.type === ReportType.CLASS_OVERALL || generateDto.type === ReportType.CLASS_COMPARISON) {

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.HealthCheckHistoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.HealthCheckHistory">
+        <id column="id" property="id"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_code" property="appCode"/>
+        <result column="check_time" property="checkTime"/>
+        <result column="check_result" property="checkResult"/>
+        <result column="response_time" property="responseTime"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <select id="selectByAppId" resultMap="BaseResultMap">
+        SELECT * FROM health_check_history
+        WHERE app_id = #{appId}
+        ORDER BY check_time DESC
+    </select>
+
+    <select id="selectByAppIdWithLimit" resultMap="BaseResultMap">
+        SELECT * FROM health_check_history
+        WHERE app_id = #{appId}
+        ORDER BY check_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM health_check_history
+        <where>
+            <if test="keyword != null and keyword != ''">AND (app_code LIKE CONCAT('%', #{keyword}, '%') OR error_message LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY check_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM health_check_history
+        <where>
+            <if test="keyword != null and keyword != ''">AND (app_code LIKE CONCAT('%', #{keyword}, '%') OR error_message LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <select id="select24HourStats" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(check_time, '%Y-%m-%d %H:00:00') as hour,
+            app_id,
+            app_code,
+            COUNT(*) as total_count,
+            SUM(CASE WHEN check_result = 1 THEN 1 ELSE 0 END) as success_count,
+            AVG(response_time) as avg_response_time
+        FROM health_check_history
+        WHERE check_time >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+          AND app_id = #{appId}
+        GROUP BY DATE_FORMAT(check_time, '%Y-%m-%d %H:00:00'), app_id, app_code
+        ORDER BY hour
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.HealthCheckHistory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO health_check_history (
+            app_id, app_code, check_time, check_result,
+            response_time, error_message, created_at
+        ) VALUES (
+            #{appId}, #{appCode}, #{checkTime}, #{checkResult},
+            #{responseTime}, #{errorMessage}, #{createdAt}
+        )
+    </insert>
+
+    <delete id="cleanOldHistory">
+        DELETE FROM health_check_history WHERE check_time &lt; DATE_SUB(NOW(), INTERVAL #{days} DAY)
+    </delete>
+</mapper>

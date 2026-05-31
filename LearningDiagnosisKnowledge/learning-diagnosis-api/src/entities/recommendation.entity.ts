@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { User } from './user.entity';
 import { Subject } from './subject.entity';
@@ -68,11 +68,14 @@ export class Recommendation extends BaseEntity {
   algorithmVersion: string;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'student_id' })
   student: User;
 
   @ManyToOne(() => Subject)
+  @JoinColumn({ name: 'subject_id' })
   subject: Subject;
 
   @ManyToOne(() => Exercise)
+  @JoinColumn({ name: 'exercise_id' })
   exercise?: Exercise;
 }

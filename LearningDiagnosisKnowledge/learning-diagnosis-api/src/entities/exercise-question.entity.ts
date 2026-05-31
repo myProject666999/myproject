@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { Exercise } from './exercise.entity';
 import { Question } from './question.entity';
@@ -18,8 +18,10 @@ export class ExerciseQuestion extends BaseEntity {
   sortOrder: number;
 
   @ManyToOne(() => Exercise, (e) => e.exerciseQuestions)
+  @JoinColumn({ name: 'exercise_id' })
   exercise: Exercise;
 
   @ManyToOne(() => Question, (q) => q.exerciseQuestions)
+  @JoinColumn({ name: 'question_id' })
   question: Question;
 }

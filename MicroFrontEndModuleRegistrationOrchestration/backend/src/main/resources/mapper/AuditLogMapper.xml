@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.AuditLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.AuditLog">
+        <id column="id" property="id"/>
+        <result column="audit_no" property="auditNo"/>
+        <result column="operation_type" property="operationType"/>
+        <result column="module" property="module"/>
+        <result column="target_table" property="targetTable"/>
+        <result column="target_id" property="targetId"/>
+        <result column="target_key" property="targetKey"/>
+        <result column="operator" property="operator"/>
+        <result column="operator_ip" property="operatorIp"/>
+        <result column="old_value" property="oldValue"/>
+        <result column="new_value" property="newValue"/>
+        <result column="change_summary" property="changeSummary"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM audit_log
+        <where>
+            <if test="keyword != null and keyword != ''">AND (operation_type LIKE CONCAT('%', #{keyword}, '%') OR module LIKE CONCAT('%', #{keyword}, '%') OR operator LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM audit_log
+        <where>
+            <if test="keyword != null and keyword != ''">AND (operation_type LIKE CONCAT('%', #{keyword}, '%') OR module LIKE CONCAT('%', #{keyword}, '%') OR operator LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.AuditLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO audit_log (
+            audit_no, operation_type, module, target_table, target_id,
+            target_key, operator, operator_ip, old_value, new_value,
+            change_summary, created_at
+        ) VALUES (
+            #{auditNo}, #{operationType}, #{module}, #{targetTable}, #{targetId},
+            #{targetKey}, #{operator}, #{operatorIp}, #{oldValue}, #{newValue},
+            #{changeSummary}, #{createdAt}
+        )
+    </insert>
+</mapper>

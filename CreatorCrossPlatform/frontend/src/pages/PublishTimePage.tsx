@@ -40,9 +40,20 @@ export default function PublishTimePage() {
     }
   };
 
-  const topHours = analysis?.hourAnalysis
+  const topHours = analysis?.hourAnalysis && analysis.hourAnalysis.length > 0
     ? [...analysis.hourAnalysis].sort((a, b) => b.score - a.score).slice(0, 3)
     : [];
+
+  const hasData = analysis?.hourAnalysis && analysis.hourAnalysis.length > 0;
+
+  const safeNumber = (num: number | undefined | null, defaultValue: number = 0) => {
+    return num ?? defaultValue;
+  };
+
+  const formatScore = (score: number | undefined | null) => {
+    const s = safeNumber(score);
+    return s.toFixed(1);
+  };
 
   const isTopHour = (hour: number) => topHours.some((h) => h.publishHour === hour);
 
@@ -73,7 +84,7 @@ export default function PublishTimePage() {
         <div className="flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
         </div>
-      ) : analysis ? (
+      ) : hasData ? (
         <>
           <div className="card">
             <div className="flex items-center gap-2 mb-6">
@@ -130,31 +141,31 @@ export default function PublishTimePage() {
               </div>
               <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl p-6 border border-indigo-500/30">
                 <div className="text-center mb-4">
-                  <div className="text-5xl font-bold gradient-text mb-2">
-                    {formatHour(analysis.bestPublishHour)}
-                  </div>
-                  <div className="text-[#94A3B8]">推荐发布时段</div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 mt-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-white">
-                      {analysis.bestHourScore.toFixed(1)}
+                    <div className="text-5xl font-bold gradient-text mb-2">
+                      {formatHour(safeNumber(analysis.bestPublishHour))}
                     </div>
-                    <div className="text-xs text-[#64748B]">综合评分</div>
+                    <div className="text-[#94A3B8]">推荐发布时段</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-white">
-                      {formatNumber(analysis.bestHourAvgViews)}
+                  <div className="grid grid-cols-3 gap-4 mt-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-white">
+                        {formatScore(analysis.bestHourScore)}
+                      </div>
+                      <div className="text-xs text-[#64748B]">综合评分</div>
                     </div>
-                    <div className="text-xs text-[#64748B]">平均播放</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-white">
-                      {analysis.bestHourContentCount}
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-white">
+                        {formatNumber(safeNumber(analysis.bestHourAvgViews))}
+                      </div>
+                      <div className="text-xs text-[#64748B]">平均播放</div>
                     </div>
-                    <div className="text-xs text-[#64748B]">作品数量</div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-white">
+                        {safeNumber(analysis.bestHourContentCount)}
+                      </div>
+                      <div className="text-xs text-[#64748B]">作品数量</div>
+                    </div>
                   </div>
-                </div>
               </div>
             </div>
 
@@ -190,13 +201,13 @@ export default function PublishTimePage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-indigo-400">
-                        {hour.score.toFixed(1)} 分
+                        <div className="font-bold text-indigo-400">
+                          {formatScore(hour.score)} 分
+                        </div>
+                        <div className="text-xs text-[#64748B]">
+                          {formatNumber(safeNumber(hour.avgViews))} 播放
+                        </div>
                       </div>
-                      <div className="text-xs text-[#64748B]">
-                        {formatNumber(hour.avgViews)} 播放
-                      </div>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -242,10 +253,10 @@ export default function PublishTimePage() {
                         </div>
                       </td>
                       <td className="text-right py-3 px-4">{hour.contentCount}</td>
-                      <td className="text-right py-3 px-4">{formatNumber(hour.avgViews)}</td>
-                      <td className="text-right py-3 px-4">{formatNumber(hour.avgLikes)}</td>
+                      <td className="text-right py-3 px-4">{formatNumber(safeNumber(hour.avgViews))}</td>
+                      <td className="text-right py-3 px-4">{formatNumber(safeNumber(hour.avgLikes))}</td>
                       <td className="text-right py-3 px-4">
-                        {(hour.avgEngagementRate * 100).toFixed(2)}%
+                        {(safeNumber(hour.avgEngagementRate) * 100).toFixed(2)}%
                       </td>
                       <td className="text-right py-3 px-4">
                         <span
@@ -256,7 +267,7 @@ export default function PublishTimePage() {
                               : 'text-[#E2E8F0]'
                           )}
                         >
-                          {hour.score.toFixed(2)}
+                          {formatScore(hour.score)}
                         </span>
                       </td>
                     </tr>
@@ -267,8 +278,27 @@ export default function PublishTimePage() {
           </div>
         </>
       ) : (
-        <div className="card flex items-center justify-center h-96">
-          <div className="text-[#64748B]">暂无数据</div>
+        <div className="card flex flex-col items-center justify-center h-96 gap-4">
+          <BarChart3 className="w-16 h-16 text-[#334155]" />
+          <div className="text-[#64748B] text-lg">暂无发布时段分析数据</div>
+          <div className="text-[#475569] text-sm">请点击下方按钮生成分析数据</div>
+          <button
+            onClick={async () => {
+              try {
+                const { generateAnalysis } = await import("@/utils/api");
+                await generateAnalysis(1);
+                fetchAnalysis();
+                alert("分析数据生成成功！");
+              } catch (e) {
+                console.error("生成失败:", e);
+                alert("生成失败，请稍后重试。");
+              }
+            }}
+            className="btn-primary flex items-center gap-2 mt-2"
+          >
+            <Star className="w-4 h-4" />
+            生成发布时段分析
+          </button>
         </div>
       )}
     </div>

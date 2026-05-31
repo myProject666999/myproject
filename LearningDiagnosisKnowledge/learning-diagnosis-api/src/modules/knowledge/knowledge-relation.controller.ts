@@ -25,7 +25,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../common/types';
 
 @ApiTags('知识点关系管理')
-@Controller('api/knowledge-relations')
+@Controller('knowledge-relations')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class KnowledgeRelationController {
   constructor(private readonly relationService: KnowledgeRelationService) {}

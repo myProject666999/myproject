@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micro.frontend.mapper.RouteConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.micro.frontend.entity.RouteConfig">
+        <id column="id" property="id"/>
+        <result column="route_path" property="routePath"/>
+        <result column="route_name" property="routeName"/>
+        <result column="app_id" property="appId"/>
+        <result column="app_code" property="appCode"/>
+        <result column="menu_name" property="menuName"/>
+        <result column="menu_icon" property="menuIcon"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="is_visible" property="isVisible"/>
+        <result column="is_cache" property="isCache"/>
+        <result column="permission_code" property="permissionCode"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="selectByRoutePath" resultMap="BaseResultMap">
+        SELECT * FROM route_config WHERE route_path = #{routePath} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM route_config
+        <where>
+            deleted = 0
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (route_path LIKE CONCAT('%', #{keyword}, '%') OR route_name LIKE CONCAT('%', #{keyword}, '%') OR menu_name LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+        ORDER BY sort_order ASC, created_at DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM route_config WHERE deleted = 0 ORDER BY sort_order ASC, created_at DESC
+    </select>
+
+    <select id="selectMenuTree" resultMap="BaseResultMap">
+        SELECT * FROM route_config
+        WHERE deleted = 0 AND status = 1 AND is_visible = 1
+        ORDER BY parent_id ASC, sort_order ASC
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM route_config
+        <where>
+            deleted = 0
+            <if test="status != null">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (route_path LIKE CONCAT('%', #{keyword}, '%') OR route_name LIKE CONCAT('%', #{keyword}, '%') OR menu_name LIKE CONCAT('%', #{keyword}, '%'))</if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.micro.frontend.entity.RouteConfig" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO route_config (
+            route_path, route_name, app_id, app_code, menu_name,
+            menu_icon, parent_id, sort_order, is_visible, is_cache,
+            permission_code, status, created_at, updated_at, deleted
+        ) VALUES (
+            #{routePath}, #{routeName}, #{appId}, #{appCode}, #{menuName},
+            #{menuIcon}, #{parentId}, #{sortOrder}, #{isVisible}, #{isCache},
+            #{permissionCode}, #{status}, #{createdAt}, #{updatedAt}, #{deleted}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.micro.frontend.entity.RouteConfig">
+        UPDATE route_config
+        <set>
+            <if test="routePath != null">route_path = #{routePath},</if>
+            <if test="routeName != null">route_name = #{routeName},</if>
+            <if test="appId != null">app_id = #{appId},</if>
+            <if test="appCode != null">app_code = #{appCode},</if>
+            <if test="menuName != null">menu_name = #{menuName},</if>
+            <if test="menuIcon != null">menu_icon = #{menuIcon},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="isVisible != null">is_visible = #{isVisible},</if>
+            <if test="isCache != null">is_cache = #{isCache},</if>
+            <if test="permissionCode != null">permission_code = #{permissionCode},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateSortOrder">
+        UPDATE route_config SET sort_order = #{sortOrder}, updated_at = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE route_config SET status = #{status}, updated_at = NOW() WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        UPDATE route_config SET deleted = 1, updated_at = NOW() WHERE id = #{id}
+    </delete>
+</mapper>

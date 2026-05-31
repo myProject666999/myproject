@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, Between } from 'typeorm';
+import { Repository, In, Between, IsNull } from 'typeorm';
 import { ClassEntity } from '../../entities/class.entity';
 import { ClassStudent } from '../../entities/class-student.entity';
 import { ClassStatistics } from '../../entities/class-statistics.entity';
@@ -113,7 +113,7 @@ export class ClassStatisticsService {
 
     const activeStudents = await this.classStudentRepository.find({
       where: { classId, isActive: 1 },
-      select: { studentId: true } as any,
+      select: { studentId: true },
     });
     const studentIds = activeStudents.map((cs) => cs.studentId);
 
@@ -185,7 +185,7 @@ export class ClassStatisticsService {
 
     const activeStudents = await this.classStudentRepository.find({
       where: { classId, isActive: 1 },
-      select: { studentId: true } as any,
+      select: { studentId: true },
     });
     const studentIds = activeStudents.map((cs) => cs.studentId);
 
@@ -203,7 +203,14 @@ export class ClassStatisticsService {
       where: { subjectId, status: 1 },
     });
 
-    const knowledgePointStats = [];
+    const knowledgePointStats: Array<{
+      knowledgePointId: number;
+      knowledgePointName: string;
+      avgMastery: number;
+      maxMastery: number;
+      minMastery: number;
+      studentCount: number;
+    }> = [];
     for (const kp of knowledgePoints) {
       const kpMasteries = await this.masteryRepository.find({
         where: {
@@ -211,7 +218,7 @@ export class ClassStatisticsService {
           knowledgePointId: kp.id,
           subjectId,
         },
-        select: { masteryLevel: true } as any,
+        select: { masteryLevel: true },
       });
 
       if (kpMasteries.length > 0) {
@@ -259,7 +266,7 @@ export class ClassStatisticsService {
 
     const activeStudents = await this.classStudentRepository.find({
       where: { classId, isActive: 1 },
-      relations: { student: true } as any,
+      relations: { student: true },
     });
     const studentIds = activeStudents.map((cs) => cs.studentId);
 
@@ -335,7 +342,7 @@ export class ClassStatisticsService {
 
     const activeStudents = await this.classStudentRepository.find({
       where: { classId, isActive: 1 },
-      select: { studentId: true } as any,
+      select: { studentId: true },
     });
     const studentIds = activeStudents.map((cs) => cs.studentId);
 
@@ -344,7 +351,7 @@ export class ClassStatisticsService {
         studentId: In(studentIds),
         subjectId,
       },
-      select: { masteryLevel: true } as any,
+      select: { masteryLevel: true },
     });
 
     const distribution: MasteryDistribution = {
@@ -390,7 +397,7 @@ export class ClassStatisticsService {
 
     const activeStudents = await this.classStudentRepository.find({
       where: { classId, isActive: 1 },
-      select: { studentId: true } as any,
+      select: { studentId: true },
     });
     const studentIds = activeStudents.map((cs) => cs.studentId);
 
@@ -399,7 +406,7 @@ export class ClassStatisticsService {
         studentId: In(studentIds),
         isResolved: 0,
       },
-      relations: { knowledgePoint: true, subject: true } as any,
+      relations: { knowledgePoint: true, subject: true },
     });
 
     const kpMap = new Map<number, WeakPointSummary>();
@@ -465,7 +472,7 @@ export class ClassStatisticsService {
 
     const activeStudents = await this.classStudentRepository.find({
       where: { classId, isActive: 1 },
-      select: { studentId: true } as any,
+      select: { studentId: true },
     });
     const studentIds = activeStudents.map((cs) => cs.studentId);
 
@@ -489,7 +496,7 @@ export class ClassStatisticsService {
           where: {
             classId,
             subjectId: subject.id,
-            knowledgePointId: null,
+            knowledgePointId: IsNull(),
             statDate: today,
           },
         });
@@ -523,7 +530,7 @@ export class ClassStatisticsService {
               knowledgePointId: kp.id,
               subjectId: subject.id,
             },
-            select: { masteryLevel: true } as any,
+            select: { masteryLevel: true },
           });
 
           if (kpMasteries.length > 0) {
@@ -589,7 +596,7 @@ export class ClassStatisticsService {
 
         const activeStudents = await this.classStudentRepository.find({
           where: { classId, isActive: 1 },
-          select: { studentId: true } as any,
+          select: { studentId: true },
         });
         const studentIds = activeStudents.map((cs) => cs.studentId);
 
@@ -624,7 +631,7 @@ export class ClassStatisticsService {
 
           const masteries = await this.masteryRepository.find({
             where,
-            select: { masteryLevel: true } as any,
+            select: { masteryLevel: true },
           });
 
           if (masteries.length > 0) {
@@ -709,7 +716,7 @@ export class ClassStatisticsService {
 
         const activeStudents = await this.classStudentRepository.find({
           where: { classId, isActive: 1 },
-          select: { studentId: true } as any,
+          select: { studentId: true },
         });
         const studentIds = activeStudents.map((cs) => cs.studentId);
 
@@ -771,7 +778,7 @@ export class ClassStatisticsService {
         studentId: In(studentIds),
         subjectId,
       },
-      select: { masteryLevel: true } as any,
+      select: { masteryLevel: true },
     });
 
     if (masteries.length === 0) return null;

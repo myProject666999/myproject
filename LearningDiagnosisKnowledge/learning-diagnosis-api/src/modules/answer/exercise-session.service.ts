@@ -14,8 +14,8 @@ import { MasteryCalculatorService } from '../../common/services/mastery-calculat
 import {
   PaginationResult,
   RequestUser,
-  QueryAnswerDto,
 } from '../../common/types';
+import { QueryAnswerDto } from './dto/query-answer.dto';
 
 @Injectable()
 export class ExerciseSessionService {
@@ -70,7 +70,7 @@ export class ExerciseSessionService {
   ): Promise<ExerciseSession> {
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
-      relations: ['exercise'],
+      relations: { exercise: true },
     });
 
     if (!session) {
@@ -90,7 +90,7 @@ export class ExerciseSessionService {
         studentId: currentUser.id,
         exerciseId: session.exerciseId,
       },
-      relations: ['question'],
+      relations: { question: true },
     });
 
     const {
@@ -118,7 +118,9 @@ export class ExerciseSessionService {
     currentUser: RequestUser,
   ): Promise<PaginationResult<ExerciseSession>> {
     const { page, pageSize } = queryDto;
-    const skip = (page - 1) * pageSize;
+    const pageNum = page || 1;
+    const pageSizeNum = pageSize || 20;
+    const skip = (pageNum - 1) * pageSizeNum;
 
     const queryBuilder = this.sessionRepository
       .createQueryBuilder('es')
@@ -129,14 +131,14 @@ export class ExerciseSessionService {
     const [list, total] = await queryBuilder
       .orderBy('es.startTime', 'DESC')
       .skip(skip)
-      .take(pageSize)
+      .take(pageSizeNum)
       .getManyAndCount();
 
     return {
       list,
       total,
-      page,
-      pageSize,
+      page: pageNum,
+      pageSize: pageSizeNum,
     };
   }
 
@@ -146,12 +148,14 @@ export class ExerciseSessionService {
   ): Promise<ExerciseSession> {
     const session = await this.sessionRepository.findOne({
       where: { id: sessionId },
-      relations: [
-        'exercise',
-        'exercise.exerciseQuestions',
-        'exercise.exerciseQuestions.question',
-        'class',
-      ],
+      relations: {
+        exercise: {
+          exerciseQuestions: {
+            question: true,
+          },
+        },
+        class: true,
+      },
     });
 
     if (!session) {
@@ -186,7 +190,7 @@ export class ExerciseSessionService {
         studentId: currentUser.id,
         exerciseId: session.exerciseId,
       },
-      relations: ['question', 'subject'],
+      relations: { question: true, subject: true },
       order: {
         submitTime: 'ASC',
       },

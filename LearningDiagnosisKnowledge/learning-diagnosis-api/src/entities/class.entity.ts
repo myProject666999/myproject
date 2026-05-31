@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { User } from './user.entity';
 import { ClassStudent } from './class-student.entity';
@@ -32,6 +32,7 @@ export class ClassEntity extends BaseEntity {
   status: number;
 
   @ManyToOne(() => User, (user) => user.classesTaught)
+  @JoinColumn({ name: 'teacher_id' })
   teacher: User;
 
   @OneToMany(() => ClassStudent, (cs) => cs.class)

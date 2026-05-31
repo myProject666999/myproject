@@ -24,7 +24,7 @@ export class SubjectService {
   async findOne(id: number): Promise<Subject> {
     const subject = await this.subjectRepository.findOne({
       where: { id, status: 1 },
-      relations: { knowledgePoints: true } as any,
+      relations: { knowledgePoints: true },
     });
     if (!subject) {
       throw new NotFoundException(`学科 ID ${id} 不存在`);

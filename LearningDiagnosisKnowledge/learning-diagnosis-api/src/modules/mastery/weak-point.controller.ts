@@ -18,7 +18,7 @@ import type { RequestUser } from '../../common/types';
 import { WeakPoint } from '../../entities/weak-point.entity';
 
 @ApiTags('薄弱点管理')
-@Controller('api/weak-points')
+@Controller('weak-points')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class WeakPointController {

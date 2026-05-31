@@ -23,7 +23,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       db: config.db,
       enableReadyCheck: true,
       maxRetriesPerRequest: 3,
-      retryDelayOnFailover: 100,
+      retryStrategy: () => 100,
     });
 
     this.client.on('connect', () => {
@@ -121,7 +121,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async lock(key: string, value: string, ttl: number): Promise<boolean> {
-    const result = await this.client.set(key, value, 'NX', 'EX', ttl);
+    const result = await this.client.set(key, value, 'EX', ttl, 'NX');
     return result === 'OK';
   }
 

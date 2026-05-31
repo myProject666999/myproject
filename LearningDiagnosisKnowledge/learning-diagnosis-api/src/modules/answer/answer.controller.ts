@@ -19,7 +19,7 @@ import { UserRole, PaginationResult, RequestUser } from '../../common/types';
 import { AnswerRecord } from '../../entities/answer-record.entity';
 
 @ApiTags('答题记录')
-@Controller('api/answers')
+@Controller('answers')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.STUDENT)
 @ApiBearerAuth()

@@ -65,14 +65,17 @@ export class ExerciseService {
   async findOne(id: number): Promise<Exercise> {
     const exercise = await this.exerciseRepository.findOne({
       where: { id },
-      relations: [
-        'exerciseQuestions',
-        'exerciseQuestions.question',
-        'exerciseQuestions.question.questionKnowledges',
-        'exerciseQuestions.question.questionKnowledges.knowledgePoint',
-        'subject',
-        'creator',
-      ],
+      relations: {
+        exerciseQuestions: {
+          question: {
+            questionKnowledges: {
+              knowledgePoint: true,
+            },
+          },
+        },
+        subject: true,
+        creator: true,
+      },
       order: {
         exerciseQuestions: {
           sortOrder: 'ASC',
@@ -179,7 +182,7 @@ export class ExerciseService {
 
     const remainingQuestions = await this.exerciseQuestionRepository.find({
       where: { exerciseId },
-      select: ['score'],
+      select: { score: true },
     });
     const totalScore = remainingQuestions.reduce(
       (sum, q) => sum + Number(q.score),

@@ -34,7 +34,7 @@ export type KnowledgePointWithChildren = Omit<KnowledgePoint, 'children'> & {
 };
 
 @ApiTags('知识点管理')
-@Controller('api/knowledge-points')
+@Controller('knowledge-points')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class KnowledgePointController {
   constructor(private readonly kpService: KnowledgePointService) {}

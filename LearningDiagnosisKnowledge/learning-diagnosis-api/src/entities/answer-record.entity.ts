@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, Index } from 'typeorm';
+import { Entity, Column, ManyToOne, Index, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { User } from './user.entity';
 import { Exercise } from './exercise.entity';
@@ -50,14 +50,18 @@ export class AnswerRecord extends BaseEntity {
   source: string;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'student_id' })
   student: User;
 
   @ManyToOne(() => Exercise)
+  @JoinColumn({ name: 'exercise_id' })
   exercise?: Exercise;
 
   @ManyToOne(() => Question)
+  @JoinColumn({ name: 'question_id' })
   question: Question;
 
   @ManyToOne(() => Subject)
+  @JoinColumn({ name: 'subject_id' })
   subject: Subject;
 }

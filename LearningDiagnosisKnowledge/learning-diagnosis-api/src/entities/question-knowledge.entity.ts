@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { Question } from './question.entity';
 import { KnowledgePoint } from './knowledge-point.entity';
@@ -21,8 +21,10 @@ export class QuestionKnowledge extends BaseEntity {
   isPrimary: number;
 
   @ManyToOne(() => Question, (q) => q.questionKnowledges)
+  @JoinColumn({ name: 'question_id' })
   question: Question;
 
   @ManyToOne(() => KnowledgePoint, (kp) => kp.questionKnowledges)
+  @JoinColumn({ name: 'knowledge_point_id' })
   knowledgePoint: KnowledgePoint;
 }

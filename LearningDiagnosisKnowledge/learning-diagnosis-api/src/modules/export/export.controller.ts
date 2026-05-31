@@ -30,7 +30,7 @@ import type { RequestUser } from '../../common/types';
 import * as fs from 'fs';
 
 @ApiTags('数据导出')
-@Controller('api/exports')
+@Controller('exports')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class ExportController {

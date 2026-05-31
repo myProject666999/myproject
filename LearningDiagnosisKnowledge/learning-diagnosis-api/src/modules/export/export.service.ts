@@ -87,6 +87,10 @@ export class ExportService {
     ipAddress?: string,
     userAgent?: string,
   ): Promise<ExportRecord> {
+    if (user.role === UserRole.STUDENT && !dto.studentId) {
+      dto.studentId = Number(user.id);
+    }
+
     await this.checkPermission(dto, user);
 
     const expiresAt = new Date();
@@ -141,7 +145,7 @@ export class ExportService {
     switch (dto.type) {
       case ExportType.STUDENT_REPORT:
         if (user.role === UserRole.STUDENT) {
-          if (!dto.studentId || dto.studentId !== user.id) {
+          if (dto.studentId && Number(dto.studentId) !== Number(user.id)) {
             throw new ForbiddenException('学生只能导出自己的报告');
           }
         } else if (user.role === UserRole.TEACHER) {
@@ -151,7 +155,7 @@ export class ExportService {
                 studentId: dto.studentId,
                 isActive: 1,
               },
-              relations: ['class'] as any,
+              relations: { class: true },
             });
             if (!classStudent || classStudent.class.teacherId !== user.id) {
               throw new ForbiddenException('只能导出所教班级学生的数据');
@@ -179,7 +183,7 @@ export class ExportService {
       case ExportType.ANSWER_RECORDS:
       case ExportType.MASTERY_DATA:
         if (user.role === UserRole.STUDENT) {
-          if (dto.studentId && dto.studentId !== user.id) {
+          if (dto.studentId && Number(dto.studentId) !== Number(user.id)) {
             throw new ForbiddenException('学生只能导出自己的数据');
           }
         }
@@ -208,7 +212,7 @@ export class ExportService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      relations: ['requester'] as any,
+      relations: { requester: true },
     });
 
     return { list, total, page, pageSize };
@@ -217,7 +221,7 @@ export class ExportService {
   async findOne(id: number, user: RequestUser): Promise<ExportRecord> {
     const record = await this.exportRecordRepository.findOne({
       where: { id },
-      relations: ['requester'] as any,
+      relations: { requester: true },
     });
 
     if (!record) {
@@ -408,7 +412,7 @@ export class ExportService {
 
     const masteryData = await this.knowledgeMasteryRepository.find({
       where: masteryWhere,
-      relations: ['knowledgePoint', 'subject'] as any,
+      relations: { knowledgePoint: true, subject: true },
       order: { masteryLevel: 'DESC' },
     });
 
@@ -417,7 +421,7 @@ export class ExportService {
 
     const weakPoints = await this.weakPointRepository.find({
       where: weakWhere,
-      relations: ['knowledgePoint'] as any,
+      relations: { knowledgePoint: true },
       order: { weaknessScore: 'DESC' },
     });
 
@@ -430,7 +434,7 @@ export class ExportService {
   ): Promise<any> {
     const classInfo = await this.classRepository.findOne({
       where: { id: classId },
-      relations: ['teacher'] as any,
+      relations: { teacher: true },
     });
     if (!classInfo) {
       throw new NotFoundException('班级不存在');
@@ -447,7 +451,7 @@ export class ExportService {
 
     const classStudents = await this.classStudentRepository.find({
       where: { classId, isActive: 1 },
-      relations: ['student'] as any,
+      relations: { student: true },
     });
 
     const studentIds = classStudents.map((cs) => cs.studentId);
@@ -458,7 +462,7 @@ export class ExportService {
 
     const masteryData = await this.knowledgeMasteryRepository.find({
       where: masteryWhere,
-      relations: ['knowledgePoint'] as any,
+      relations: { knowledgePoint: true },
     });
 
     return { classInfo, statistics, masteryData, studentList };
@@ -486,7 +490,7 @@ export class ExportService {
 
     const records = await this.answerRecordRepository.find({
       where,
-      relations: ['student', 'question', 'subject'] as any,
+      relations: { student: true, question: true, subject: true },
       order: { submitTime: 'DESC' },
       take: 10000,
     });
@@ -510,7 +514,7 @@ export class ExportService {
 
     const masteryData = await this.knowledgeMasteryRepository.find({
       where,
-      relations: ['student', 'knowledgePoint', 'subject'] as any,
+      relations: { student: true, knowledgePoint: true, subject: true },
       order: { masteryLevel: 'DESC' },
     });
 
@@ -520,7 +524,7 @@ export class ExportService {
 
     const historyData = await this.masteryHistoryRepository.find({
       where: historyWhere,
-      relations: ['student', 'knowledgePoint'] as any,
+      relations: { student: true, knowledgePoint: true },
       order: { recordDate: 'DESC' },
       take: 1000,
     });
@@ -550,7 +554,7 @@ export class ExportService {
 
     const questions = await this.questionRepository.find({
       where,
-      relations: ['subject', 'questionKnowledges', 'questionKnowledges.knowledgePoint'] as any,
+      relations: { subject: true, questionKnowledges: { knowledgePoint: true } },
       order: { createdAt: 'DESC' },
     });
 

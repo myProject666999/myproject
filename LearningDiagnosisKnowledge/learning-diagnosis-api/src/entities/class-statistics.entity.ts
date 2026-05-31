@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { ClassEntity } from './class.entity';
 import { Subject } from './subject.entity';
@@ -81,11 +81,14 @@ export class ClassStatistics extends BaseEntity {
   weakPointCount: number;
 
   @ManyToOne(() => ClassEntity)
+  @JoinColumn({ name: 'class_id' })
   class: ClassEntity;
 
   @ManyToOne(() => Subject)
+  @JoinColumn({ name: 'subject_id' })
   subject: Subject;
 
   @ManyToOne(() => KnowledgePoint)
+  @JoinColumn({ name: 'knowledge_point_id' })
   knowledgePoint?: KnowledgePoint;
 }

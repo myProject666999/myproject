@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { User } from './user.entity';
 import { KnowledgePoint } from './knowledge-point.entity';
@@ -63,11 +63,14 @@ export class WeakPoint extends BaseEntity {
   resolvedAt?: Date;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'student_id' })
   student: User;
 
   @ManyToOne(() => KnowledgePoint)
+  @JoinColumn({ name: 'knowledge_point_id' })
   knowledgePoint: KnowledgePoint;
 
   @ManyToOne(() => Subject)
+  @JoinColumn({ name: 'subject_id' })
   subject: Subject;
 }

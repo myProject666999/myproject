@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { Subject } from './subject.entity';
 import { User } from './user.entity';
@@ -66,9 +66,11 @@ export class Question extends BaseEntity {
   correctRate?: number;
 
   @ManyToOne(() => Subject, (subject) => subject.questions)
+  @JoinColumn({ name: 'subject_id' })
   subject: Subject;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: 'creator_id' })
   creator: User;
 
   @OneToMany(() => QuestionKnowledge, (qk) => qk.question)
