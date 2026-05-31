@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.meeting.mapper.ReservationMapper">
+
+    <resultMap id="ReservationResultMap" type="com.meeting.entity.Reservation">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="room_id" property="roomId"/>
+        <result column="title" property="title"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <result column="attendees" property="attendees"/>
+        <result column="description" property="description"/>
+        <result column="remark" property="remark"/>
+        <result column="cancel_reason" property="cancelReason"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <select id="selectReservationPage" resultMap="ReservationResultMap">
+        SELECT r.*, m.name as room_name, m.code as room_code, m.location as room_location,
+               u.real_name as user_name
+        FROM reservation r
+        LEFT JOIN meeting_room m ON r.room_id = m.id
+        LEFT JOIN user u ON r.user_id = u.id
+        <where>
+            r.is_deleted = 0
+            <if test="query.roomId != null">
+                AND r.room_id = #{query.roomId}
+            </if>
+            <if test="query.userId != null">
+                AND r.user_id = #{query.userId}
+            </if>
+            <if test="query.startDate != null">
+                AND DATE(r.start_time) >= #{query.startDate}
+            </if>
+            <if test="query.endDate != null">
+                AND DATE(r.start_time) <= #{query.endDate}
+            </if>
+            <if test="query.status != null">
+                AND r.status = #{query.status}
+            </if>
+        </where>
+        ORDER BY r.start_time DESC
+    </select>
+</mapper>

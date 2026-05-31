@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.emojipack.mapper.CollectionMapper">
+
+    <resultMap id="CollectionResultMap" type="com.emojipack.entity.Collection">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="cover_url" property="coverUrl"/>
+        <result column="description" property="description"/>
+        <result column="user_id" property="userId"/>
+        <result column="material_count" property="materialCount"/>
+        <result column="favorite_count" property="favoriteCount"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="is_public" property="isPublic"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectPageWithDetail" resultMap="CollectionResultMap">
+        SELECT c.* FROM collection c
+        <where>
+            c.status = 1
+            <if test="keyword != null and keyword != ''">
+                AND c.title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="userId != null">
+                AND c.user_id = #{userId}
+            </if>
+            <if test="isPublic != null">
+                AND c.is_public = #{isPublic}
+            </if>
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+</mapper>

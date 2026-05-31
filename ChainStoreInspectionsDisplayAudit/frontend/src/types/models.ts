@@ -5,8 +5,10 @@ export interface User {
   email: string
   phone: string
   role: 'admin' | 'manager' | 'inspector'
+  department?: string
   avatar?: string
   status: number
+  lastLoginTime?: string
   createdAt: string
   updatedAt: string
 }
@@ -15,12 +17,15 @@ export interface Store {
   id: number
   name: string
   code: string
-  address: string
+  province?: string
   city: string
   district: string
+  address: string
+  longitude?: number
+  latitude?: number
   manager?: string
-  phone?: string
-  area?: number
+  managerPhone?: string
+  area?: string
   status: number
   createdAt: string
   updatedAt: string
@@ -30,8 +35,11 @@ export interface ChecklistTemplate {
   id: number
   name: string
   description?: string
+  type?: string
   category: string
   version: string
+  totalScore: number
+  passScore: number
   status: number
   creatorId: number
   createdAt: string
@@ -43,13 +51,17 @@ export interface ChecklistItem {
   id: number
   templateId: number
   parentId?: number
+  code?: string
   title: string
   description?: string
+  category?: string
   type: 'text' | 'select' | 'multiple' | 'boolean' | 'score'
   options?: string[]
   scoreWeight: number
   sortOrder: number
   required: boolean
+  needPhoto?: boolean
+  scoringStandard?: string
   createdAt: string
   updatedAt: string
 }
