@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @MapperScan("com.cashflow.mapper")
-public class CashFlowApplication {
+public class CashflowApplication {
     public static void main(String[] args) {
-        SpringApplication.run(CashFlowApplication.class, args);
+        SpringApplication.run(CashflowApplication.class, args);
     }
 }

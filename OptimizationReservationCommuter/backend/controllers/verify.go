@@ -34,7 +34,7 @@ func VerifyQRCode(c *gin.Context) {
 		return
 	}
 
-	if time.Now().After(reservation.QRExpireTime) {
+	if reservation.QRExpireTime == nil || time.Now().After(*reservation.QRExpireTime) {
 		tx.Rollback()
 		createVerifyRecord(tx, reservation.ID, reservation.EmployeeID, reservation.ScheduleID, input.StationID, 1, 0, "二维码已过期", input.DeviceInfo)
 		tx.Commit()

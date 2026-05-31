@@ -180,22 +180,68 @@
         </el-tab-pane>
       </el-tabs>
     </div>
+
+    <el-dialog v-model="routeDialogVisible" :title="isEditRoute ? '编辑线路' : '新增线路'" width="500px">
+      <el-form :model="routeForm" label-width="100px">
+        <el-form-item label="线路编号">
+          <el-input v-model="routeForm.route_no" :disabled="isEditRoute" />
+        </el-form-item>
+        <el-form-item label="线路名称">
+          <el-input v-model="routeForm.name" />
+        </el-form-item>
+        <el-form-item label="方向">
+          <el-select v-model="routeForm.direction" style="width: 100%">
+            <el-option label="上班" :value="1" />
+            <el-option label="下班" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="距离(km)">
+          <el-input-number v-model="routeForm.distance" :min="0" :precision="1" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="时长(分钟)">
+          <el-input-number v-model="routeForm.estimated_time" :min="0" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="routeForm.status" style="width: 100%">
+            <el-option label="启用" :value="1" />
+            <el-option label="停用" :value="0" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="routeDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveRoute" :loading="saving">保存</el-button>
+      </template>
+    </el-dialog>
   </Layout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Layout from '../components/Layout.vue'
 import api from '../utils/api'
 
 const activeTab = ref('routes')
 const loading = ref(false)
+const saving = ref(false)
 const routes = ref([])
 const stations = ref([])
 const shuttles = ref([])
 const schedules = ref([])
 const warnings = ref([])
+
+const routeDialogVisible = ref(false)
+const isEditRoute = ref(false)
+const routeForm = reactive({
+  id: null,
+  route_no: '',
+  name: '',
+  direction: 1,
+  distance: 0,
+  estimated_time: 0,
+  status: 1
+})
 
 async function loadRoutes() {
   loading.value = true
@@ -203,11 +249,7 @@ async function loadRoutes() {
     const res = await api.get('/routes')
     routes.value = res.data || []
   } catch (error) {
-    routes.value = [
-      { id: 1, route_no: 'ROUTE001', name: '市区上班1号线', direction: 1, distance: 15.5, estimated_time: 45, status: 1 },
-      { id: 2, route_no: 'ROUTE002', name: '市区上班2号线', direction: 1, distance: 20.0, estimated_time: 60, status: 1 },
-      { id: 3, route_no: 'ROUTE003', name: '市区下班1号线', direction: 2, distance: 15.5, estimated_time: 45, status: 1 }
-    ]
+    console.error('Load routes error:', error)
   } finally {
     loading.value = false
   }
@@ -218,10 +260,7 @@ async function loadStations() {
     const res = await api.get('/stations')
     stations.value = res.data || []
   } catch (error) {
-    stations.value = [
-      { id: 1, name: '市政府站', address: '市政府东门', longitude: 116.397, latitude: 39.908, status: 1 },
-      { id: 2, name: '科技园站', address: '科技园北门', longitude: 116.407, latitude: 39.918, status: 1 }
-    ]
+    console.error('Load stations error:', error)
   }
 }
 
@@ -230,10 +269,7 @@ async function loadShuttles() {
     const res = await api.get('/shuttles')
     shuttles.value = res.data || []
   } catch (error) {
-    shuttles.value = [
-      { id: 1, plate_no: '京A12345', capacity: 45, model: '宇通大巴', driver_name: '张师傅', driver_phone: '13800138001', status: 1 },
-      { id: 2, plate_no: '京A12346', capacity: 45, model: '宇通大巴', driver_name: '李师傅', driver_phone: '13800138002', status: 1 }
-    ]
+    console.error('Load shuttles error:', error)
   }
 }
 
@@ -242,10 +278,7 @@ async function loadSchedules() {
     const res = await api.get('/schedules')
     schedules.value = res.data || []
   } catch (error) {
-    schedules.value = [
-      { id: 1, schedule_no: 'SCH001', route: { name: '上班1号线' }, departure_date: '2024-01-15', departure_time: '07:30', booked_seats: 20, capacity: 45, status: 1 },
-      { id: 2, schedule_no: 'SCH002', route: { name: '上班2号线' }, departure_date: '2024-01-15', departure_time: '08:00', booked_seats: 42, capacity: 45, status: 2 }
-    ]
+    console.error('Load schedules error:', error)
   }
 }
 
@@ -254,18 +287,59 @@ async function loadWarnings() {
     const res = await api.get('/warnings')
     warnings.value = res.data || []
   } catch (error) {
-    warnings.value = [
-      { id: 1, warning_level: 2, schedule: { route: { name: '上班1号线' } }, current_booked: 42, capacity: 45, warning_time: '2024-01-15 10:30:00', is_handled: 0 }
-    ]
+    console.error('Load warnings error:', error)
   }
 }
 
 function openRouteDialog() {
-  ElMessage.info('新增线路功能')
+  isEditRoute.value = false
+  Object.assign(routeForm, {
+    id: null,
+    route_no: '',
+    name: '',
+    direction: 1,
+    distance: 0,
+    estimated_time: 0,
+    status: 1
+  })
+  routeDialogVisible.value = true
 }
 
 function editRoute(row) {
-  ElMessage.info('编辑线路: ' + row.name)
+  isEditRoute.value = true
+  Object.assign(routeForm, {
+    id: row.id,
+    route_no: row.route_no,
+    name: row.name,
+    direction: row.direction,
+    distance: row.distance,
+    estimated_time: row.estimated_time,
+    status: row.status
+  })
+  routeDialogVisible.value = true
+}
+
+async function saveRoute() {
+  if (!routeForm.name) {
+    ElMessage.warning('请输入线路名称')
+    return
+  }
+  saving.value = true
+  try {
+    if (isEditRoute.value) {
+      await api.put(`/routes/${routeForm.id}`, routeForm)
+      ElMessage.success('更新成功')
+    } else {
+      await api.post('/routes', routeForm)
+      ElMessage.success('创建成功')
+    }
+    routeDialogVisible.value = false
+    loadRoutes()
+  } catch (error) {
+    console.error('Save route error:', error)
+  } finally {
+    saving.value = false
+  }
 }
 
 function deleteRoute(row) {
@@ -273,18 +347,23 @@ function deleteRoute(row) {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    ElMessage.success('删除成功')
-    loadRoutes()
+  }).then(async () => {
+    try {
+      await api.delete(`/routes/${row.id}`)
+      ElMessage.success('删除成功')
+      loadRoutes()
+    } catch (error) {
+      console.error('Delete route error:', error)
+    }
   }).catch(() => {})
 }
 
 function openStationDialog() {
-  ElMessage.info('新增站点功能')
+  ElMessage.info('新增站点功能开发中')
 }
 
 function editStation(row) {
-  ElMessage.info('编辑站点: ' + row.name)
+  ElMessage.info('编辑站点功能开发中')
 }
 
 function deleteStation(row) {
@@ -299,11 +378,11 @@ function deleteStation(row) {
 }
 
 function openShuttleDialog() {
-  ElMessage.info('新增车辆功能')
+  ElMessage.info('新增车辆功能开发中')
 }
 
 function editShuttle(row) {
-  ElMessage.info('编辑车辆: ' + row.plate_no)
+  ElMessage.info('编辑车辆功能开发中')
 }
 
 function deleteShuttle(row) {
@@ -318,11 +397,11 @@ function deleteShuttle(row) {
 }
 
 function openScheduleDialog() {
-  ElMessage.info('新增班次功能')
+  ElMessage.info('新增班次功能开发中')
 }
 
 function editSchedule(row) {
-  ElMessage.info('编辑班次: ' + row.schedule_no)
+  ElMessage.info('编辑班次功能开发中')
 }
 
 function deleteSchedule(row) {

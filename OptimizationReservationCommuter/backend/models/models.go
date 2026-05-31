@@ -138,10 +138,10 @@ type Reservation struct {
 	BoardStationID int       `json:"board_station_id"`
 	ExitStationID  int       `json:"exit_station_id,omitempty"`
 	SeatNo         string    `gorm:"size:20" json:"seat_no,omitempty"`
-	QRToken        string    `gorm:"size:255" json:"qr_token,omitempty"`
-	QRExpireTime   time.Time `json:"qr_expire_time,omitempty"`
-	IsVerified     int       `gorm:"default:0" json:"is_verified"`
-	VerifyTime     time.Time `json:"verify_time,omitempty"`
+	QRToken        string     `gorm:"size:255" json:"qr_token,omitempty"`
+	QRExpireTime   *time.Time `json:"qr_expire_time,omitempty"`
+	IsVerified     int        `gorm:"default:0" json:"is_verified"`
+	VerifyTime     *time.Time `json:"verify_time,omitempty"`
 	VerifyStationID int      `json:"verify_station_id,omitempty"`
 	Status         int       `gorm:"default:1" json:"status"`
 	CancelReason   string    `gorm:"size:500" json:"cancel_reason,omitempty"`

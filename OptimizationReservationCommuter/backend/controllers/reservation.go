@@ -63,8 +63,16 @@ func CreateReservation(c *gin.Context) {
 		return
 	}
 
-	departureDatetime := fmt.Sprintf("%s %s", schedule.DepartureDate, schedule.DepartureTime)
-	departureTime, _ := time.ParseInLocation("2006-01-02 15:04:05", departureDatetime, time.Local)
+	dateStr := schedule.DepartureDate
+	if len(dateStr) >= 10 {
+		dateStr = dateStr[:10]
+	}
+	departureDatetime := fmt.Sprintf("%s %s", dateStr, schedule.DepartureTime)
+	departureTime, err := time.ParseInLocation("2006-01-02 15:04:05", departureDatetime, time.Local)
+	if err != nil {
+		utils.InternalError(c, "时间解析错误: "+err.Error())
+		return
+	}
 	if time.Now().Add(time.Duration(deadline) * time.Minute).After(departureTime) {
 		utils.BadRequest(c, "已超过预约截止时间")
 		return
@@ -128,7 +136,7 @@ func CreateReservation(c *gin.Context) {
 
 	if err := tx.Create(&reservation).Error; err != nil {
 		tx.Rollback()
-		utils.InternalError(c, "创建预约失败")
+		utils.InternalError(c, "创建预约失败: "+err.Error())
 		return
 	}
 

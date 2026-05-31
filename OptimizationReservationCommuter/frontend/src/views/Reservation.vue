@@ -148,7 +148,7 @@ import { useUserStore } from '../stores/user'
 const userStore = useUserStore()
 const loading = ref(false)
 const booking = ref(false)
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+const selectedDate = ref('2026-06-01')
 const selectedRoute = ref(0)
 const schedules = ref([])
 const myReservations = ref([])

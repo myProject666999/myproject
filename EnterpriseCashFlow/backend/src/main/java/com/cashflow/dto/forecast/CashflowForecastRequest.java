@@ -1,11 +1,8 @@
 package com.cashflow.dto.forecast;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-@Data
 public class CashflowForecastRequest {
 
     @NotNull(message = "公司ID不能为空")
@@ -17,4 +14,36 @@ public class CashflowForecastRequest {
     private ScenarioParams scenarioParams;
 
     private List<Long> accountIds;
+
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
+    }
+
+    public Integer getHorizonDays() {
+        return horizonDays;
+    }
+
+    public void setHorizonDays(Integer horizonDays) {
+        this.horizonDays = horizonDays;
+    }
+
+    public ScenarioParams getScenarioParams() {
+        return scenarioParams;
+    }
+
+    public void setScenarioParams(ScenarioParams scenarioParams) {
+        this.scenarioParams = scenarioParams;
+    }
+
+    public List<Long> getAccountIds() {
+        return accountIds;
+    }
+
+    public void setAccountIds(List<Long> accountIds) {
+        this.accountIds = accountIds;
+    }
 }
