@@ -193,7 +193,7 @@ CREATE TABLE access_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO users (username, email, password_hash) VALUES 
-('admin', 'admin@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy');
+('admin', 'admin@example.com', '$2a$10$5NLb1xjdx.a2xc1irc.thOPWPb/T65HSSC2viOr1rsi1LdYW0fKOG');
 
 INSERT INTO teams (name, description, created_by) VALUES 
 ('默认团队', '系统默认团队', 1);

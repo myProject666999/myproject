@@ -12,8 +12,8 @@ export interface PageResult<T = any> {
 }
 
 export interface PageQuery {
-  current?: number
-  size?: number
+  pageNum?: number
+  pageSize?: number
   keyword?: string
 }
 

@@ -213,6 +213,16 @@ const currentCheckId = ref<number | null>(null)
 const summary = ref<any>(null)
 const trendData = ref<any>(null)
 let unsubscribe: (() => void) | null = null
+let refreshTimer: ReturnType<typeof setTimeout> | null = null
+
+function debouncedRefresh() {
+  if (refreshTimer) clearTimeout(refreshTimer)
+  refreshTimer = setTimeout(() => {
+    fetchHealthList()
+    fetchSummary()
+    fetchTrend()
+  }, 3000)
+}
 
 const pagination = reactive({
   current: 1,
@@ -426,9 +436,7 @@ function handleHistoryPageChange(page: number) {
 
 function handleWebSocketMessage(message: any) {
   if (message.type === 'HEALTH_CHECK_RESULT' || message.type === 'HEALTH_ALERT') {
-    fetchHealthList()
-    fetchSummary()
-    fetchTrend()
+    debouncedRefresh()
   }
 }
 
@@ -444,6 +452,10 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubscribe) {
     unsubscribe()
+  }
+  if (refreshTimer) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
   }
 })
 </script>

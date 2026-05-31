@@ -4,9 +4,9 @@
       <span class="page-title">审计日志</span>
     </div>
 
-    <el-form :inline="true" class="search-bar" size="small">
+    <el-form :inline="true" class="search-bar" size="default">
       <el-form-item label="模块">
-        <el-select v-model="queryParams.module" placeholder="请选择" clearable>
+        <el-select v-model="queryParams.module" placeholder="请选择模块" clearable style="width: 160px;">
           <el-option label="工单管理" value="order" />
           <el-option label="评审管理" value="review" />
           <el-option label="执行管理" value="execution" />
@@ -14,13 +14,15 @@
         </el-select>
       </el-form-item>
       <el-form-item label="操作类型">
-        <el-select v-model="queryParams.operation" placeholder="请选择" clearable>
+        <el-select v-model="queryParams.operation" placeholder="请选择操作类型" clearable style="width: 160px;">
           <el-option label="创建" value="create" />
           <el-option label="更新" value="update" />
           <el-option label="删除" value="delete" />
           <el-option label="评审" value="review" />
           <el-option label="执行" value="execute" />
+          <el-option label="回滚" value="rollback" />
           <el-option label="取消" value="cancel" />
+          <el-option label="提交" value="submit" />
         </el-select>
       </el-form-item>
       <el-form-item>

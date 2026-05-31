@@ -9,5 +9,5 @@ export function register(data) {
 }
 
 export function getUserInfo() {
-  return request.get('/auth/user-info')
+  return request.get('/auth/info')
 }

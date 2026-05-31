@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/mysql"
@@ -21,6 +22,28 @@ func InitMySQL(cfg config.MySQLConfig) {
 	if err != nil {
 		log.Fatalf("failed to connect mysql: %v", err)
 	}
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatalf("failed to get sql db: %v", err)
+	}
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := sqlDB.Ping(); err != nil {
+				log.Printf("mysql connection lost, reconnecting...")
+				newDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+				if err == nil {
+					DB = newDB
+					log.Println("mysql reconnected")
+				}
+			}
+		}
+	}()
 	log.Println("mysql connected")
 }
 

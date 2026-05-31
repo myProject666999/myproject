@@ -1,9 +1,21 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import type { Result } from '@/types'
 
+let lastErrorMessage = ''
+let lastErrorTime = 0
+
+function showError(message: string) {
+  const now = Date.now()
+  if (message === lastErrorMessage && now - lastErrorTime < 3000) {
+    return
+  }
+  lastErrorMessage = message
+  lastErrorTime = now
+  ElMessage.error(message)
+}
+
 const service: AxiosInstance = axios.create({
-  baseURL: '/api',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json;charset=utf-8'
@@ -33,48 +45,33 @@ service.interceptors.response.use(
     }
     
     if (res.code === 401) {
-      ElMessageBox.confirm('登录状态已过期，请重新登录', '系统提示', {
-        confirmButtonText: '重新登录',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        localStorage.removeItem('token')
-        location.reload()
-      }).catch(() => {})
+      showError('登录状态已过期，请重新登录')
       return Promise.reject(new Error(res.message || '未授权'))
     }
     
-    if (res.code === 403) {
-      ElMessage.error('没有权限访问该资源')
-      return Promise.reject(new Error(res.message || '禁止访问'))
-    }
-    
-    ElMessage.error(res.message || '请求失败')
+    showError(res.message || '请求失败')
     return Promise.reject(new Error(res.message || '请求失败'))
   },
   (error) => {
     console.error('Response error:', error)
-    let message = '网络连接失败，请稍后重试'
+    let message = '网络连接失败'
     
     if (error.response) {
       switch (error.response.status) {
         case 404:
-          message = '请求的资源不存在'
-          break
+          console.warn('API not found:', error.config?.url)
+          return Promise.reject(error)
         case 500:
           message = '服务器内部错误'
           break
-        case 503:
-          message = '服务暂时不可用'
-          break
         default:
-          message = error.response.data?.message || `请求失败(${error.response.status})`
+          message = `请求失败(${error.response.status})`
       }
     } else if (error.code === 'ECONNABORTED') {
-      message = '请求超时，请稍后重试'
+      message = '请求超时'
     }
     
-    ElMessage.error(message)
+    showError(message)
     return Promise.reject(error)
   }
 )

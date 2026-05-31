@@ -1,58 +1,58 @@
 import { get, post, put, del } from '@/utils/request'
 import type { GrayRelease, GrayUser, PageQuery } from '@/types'
 
-export function getGrayList(params?: PageQuery & { status?: number; appId?: number }) {
-  return get('/gray/list', params)
+export function getGrayList(params?: PageQuery & { status?: number; appId?: number; keyword?: string }) {
+  return get('/api/gray/page', params)
 }
 
 export function getGrayDetail(id: number) {
-  return get<GrayRelease>(`/gray/${id}`)
+  return get<GrayRelease>(`/api/gray/${id}`)
 }
 
 export function createGray(data: any) {
-  return post('/gray', data)
+  return post('/api/gray', data)
 }
 
 export function updateGray(id: number, data: Partial<GrayRelease>) {
-  return put(`/gray/${id}`, data)
+  return put('/api/gray', { ...data, id })
 }
 
 export function deleteGray(id: number) {
-  return del(`/gray/${id}`)
+  return del(`/api/gray/${id}`)
 }
 
 export function startGray(id: number) {
-  return put(`/gray/${id}/start`)
+  return post(`/api/gray/start/${id}`)
 }
 
 export function pauseGray(id: number) {
-  return put(`/gray/${id}/pause`)
+  return post(`/api/gray/pause/${id}`)
 }
 
 export function fullGray(id: number) {
-  return put(`/gray/${id}/full`)
+  return post(`/api/gray/full/${id}`)
 }
 
 export function rollbackGray(id: number) {
-  return put(`/gray/${id}/rollback`)
+  return post(`/api/gray/rollback/${id}`)
 }
 
 export function getGrayUsers(grayId: number, params?: PageQuery) {
-  return get(`/gray/${grayId}/users`, params)
+  return get(`/api/gray/${grayId}/users`, params)
 }
 
 export function addGrayUsers(grayId: number, userIds: string[]) {
-  return post(`/gray/${grayId}/users`, { userIds })
+  return post(`/api/gray/${grayId}/users`, { userIds })
 }
 
 export function removeGrayUser(id: number) {
-  return del(`/gray/user/${id}`)
+  return del(`/api/gray/user/${id}`)
 }
 
 export function getGrayStatistics(id: number) {
-  return get(`/gray/${id}/statistics`)
+  return get(`/api/gray/${id}`)
 }
 
 export function updateGrayRule(id: number, ruleConfig: string) {
-  return put(`/gray/${id}/rule`, { ruleConfig })
+  return put('/api/gray', { id, ruleConfig })
 }

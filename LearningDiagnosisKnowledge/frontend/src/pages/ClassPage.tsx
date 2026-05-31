@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Space, Typography, Tag, Select, Empty, Spin, Statistic, Row, Col, Progress, Tooltip } from 'antd';
-import { TeamOutlined, BarChartOutlined, FileTextOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Space, Typography, Tag, Select, Empty, Spin, Statistic, Row, Col, Progress, Tooltip, Modal, message } from 'antd';
+import { TeamOutlined, BarChartOutlined, FileTextOutlined, DownloadOutlined, EyeOutlined } from '@ant-design/icons';
 import { Column } from '@ant-design/charts';
 import { useAuth } from '../contexts/AuthContext';
-import { classApi, reportApi } from '../services';
+import { classApi, reportApi, exportApi } from '../services';
 import type { ClassEntity, LearningReport } from '../types';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 
 export default function ClassPage() {
@@ -16,6 +16,8 @@ export default function ClassPage() {
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [statistics, setStatistics] = useState<any>(null);
   const [reports, setReports] = useState<LearningReport[]>([]);
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<LearningReport | null>(null);
 
   useEffect(() => {
     loadClasses();
@@ -65,9 +67,35 @@ export default function ClassPage() {
         type: 'class_overall',
         classId: selectedClass,
       });
+      message.success('报告生成成功');
       loadClassData();
-    } catch (error) {
-      console.error('生成报告失败', error);
+    } catch (error: any) {
+      message.error(error || '生成报告失败');
+    }
+  };
+
+  const handleViewReport = async (report: LearningReport) => {
+    try {
+      const detail = await reportApi.get(report.id);
+      setSelectedReport(detail);
+      setDetailVisible(true);
+    } catch (error: any) {
+      message.error(error || '获取报告详情失败');
+    }
+  };
+
+  const handleExportReport = async (report: LearningReport) => {
+    try {
+      const params: any = {
+        type: 'class_report',
+        format: 'pdf',
+        classId: Number(selectedClass),
+        subjectId: report.subjectId ? Number(report.subjectId) : undefined,
+      };
+      await exportApi.create(params);
+      message.success('导出任务已创建');
+    } catch (error: any) {
+      message.error(error || '导出失败');
     }
   };
 
@@ -256,8 +284,8 @@ export default function ClassPage() {
                   key: 'actions',
                   render: (_: any, record: LearningReport) => (
                     <Space>
-                      <Button size="small" type="link">查看</Button>
-                      <Button size="small" type="link" icon={<DownloadOutlined />}>导出</Button>
+                      <Button size="small" type="link" icon={<EyeOutlined />} onClick={() => handleViewReport(record)}>查看</Button>
+                      <Button size="small" type="link" icon={<DownloadOutlined />} onClick={() => handleExportReport(record)}>导出</Button>
                     </Space>
                   ),
                 },
@@ -267,6 +295,58 @@ export default function ClassPage() {
               pagination={{ pageSize: 5 }}
             />
           </Card>
+
+          <Modal
+            title="报告详情"
+            open={detailVisible}
+            onCancel={() => setDetailVisible(false)}
+            footer={[
+              <Button key="close" onClick={() => setDetailVisible(false)}>关闭</Button>,
+              <Button key="export" type="primary" onClick={() => selectedReport && handleExportReport(selectedReport)}>
+                导出报告
+              </Button>,
+            ]}
+            width={700}
+          >
+            {selectedReport && (
+              <div>
+                <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                  <Card size="small" title="学情概览">
+                    <Row gutter={16}>
+                      <Col span={8}>
+                        <Statistic
+                          title="知识点总数"
+                          value={selectedReport.content?.overview?.totalKnowledgePoints || 0}
+                        />
+                      </Col>
+                      <Col span={8}>
+                        <Statistic
+                          title="已掌握"
+                          value={selectedReport.content?.overview?.masteredCount || 0}
+                          valueStyle={{ color: '#52c41a' }}
+                        />
+                      </Col>
+                      <Col span={8}>
+                        <Statistic
+                          title="薄弱点"
+                          value={selectedReport.content?.overview?.weakPointsCount || 0}
+                          valueStyle={{ color: '#fa8c16' }}
+                        />
+                      </Col>
+                    </Row>
+                  </Card>
+
+                  <Card size="small" title="学习建议">
+                    <ul>
+                      {(selectedReport.content?.suggestions || []).map((s: string, i: number) => (
+                        <li key={i}>{s}</li>
+                      ))}
+                    </ul>
+                  </Card>
+                </Space>
+              </div>
+            )}
+          </Modal>
         </>
       )}
     </div>

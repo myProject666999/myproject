@@ -103,7 +103,7 @@ func aggregateMetrics(metrics []model.Metric) model.Metric {
 	}
 
 	first := metrics[0]
-	last := metrics[len(metrics)-1]
+	_ = metrics[len(metrics)-1]
 
 	var totalQPS, totalAvgRT, totalP50, totalP95, totalP99 int
 	var totalSuccess, totalError, totalBytes int64

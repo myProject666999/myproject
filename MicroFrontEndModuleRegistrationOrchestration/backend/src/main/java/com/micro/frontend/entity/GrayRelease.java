@@ -9,7 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("gray_release")
+@TableName(value = "gray_release")
 public class GrayRelease {
 
     @TableId(type = IdType.AUTO)

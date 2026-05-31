@@ -22,8 +22,8 @@ request.interceptors.response.use(
   (response) => response.data,
   (error) => {
     if (error.response) {
-      const { status, data } = error.response
-      if (status === 401) {
+      const { status, data, config } = error.response
+      if (status === 401 && !config.url.includes('/auth/login')) {
         localStorage.removeItem('token')
         localStorage.removeItem('userInfo')
         router.push('/login')

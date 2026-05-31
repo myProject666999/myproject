@@ -97,7 +97,7 @@ export class ExportService {
     expiresAt.setDate(expiresAt.getDate() + this.EXPIRE_DAYS);
 
     const exportRecord = this.exportRecordRepository.create({
-      requesterId: user.id,
+      requesterId: Number(user.id),
       type: dto.type,
       format: dto.format,
       parameters: {
@@ -204,7 +204,7 @@ export class ExportService {
   ): Promise<PaginationResult<ExportRecord>> {
     const where: FindOptionsWhere<ExportRecord> = {};
     if (user.role !== UserRole.ADMIN) {
-      where.requesterId = user.id;
+      where.requesterId = Number(user.id);
     }
 
     const [list, total] = await this.exportRecordRepository.findAndCount({
@@ -228,7 +228,7 @@ export class ExportService {
       throw new NotFoundException('导出记录不存在');
     }
 
-    if (user.role !== UserRole.ADMIN && record.requesterId !== user.id) {
+    if (user.role !== UserRole.ADMIN && Number(record.requesterId) !== Number(user.id)) {
       throw new ForbiddenException('无权访问该导出记录');
     }
 

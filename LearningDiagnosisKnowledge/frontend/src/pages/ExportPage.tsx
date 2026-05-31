@@ -62,9 +62,14 @@ export default function ExportPage() {
     }
   };
 
-  const handleDownload = (record: ExportRecord) => {
+  const handleDownload = async (record: ExportRecord) => {
     if (record.status === 'completed') {
-      exportApi.download(record.id);
+      try {
+        await exportApi.download(record.id);
+        message.success('下载成功');
+      } catch (error: any) {
+        message.error(error || '下载失败');
+      }
     } else {
       message.info('导出尚未完成，请稍候...');
     }

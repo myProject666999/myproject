@@ -25,13 +25,12 @@
     </resultMap>
 
     <select id="selectByGrayNo" resultMap="BaseResultMap">
-        SELECT * FROM gray_release WHERE gray_no = #{grayNo} AND deleted = 0
+        SELECT * FROM gray_release WHERE gray_no = #{grayNo}
     </select>
 
     <select id="selectList" resultMap="BaseResultMap">
         SELECT * FROM gray_release
         <where>
-            deleted = 0
             <if test="status != null">AND status = #{status}</if>
             <if test="keyword != null and keyword != ''">AND (gray_no LIKE CONCAT('%', #{keyword}, '%') OR gray_type LIKE CONCAT('%', #{keyword}, '%'))</if>
         </where>
@@ -42,7 +41,6 @@
     <select id="selectCount" resultType="java.lang.Long">
         SELECT COUNT(*) FROM gray_release
         <where>
-            deleted = 0
             <if test="status != null">AND status = #{status}</if>
             <if test="keyword != null and keyword != ''">AND (gray_no LIKE CONCAT('%', #{keyword}, '%') OR gray_type LIKE CONCAT('%', #{keyword}, '%'))</if>
         </where>
@@ -50,7 +48,7 @@
 
     <select id="selectActiveGray" resultMap="BaseResultMap">
         SELECT * FROM gray_release
-        WHERE app_id = #{appId} AND status IN (0, 1, 2) AND deleted = 0
+        WHERE app_id = #{appId} AND status IN (0, 1, 2)
         ORDER BY created_at DESC
         LIMIT 1
     </select>

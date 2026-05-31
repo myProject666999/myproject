@@ -28,8 +28,8 @@ func SetupRouter() *gin.Engine {
 		restaurant := api.Group("/restaurant")
 		{
 			restaurant.GET("", handlers.GetRestaurants)
+			restaurant.GET("/:id/table-types", handlers.GetTableTypes)
 			restaurant.GET("/:id", handlers.GetRestaurantDetail)
-			restaurant.GET("/:restaurant_id/table-types", handlers.GetTableTypes)
 		}
 
 		queue := api.Group("/queue")

@@ -92,7 +92,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { createOrder, updateOrder, submitForReview, getOrderDetail, getOrderSqlList } from '@/api/order'
+import { createOrder, updateOrder, submitForReview as submitReviewApi, getOrderDetail, getOrderSqlList } from '@/api/order'
 
 const router = useRouter()
 const route = useRoute()
@@ -137,10 +137,30 @@ const saveDraft = async () => {
 }
 
 const submitReview = async () => {
-  saveDraft().then(async () => {
+  try {
+    const sqlList = parseSql(sqlContent.value)
+    if (sqlList.length === 0) {
+      ElMessage.warning('请输入SQL内容')
+      return
+    }
+    form.sqlList = sqlList
+
+    let orderId
+    if (isEdit.value) {
+      form.id = orderId.value
+      await updateOrder(form)
+      orderId = orderId.value
+    } else {
+      const res = await createOrder(form)
+      orderId = res.data.id
+    }
+    
+    await submitReviewApi(orderId)
     ElMessage.success('提交评审成功')
     router.push('/order/list')
-  })
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const parseSql = (content) => {

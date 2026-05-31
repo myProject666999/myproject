@@ -1,0 +1,20 @@
+{
+  "student": {
+    "id": "4",
+    "createdAt": "2026-05-30T05:22:48.000Z",
+    "updatedAt": "2026-05-31T10:46:52.000Z",
+    "deletedAt": null,
+    "username": "student1",
+    "password": "$2b$10$u0Bv3iYjeGFaCeBbl6XqOeg7Ujv0EBz4OQ340p3oclp0DB5Pqsn5e",
+    "realName": "学生小明",
+    "email": "student1@example.com",
+    "phone": null,
+    "avatar": null,
+    "role": "student",
+    "status": 1,
+    "lastLoginAt": "2026-05-31T10:46:52.000Z"
+  },
+  "masteryData": [],
+  "weakPoints": [],
+  "subjectId": 1
+}

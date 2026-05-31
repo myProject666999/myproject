@@ -25,9 +25,8 @@ public class HealthCheckTask {
     @Autowired
     private WebSocketPushService webSocketPushService;
 
-    @Scheduled(fixedDelay = 10000, initialDelay = 30000)
+    @Scheduled(fixedDelay = 60000, initialDelay = 60000)
     public void executeHealthCheck() {
-        log.info("开始执行健康检查定时任务...");
         try {
             List<HealthCheck> checks = healthCheckService.getActiveChecks();
             log.info("待检查应用数量: {}", checks.size());

@@ -16,13 +16,11 @@ public interface HealthCheckMapper extends BaseMapper<HealthCheck> {
 
     List<HealthCheck> selectActiveChecks();
 
-    List<HealthCheck> selectList(PageQueryDTO query);
+    List<HealthCheck> selectPageList(PageQueryDTO query);
 
-    Long selectCount(PageQueryDTO query);
+    Long selectPageCount(PageQueryDTO query);
 
     Integer selectStatusCount(@Param("healthStatus") Integer healthStatus);
-
-    List<HealthCheck> selectAll();
 
     int updateLastCheckResult(@Param("id") Long id, @Param("lastCheckTime") LocalDateTime lastCheckTime,
                                @Param("lastCheckResult") String lastCheckResult, @Param("lastResponseTime") Integer lastResponseTime);

@@ -43,7 +43,9 @@ public class HealthCheckServiceImpl implements IHealthCheckService {
 
     @Override
     public List<HealthCheck> list() {
-        return healthCheckMapper.selectAll();
+        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<HealthCheck> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
+        return healthCheckMapper.selectList(wrapper);
     }
 
     @Override

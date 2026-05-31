@@ -1,5 +1,35 @@
 import api from './api';
+import axios from 'axios';
 import type { User, Subject, KnowledgePoint, KnowledgeMastery, WeakPoint, Recommendation, LearningReport, ClassEntity, ExportRecord, PaginationResult } from '../types';
+
+const downloadApi = axios.create({
+  baseURL: '/api',
+  timeout: 30000,
+  responseType: 'blob',
+});
+
+downloadApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+downloadApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authApi = {
   login: (data: { username: string; password: string }) =>
@@ -102,8 +132,20 @@ export const exportApi = {
   get: (id: string) => api.get<any, ExportRecord>(`/exports/${id}`),
   create: (data: { type: string; format: string; filters?: any }) =>
     api.post<any, ExportRecord>('/exports', data),
-  download: (id: string) => {
-    window.open(`/api/exports/${id}/download`, '_blank');
+  download: async (id: string) => {
+    const response = await downloadApi.get(`/exports/${id}/download`);
+    const disposition = response.headers['content-disposition'] || '';
+    const filenameMatch = disposition.match(/filename\*=UTF-8''(.+?)(?:;|$)/);
+    const filename = filenameMatch ? decodeURIComponent(filenameMatch[1]) : `export_${id}.dat`;
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   },
   delete: (id: string) => api.delete(`/exports/${id}`),
 };

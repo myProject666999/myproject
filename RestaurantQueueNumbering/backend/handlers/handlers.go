@@ -7,7 +7,6 @@ import (
 	"restaurant-queue/services"
 	"restaurant-queue/websocket"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -56,7 +55,7 @@ func GetRestaurantDetail(c *gin.Context) {
 	database.DB.Where("restaurant_id = ?", id).First(&settings)
 
 	queueService := services.NewQueueService()
-	queueInfo := make(map[string]interface{}{}
+	queueInfo := make(map[string]interface{})
 	for _, tt := range tableTypes {
 		length, _ := queueService.GetQueueLength(id, tt.QueuePrefix)
 		queueInfo[tt.QueuePrefix] = map[string]interface{}{
@@ -74,7 +73,7 @@ func GetRestaurantDetail(c *gin.Context) {
 }
 
 func GetTableTypes(c *gin.Context) {
-	restaurantID, _ := strconv.ParseUint(c.Param("restaurant_id"), 10, 64)
+	restaurantID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	var tableTypes []models.TableType
 	database.DB.Where("restaurant_id = ? AND status = 1", restaurantID).Order("sort_order ASC").Find(&tableTypes)

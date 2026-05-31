@@ -1,5 +1,4 @@
 import { ref } from 'vue'
-import SockJS from 'sockjs-client'
 import { Client, IMessage } from '@stomp/stompjs'
 import type { WebSocketMessage } from '@/types'
 import { ElMessage } from 'element-plus'
@@ -7,7 +6,7 @@ import { ElMessage } from 'element-plus'
 let stompClient: Client | null = null
 const isConnected = ref(false)
 const reconnectAttempts = ref(0)
-const maxReconnectAttempts = 10
+const maxReconnectAttempts = 5
 
 type MessageHandler = (message: WebSocketMessage) => void
 
@@ -30,33 +29,20 @@ function handleMessage(frame: IMessage) {
     if (handlers) {
       handlers.forEach((handler) => handler(message))
     }
-    
-    if (message.type === 'CONFIG_CHANGED') {
-      ElMessage.info(`配置已更新: ${message.data?.configKey || ''}`)
-    } else if (message.type === 'APP_STATUS_CHANGED') {
-      const statusText = message.data?.status === 1 ? '上线' : '下线'
-      ElMessage.info(`应用【${message.data?.appName}】已${statusText}`)
-    } else if (message.type === 'HEALTH_ALERT') {
-      if (message.data?.healthStatus === 0) {
-        ElMessage.warning(`应用【${message.data?.appCode}】健康检查异常`)
-      }
-    } else if (message.type === 'PUBLISH_PROGRESS') {
-      ElMessage.info(`发布进度: ${message.data?.progress}%`)
-    }
   } catch (error) {
     console.error('Failed to parse WebSocket message:', error)
   }
 }
 
 export function initWebSocket() {
-  if (stompClient && isConnected.value) {
+  if (stompClient && stompClient.active) {
     return
   }
 
-  const socket = new SockJS('/ws/ws-endpoint')
-  
+  disconnectWebSocket()
+
   stompClient = new Client({
-    webSocketFactory: () => socket,
+    brokerURL: `ws://${window.location.host}/ws/ws-endpoint`,
     reconnectDelay: 5000,
     heartbeatIncoming: 10000,
     heartbeatOutgoing: 10000,
@@ -73,24 +59,21 @@ export function initWebSocket() {
     },
     onStompError: (frame) => {
       console.error('WebSocket error:', frame)
-      ElMessage.error('WebSocket连接异常')
     },
     onDisconnect: () => {
       console.log('WebSocket disconnected')
       isConnected.value = false
-      
-      if (reconnectAttempts.value < maxReconnectAttempts) {
-        reconnectAttempts.value++
-        console.log(`Reconnecting... attempt ${reconnectAttempts.value}`)
-      } else {
-        ElMessage.warning('WebSocket重连次数已达上限，请刷新页面重试')
-      }
     },
-    onWebSocketError: (error) => {
-      console.error('WebSocket transport error:', error)
+    onWebSocketError: () => {
+      isConnected.value = false
     },
     onWebSocketClose: () => {
       isConnected.value = false
+      reconnectAttempts.value++
+      if (reconnectAttempts.value > maxReconnectAttempts) {
+        stompClient?.deactivate()
+        ElMessage.warning('WebSocket连接失败，请稍后刷新页面重试')
+      }
     }
   })
 
@@ -99,11 +82,15 @@ export function initWebSocket() {
 
 export function disconnectWebSocket() {
   if (stompClient) {
-    stompClient.deactivate()
+    try {
+      stompClient.deactivate()
+    } catch (e) {
+      // ignore
+    }
     stompClient = null
-    isConnected.value = false
-    console.log('WebSocket disconnected manually')
   }
+  isConnected.value = false
+  reconnectAttempts.value = 0
 }
 
 export function subscribe(topic: string, handler: MessageHandler): () => void {
@@ -128,8 +115,6 @@ export function send(destination: string, data: any) {
       destination,
       body: JSON.stringify(data)
     })
-  } else {
-    ElMessage.warning('WebSocket未连接，请稍后重试')
   }
 }
 

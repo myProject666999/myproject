@@ -13,7 +13,7 @@ import (
 
 type RegisterReq struct {
 	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required,min=6)"`
+	Password string `json:"password" binding:"required,min=6"`
 	RealName string `json:"real_name"`
 	Phone    string `json:"phone"`
 	Email    string `json:"email"`

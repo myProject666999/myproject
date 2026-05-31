@@ -32,7 +32,7 @@
         SELECT * FROM health_check WHERE status = 1
     </select>
 
-    <select id="selectList" resultMap="BaseResultMap">
+    <select id="selectPageList" resultMap="BaseResultMap">
         SELECT * FROM health_check
         <where>
             <if test="status != null">AND status = #{status}</if>
@@ -42,7 +42,7 @@
         LIMIT #{offset}, #{pageSize}
     </select>
 
-    <select id="selectCount" resultType="java.lang.Long">
+    <select id="selectPageCount" resultType="java.lang.Long">
         SELECT COUNT(*) FROM health_check
         <where>
             <if test="status != null">AND status = #{status}</if>

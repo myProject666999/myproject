@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { MicroApp, AppVersion, AppDependency, PageQuery, PageResult } from '@/types'
+import type { MicroApp, AppVersion, AppDependency } from '@/types'
 import * as appApi from '@/api/app'
 
 export const useAppStore = defineStore('app', () => {
@@ -19,18 +19,23 @@ export const useAppStore = defineStore('app', () => {
   const offlineCount = computed(() => apps.value.filter(a => a.status === 0).length)
   const maintenanceCount = computed(() => apps.value.filter(a => a.status === 2).length)
 
-  async function fetchApps(query?: PageQuery) {
+  async function fetchApps(query?: { keyword?: string; status?: number }) {
     loading.value = true
     try {
       const result = await appApi.getAppList({
-        current: pagination.value.current,
-        size: pagination.value.size,
+        pageNum: pagination.value.current,
+        pageSize: pagination.value.size,
         ...query
-      }) as PageResult<MicroApp>
-      apps.value = result.records
-      pagination.value.total = result.total
-      pagination.value.current = result.current
-      pagination.value.size = result.size
+      }) as any
+      if (Array.isArray(result)) {
+        apps.value = result
+        pagination.value.total = result.length
+      } else if (result && result.records) {
+        apps.value = result.records
+        pagination.value.total = result.total || result.records.length
+      }
+    } catch (e) {
+      console.error('fetchApps error:', e)
     } finally {
       loading.value = false
     }
