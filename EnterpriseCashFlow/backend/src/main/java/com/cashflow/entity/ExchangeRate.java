@@ -21,16 +21,8 @@ public class ExchangeRate implements Serializable {
 
     private BigDecimal rate;
 
-    private LocalDate rateDate;
-
-    private String source;
+    private LocalDate effectiveDate;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updatedAt;
-
-    @TableLogic
-    private Integer isDeleted;
 }

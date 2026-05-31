@@ -2,42 +2,28 @@ package com.cashflow.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
 @TableName("payable")
-public class Payable implements Serializable {
-
+public class Payable {
     @TableId(type = IdType.AUTO)
     private Long id;
-
-    private Long companyId;
-
-    private String counterparty;
-
+    private String supplierName;
     private Long amount;
-
     private String currency;
-
     private LocalDate dueDate;
-
-    private Integer status;
-
-    private LocalDate paidDate;
-
+    private String status;
     private Long paidAmount;
-
     private String description;
+
+    @TableLogic
+    private Integer isDeleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
-
-    @TableLogic
-    private Integer isDeleted;
 }

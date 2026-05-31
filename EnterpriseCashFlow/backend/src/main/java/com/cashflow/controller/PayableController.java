@@ -6,8 +6,11 @@ import com.cashflow.entity.Payable;
 import com.cashflow.service.PayableService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/payables")
+@RequestMapping("/payables")
+@CrossOrigin
 public class PayableController {
 
     private final PayableService payableService;
@@ -20,18 +23,18 @@ public class PayableController {
     public Result<IPage<Payable>> page(@RequestParam(defaultValue = "1") int current,
                                        @RequestParam(defaultValue = "10") int size,
                                        @RequestParam(required = false) String keyword,
-                                       @RequestParam(required = false) Integer status) {
+                                       @RequestParam(required = false) String status) {
         return Result.success(payableService.pageList(current, size, keyword, status));
+    }
+
+    @GetMapping("/statistics")
+    public Result<Map<String, Object>> statistics() {
+        return Result.success(payableService.getStatistics());
     }
 
     @GetMapping("/{id}")
     public Result<Payable> getById(@PathVariable Long id) {
         return Result.success(payableService.getById(id));
-    }
-
-    @GetMapping("/pending/{companyId}")
-    public Result<Long> totalPending(@PathVariable Long companyId) {
-        return Result.success(payableService.getTotalPending(companyId));
     }
 
     @PostMapping
@@ -46,7 +49,15 @@ public class PayableController {
 
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        payableService.removeById(id);
+        payableService.deletePayable(id);
+        return Result.success();
+    }
+
+    @PostMapping("/{id}/confirm")
+    public Result<Void> confirmPayment(@PathVariable Long id,
+                                       @RequestParam Long amount,
+                                       @RequestParam Long accountId) {
+        payableService.confirmPayment(id, amount, accountId);
         return Result.success();
     }
 }

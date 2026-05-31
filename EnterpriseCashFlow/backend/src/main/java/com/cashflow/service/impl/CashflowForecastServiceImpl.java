@@ -1,17 +1,14 @@
 package com.cashflow.service.impl;
 
-import com.cashflow.dto.forecast.CashflowForecastRequest;
 import com.cashflow.dto.forecast.DailyCashflow;
 import com.cashflow.dto.forecast.ForecastResult;
 import com.cashflow.dto.forecast.ScenarioParams;
 import com.cashflow.entity.Account;
 import com.cashflow.entity.Payable;
 import com.cashflow.entity.Receivable;
-import com.cashflow.service.AccountService;
-import com.cashflow.service.CashflowForecastService;
-import com.cashflow.service.PayableService;
-import com.cashflow.service.ReceivableService;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.cashflow.mapper.AccountMapper;
+import com.cashflow.service.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -19,145 +16,149 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 public class CashflowForecastServiceImpl implements CashflowForecastService {
 
-    private final AccountService accountService;
-    private final ReceivableService receivableService;
-    private final PayableService payableService;
-    private final RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private AccountService accountService;
 
-    public CashflowForecastServiceImpl(AccountService accountService,
-                                       ReceivableService receivableService,
-                                       PayableService payableService,
-                                       RedisTemplate<String, Object> redisTemplate) {
-        this.accountService = accountService;
-        this.receivableService = receivableService;
-        this.payableService = payableService;
-        this.redisTemplate = redisTemplate;
+    @Autowired
+    private ReceivableService receivableService;
+
+    @Autowired
+    private PayableService payableService;
+
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Override
+    public ForecastResult generateForecast(int horizonDays) {
+        return generateScenarioForecast(horizonDays, null);
     }
 
     @Override
-    public ForecastResult forecast(CashflowForecastRequest request) {
-        String cacheKey = "forecast:" + request.getCompanyId() + ":" + request.getHorizonDays();
-        if (request.getScenarioParams() != null) {
-            cacheKey += ":" + request.getScenarioParams().hashCode();
-        }
+    public ForecastResult generateScenarioForecast(int horizonDays, ScenarioParams scenarioParams) {
+        ForecastResult result = new ForecastResult();
+        List<DailyCashflow> dailyCashflows = new ArrayList<>();
 
-        Object cached = redisTemplate.opsForValue().get(cacheKey);
-        if (cached != null) {
-            return (ForecastResult) cached;
-        }
+        Map<String, Object> summary = accountService.getSummary();
+        Long currentBalance = (Long) summary.get("totalBalance");
+        result.setCurrentBalance(currentBalance);
 
-        Long companyId = request.getCompanyId();
-        int horizonDays = request.getHorizonDays();
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.plusDays(horizonDays);
 
-        List<Account> accounts;
-        if (request.getAccountIds() != null && !request.getAccountIds().isEmpty()) {
-            accounts = accountService.listByIds(request.getAccountIds());
-        } else {
-            accounts = accountService.listByCompanyId(companyId);
+        List<Receivable> receivables = receivableService.listByDueDateRange(today, endDate);
+        List<Payable> payables = payableService.listByDueDateRange(today, endDate);
+
+        Map<String, DailyCashflow> cashflowMap = new LinkedHashMap<>();
+
+        for (int i = 0; i < horizonDays; i++) {
+            LocalDate date = today.plusDays(i);
+            String dateStr = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            cashflowMap.put(dateStr, new DailyCashflow());
+            cashflowMap.get(dateStr).setDate(dateStr);
         }
 
-        long currentBalance = accounts.stream().mapToLong(Account::getBalance).sum();
-
-        List<Receivable> receivables = receivableService.listByDueDateRange(companyId, today, endDate);
-        List<Payable> payables = payableService.listByDueDateRange(companyId, today, endDate);
-
-        ScenarioParams params = request.getScenarioParams();
-        if (params == null) {
-            params = new ScenarioParams();
-        }
-
-        Map<LocalDate, Long> inflowMap = new LinkedHashMap<>();
-        Map<LocalDate, Long> outflowMap = new LinkedHashMap<>();
+        BigDecimal delayRate = scenarioParams != null && scenarioParams.getDelayReceivableRate() != null
+                ? scenarioParams.getDelayReceivableRate() : BigDecimal.ZERO;
+        BigDecimal earlyRate = scenarioParams != null && scenarioParams.getEarlyPayableRate() != null
+                ? scenarioParams.getEarlyPayableRate() : BigDecimal.ZERO;
 
         for (Receivable r : receivables) {
             LocalDate dueDate = r.getDueDate();
-            long amount = r.getAmount();
+            if (delayRate.compareTo(BigDecimal.ZERO) > 0) {
+                int delayDays = (int) Math.round(horizonDays * delayRate.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP).doubleValue());
+                dueDate = dueDate.plusDays(delayDays);
+            }
 
-            if (params.getDelayReceivableRate().compareTo(BigDecimal.ZERO) > 0) {
-                long delayed = amount * params.getDelayReceivableRate()
-                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP).longValue();
-                inflowMap.merge(dueDate, amount - delayed, Long::sum);
-                inflowMap.merge(dueDate.plusDays(7), delayed, Long::sum);
-            } else {
-                inflowMap.merge(dueDate, amount, Long::sum);
+            if (!dueDate.isAfter(endDate)) {
+                String dateStr = dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+                DailyCashflow dc = cashflowMap.get(dateStr);
+                if (dc == null) {
+                    dc = new DailyCashflow();
+                    dc.setDate(dateStr);
+                    cashflowMap.put(dateStr, dc);
+                }
+                long amountCNY = currencyService.convertToCNY(r.getAmount() - r.getReceivedAmount(), r.getCurrency());
+                dc.setInflow(dc.getInflow() + amountCNY);
             }
         }
 
         for (Payable p : payables) {
             LocalDate dueDate = p.getDueDate();
-            long amount = p.getAmount();
+            if (earlyRate.compareTo(BigDecimal.ZERO) > 0) {
+                int earlyDays = (int) Math.round(horizonDays * earlyRate.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP).doubleValue());
+                dueDate = dueDate.minusDays(earlyDays);
+            }
 
-            if (params.getEarlyPayableRate().compareTo(BigDecimal.ZERO) > 0) {
-                long early = amount * params.getEarlyPayableRate()
-                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP).longValue();
-                outflowMap.merge(dueDate.minusDays(3), early, Long::sum);
-                outflowMap.merge(dueDate, amount - early, Long::sum);
-            } else {
-                outflowMap.merge(dueDate, amount, Long::sum);
+            if (!dueDate.isAfter(endDate)) {
+                String dateStr = dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+                DailyCashflow dc = cashflowMap.get(dateStr);
+                if (dc == null) {
+                    dc = new DailyCashflow();
+                    dc.setDate(dateStr);
+                    cashflowMap.put(dateStr, dc);
+                }
+                long amountCNY = currencyService.convertToCNY(p.getAmount() - p.getPaidAmount(), p.getCurrency());
+                dc.setOutflow(dc.getOutflow() + amountCNY);
             }
         }
 
-        if (params.getExtraInflows() != null) {
-            for (ScenarioParams.ExtraCashflow ec : params.getExtraInflows()) {
-                LocalDate date = LocalDate.parse(ec.getDate(), DateTimeFormatter.ISO_LOCAL_DATE);
-                inflowMap.merge(date, ec.getAmount(), Long::sum);
+        if (scenarioParams != null) {
+            if (scenarioParams.getExtraInflows() != null) {
+                for (ScenarioParams.ExtraCashflow ec : scenarioParams.getExtraInflows()) {
+                    DailyCashflow dc = cashflowMap.get(ec.getDate());
+                    if (dc != null) {
+                        dc.setInflow(dc.getInflow() + ec.getAmount());
+                    }
+                }
+            }
+            if (scenarioParams.getExtraOutflows() != null) {
+                for (ScenarioParams.ExtraCashflow ec : scenarioParams.getExtraOutflows()) {
+                    DailyCashflow dc = cashflowMap.get(ec.getDate());
+                    if (dc != null) {
+                        dc.setOutflow(dc.getOutflow() + ec.getAmount());
+                    }
+                }
             }
         }
 
-        if (params.getExtraOutflows() != null) {
-            for (ScenarioParams.ExtraCashflow ec : params.getExtraOutflows()) {
-                LocalDate date = LocalDate.parse(ec.getDate(), DateTimeFormatter.ISO_LOCAL_DATE);
-                outflowMap.merge(date, ec.getAmount(), Long::sum);
-            }
-        }
-
-        List<DailyCashflow> dailyCashflows = new ArrayList<>();
         long cumulativeBalance = currentBalance;
-        int warningCount = 0;
-
-        for (int i = 0; i <= horizonDays; i++) {
-            LocalDate date = today.plusDays(i);
-            DailyCashflow dc = new DailyCashflow();
-            dc.setDate(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
-
-            long inflow = inflowMap.getOrDefault(date, 0L);
-            long outflow = outflowMap.getOrDefault(date, 0L);
-            long netFlow = inflow - outflow;
-
-            if (i == 0) {
-                dc.setInflow(inflow);
-                dc.setOutflow(outflow);
-                dc.setNetFlow(netFlow);
-                dc.setCumulativeBalance(cumulativeBalance);
-            } else {
-                cumulativeBalance += netFlow;
-                dc.setInflow(inflow);
-                dc.setOutflow(outflow);
-                dc.setNetFlow(netFlow);
-                dc.setCumulativeBalance(cumulativeBalance);
-            }
-
-            if (cumulativeBalance < 0) {
-                warningCount++;
-            }
-
+        for (DailyCashflow dc : cashflowMap.values()) {
+            dc.setNetFlow(dc.getInflow() - dc.getOutflow());
+            cumulativeBalance += dc.getNetFlow();
+            dc.setCumulativeBalance(cumulativeBalance);
             dailyCashflows.add(dc);
         }
 
-        ForecastResult result = new ForecastResult();
-        result.setCurrentBalance(currentBalance);
         result.setDailyCashflows(dailyCashflows);
-        result.setWarningCount(warningCount);
+        result.setWarningCount(countWarnings(dailyCashflows));
 
-        redisTemplate.opsForValue().set(cacheKey, result, 30, TimeUnit.MINUTES);
+        return result;
+    }
+
+    private int countWarnings(List<DailyCashflow> dailyCashflows) {
+        int count = 0;
+        for (DailyCashflow dc : dailyCashflows) {
+            if (dc.getCumulativeBalance() < 0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    public List<DailyCashflow> getDailyCashflows(LocalDate startDate, LocalDate endDate) {
+        List<DailyCashflow> result = new ArrayList<>();
+        LocalDate date = startDate;
+        while (!date.isAfter(endDate)) {
+            DailyCashflow dc = new DailyCashflow();
+            dc.setDate(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
+            result.add(dc);
+            date = date.plusDays(1);
+        }
         return result;
     }
 }

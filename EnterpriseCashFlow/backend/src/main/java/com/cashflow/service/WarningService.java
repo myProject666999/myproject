@@ -3,17 +3,21 @@ package com.cashflow.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.cashflow.entity.WarningRecord;
+import com.cashflow.entity.WarningThreshold;
 
-import java.time.LocalDate;
 import java.util.List;
 
-public interface WarningService extends IService<WarningRecord> {
+public interface WarningService extends IService<WarningThreshold> {
 
-    IPage<WarningRecord> pageList(int current, int size, String warningLevel, Integer status);
+    List<WarningThreshold> getThresholds();
 
-    List<WarningRecord> listByDateRange(Long companyId, LocalDate startDate, LocalDate endDate);
+    WarningThreshold updateThreshold(WarningThreshold threshold);
 
-    void checkAndGenerateWarnings(Long companyId);
+    IPage<WarningRecord> getActiveWarnings(int current, int size);
 
-    void handleWarning(Long warningId, Integer status);
+    IPage<WarningRecord> getHistoryWarnings(int current, int size);
+
+    void resolveWarning(Long id);
+
+    void checkAndGenerateWarnings();
 }

@@ -14,28 +14,20 @@ public class WarningRecord implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long companyId;
+    private LocalDate triggerDate;
 
-    private String warningLevel;
+    private LocalDate gapDate;
 
-    private LocalDate warningDate;
+    private Long gapAmount;
 
-    private Long predictedBalance;
+    private String level;
 
-    private Long thresholdValue;
+    private String status;
 
-    private String currency;
+    private LocalDateTime resolvedAt;
 
-    private String description;
-
-    private Integer status;
+    private String thresholdName;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updatedAt;
-
-    @TableLogic
-    private Integer isDeleted;
 }

@@ -3,13 +3,16 @@ package com.cashflow.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.cashflow.common.Result;
 import com.cashflow.entity.Account;
+import com.cashflow.entity.AccountTransaction;
 import com.cashflow.service.AccountService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/accounts")
+@RequestMapping("/accounts")
+@CrossOrigin
 public class AccountController {
 
     private final AccountService accountService;
@@ -18,26 +21,26 @@ public class AccountController {
         this.accountService = accountService;
     }
 
-    @GetMapping("/page")
-    public Result<IPage<Account>> page(@RequestParam(defaultValue = "1") int current,
-                                       @RequestParam(defaultValue = "10") int size,
-                                       @RequestParam(required = false) String keyword) {
-        return Result.success(accountService.pageList(current, size, keyword));
+    @GetMapping
+    public Result<List<Account>> list() {
+        return Result.success(accountService.listAll());
     }
 
-    @GetMapping("/company/{companyId}")
-    public Result<List<Account>> listByCompany(@PathVariable Long companyId) {
-        return Result.success(accountService.listByCompanyId(companyId));
-    }
-
-    @GetMapping("/totalBalance/{companyId}")
-    public Result<Long> totalBalance(@PathVariable Long companyId) {
-        return Result.success(accountService.getTotalBalance(companyId));
+    @GetMapping("/summary")
+    public Result<Map<String, Object>> summary() {
+        return Result.success(accountService.getSummary());
     }
 
     @GetMapping("/{id}")
     public Result<Account> getById(@PathVariable Long id) {
         return Result.success(accountService.getById(id));
+    }
+
+    @GetMapping("/{id}/transactions")
+    public Result<IPage<AccountTransaction>> transactions(@PathVariable Long id,
+                                                          @RequestParam(defaultValue = "1") int current,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        return Result.success(accountService.getTransactionHistory(id, current, size));
     }
 
     @PostMapping
@@ -52,7 +55,7 @@ public class AccountController {
 
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        accountService.removeById(id);
+        accountService.deleteAccount(id);
         return Result.success();
     }
 }

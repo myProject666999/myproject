@@ -1,67 +1,135 @@
 package com.cashflow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.cashflow.entity.AccountTransaction;
-import com.cashflow.entity.DailyReport;
-import com.cashflow.entity.WarningRecord;
-import com.cashflow.mapper.DailyReportMapper;
+import com.cashflow.entity.*;
+import com.cashflow.mapper.*;
+import com.cashflow.service.CurrencyService;
 import com.cashflow.service.DailyReportService;
-import com.cashflow.service.WarningService;
-import com.cashflow.service.AccountService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DailyReportServiceImpl extends ServiceImpl<DailyReportMapper, DailyReport> implements DailyReportService {
 
-    private final AccountService accountService;
-    private final WarningService warningService;
+    @Autowired
+    private AccountMapper accountMapper;
 
-    public DailyReportServiceImpl(AccountService accountService, WarningService warningService) {
-        this.accountService = accountService;
-        this.warningService = warningService;
-    }
+    @Autowired
+    private ReceivableMapper receivableMapper;
+
+    @Autowired
+    private PayableMapper payableMapper;
+
+    @Autowired
+    private AccountTransactionMapper transactionMapper;
+
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
-    public DailyReport getByReportDate(Long companyId, LocalDate reportDate) {
-        LambdaQueryWrapper<DailyReport> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(DailyReport::getCompanyId, companyId)
-                .eq(DailyReport::getReportDate, reportDate);
-        return this.getOne(wrapper, false);
-    }
-
-    @Override
-    public DailyReport generateDailyReport(Long companyId, LocalDate reportDate) {
-        DailyReport existing = getByReportDate(companyId, reportDate);
+    @Transactional(rollbackFor = Exception.class)
+    public DailyReport generateDailyReport(LocalDate reportDate) {
+        DailyReport existing = getReportByDate(reportDate);
         if (existing != null) {
-            this.removeById(existing.getId());
+            return existing;
         }
 
-        Long totalBalance = accountService.getTotalBalance(companyId);
-
-        LambdaQueryWrapper<AccountTransaction> incomeWrapper = new LambdaQueryWrapper<>();
-        incomeWrapper.eq(AccountTransaction::getCompanyId, companyId)
-                .eq(AccountTransaction::getTransactionType, "INCOME")
-                .eq(AccountTransaction::getTransactionDate, reportDate);
-
-        LambdaQueryWrapper<AccountTransaction> expenseWrapper = new LambdaQueryWrapper<>();
-        expenseWrapper.eq(AccountTransaction::getCompanyId, companyId)
-                .eq(AccountTransaction::getTransactionType, "EXPENSE")
-                .eq(AccountTransaction::getTransactionDate, reportDate);
-
-        List<WarningRecord> warnings = warningService.listByDateRange(companyId, reportDate, reportDate);
-
         DailyReport report = new DailyReport();
-        report.setCompanyId(companyId);
         report.setReportDate(reportDate);
-        report.setTotalBalance(totalBalance);
-        report.setWarningCount(warnings.size());
-        report.setSummary("生成于 " + reportDate);
+
+        Map<String, Object> content = new HashMap<>();
+
+        long openingBalance = 0L;
+        long totalIncome = 0L;
+        long totalExpense = 0L;
+
+        List<Account> accounts = accountMapper.selectList(null);
+        for (Account account : accounts) {
+            openingBalance += currencyService.convertToCNY(account.getBalance(), account.getCurrency());
+        }
+
+        List<AccountTransaction> transactions = transactionMapper.selectList(
+                new LambdaQueryWrapper<AccountTransaction>()
+                        .eq(AccountTransaction::getTransactionDate, reportDate)
+        );
+
+        for (AccountTransaction t : transactions) {
+            long amountCNY = currencyService.convertToCNY(t.getAmount(), t.getCurrency());
+            if ("IN".equals(t.getType())) {
+                totalIncome += amountCNY;
+            } else {
+                totalExpense += amountCNY;
+            }
+        }
+
+        List<Receivable> receivables = receivableMapper.selectList(
+                new LambdaQueryWrapper<Receivable>()
+                        .eq(Receivable::getDueDate, reportDate)
+                        .in(Receivable::getStatus, "PENDING", "OVERDUE", "PARTIAL")
+        );
+        long todayReceivable = 0L;
+        for (Receivable r : receivables) {
+            todayReceivable += currencyService.convertToCNY(r.getAmount() - r.getReceivedAmount(), r.getCurrency());
+        }
+
+        List<Payable> payables = payableMapper.selectList(
+                new LambdaQueryWrapper<Payable>()
+                        .eq(Payable::getDueDate, reportDate)
+                        .in(Payable::getStatus, "PENDING", "OVERDUE", "PARTIAL")
+        );
+        long todayPayable = 0L;
+        for (Payable p : payables) {
+            todayPayable += currencyService.convertToCNY(p.getAmount() - p.getPaidAmount(), p.getCurrency());
+        }
+
+        report.setOpeningBalance(openingBalance);
+        report.setTotalIncome(totalIncome);
+        report.setTotalExpense(totalExpense);
+        report.setClosingBalance(openingBalance + totalIncome - totalExpense);
+
+        content.put("todayReceivable", todayReceivable);
+        content.put("todayPayable", todayPayable);
+        content.put("accountCount", accounts.size());
+        content.put("transactionCount", transactions.size());
+
+        try {
+            report.setContentJson(objectMapper.writeValueAsString(content));
+        } catch (JsonProcessingException e) {
+            report.setContentJson("{}");
+        }
 
         this.save(report);
         return report;
+    }
+
+    @Override
+    public IPage<DailyReport> getReportList(int current, int size) {
+        return this.page(
+                new Page<>(current, size),
+                new LambdaQueryWrapper<DailyReport>()
+                        .orderByDesc(DailyReport::getReportDate)
+        );
+    }
+
+    @Override
+    public DailyReport getReportByDate(LocalDate reportDate) {
+        return this.getOne(
+                new LambdaQueryWrapper<DailyReport>()
+                        .eq(DailyReport::getReportDate, reportDate)
+        );
     }
 }

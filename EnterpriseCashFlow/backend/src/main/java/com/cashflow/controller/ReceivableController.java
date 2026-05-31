@@ -6,8 +6,11 @@ import com.cashflow.entity.Receivable;
 import com.cashflow.service.ReceivableService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/receivables")
+@RequestMapping("/receivables")
+@CrossOrigin
 public class ReceivableController {
 
     private final ReceivableService receivableService;
@@ -20,18 +23,18 @@ public class ReceivableController {
     public Result<IPage<Receivable>> page(@RequestParam(defaultValue = "1") int current,
                                           @RequestParam(defaultValue = "10") int size,
                                           @RequestParam(required = false) String keyword,
-                                          @RequestParam(required = false) Integer status) {
+                                          @RequestParam(required = false) String status) {
         return Result.success(receivableService.pageList(current, size, keyword, status));
+    }
+
+    @GetMapping("/statistics")
+    public Result<Map<String, Object>> statistics() {
+        return Result.success(receivableService.getStatistics());
     }
 
     @GetMapping("/{id}")
     public Result<Receivable> getById(@PathVariable Long id) {
         return Result.success(receivableService.getById(id));
-    }
-
-    @GetMapping("/pending/{companyId}")
-    public Result<Long> totalPending(@PathVariable Long companyId) {
-        return Result.success(receivableService.getTotalPending(companyId));
     }
 
     @PostMapping
@@ -46,7 +49,15 @@ public class ReceivableController {
 
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        receivableService.removeById(id);
+        receivableService.deleteReceivable(id);
+        return Result.success();
+    }
+
+    @PostMapping("/{id}/confirm")
+    public Result<Void> confirmReceipt(@PathVariable Long id,
+                                       @RequestParam Long amount,
+                                       @RequestParam Long accountId) {
+        receivableService.confirmReceipt(id, amount, accountId);
         return Result.success();
     }
 }

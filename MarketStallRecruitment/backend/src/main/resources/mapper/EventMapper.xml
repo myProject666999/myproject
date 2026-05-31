@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.market.stall.mapper.EventMapper">
+
+    <resultMap id="BaseResultMap" type="com.market.stall.entity.Event">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="address" property="address"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="registration_start" property="registrationStart"/>
+        <result column="registration_end" property="registrationEnd"/>
+        <result column="status" property="status"/>
+        <result column="map_config" property="mapConfig"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="organizer" property="organizer"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+</mapper>

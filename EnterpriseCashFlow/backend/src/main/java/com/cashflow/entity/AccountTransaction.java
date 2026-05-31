@@ -16,28 +16,23 @@ public class AccountTransaction implements Serializable {
 
     private Long accountId;
 
-    private String transactionType;
+    private String type;
 
     private Long amount;
 
     private String currency;
 
-    private LocalDate transactionDate;
-
-    private String counterparty;
-
     private String description;
 
-    private String referenceNo;
+    private LocalDate transactionDate;
 
-    private Long companyId;
+    private String relatedType;
 
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createdAt;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updatedAt;
+    private Long relatedId;
 
     @TableLogic
     private Integer isDeleted;
+
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createdAt;
 }

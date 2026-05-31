@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.market.stall.mapper.StallMapper">
+
+    <resultMap id="BaseResultMap" type="com.market.stall.entity.Stall">
+        <id column="id" property="id"/>
+        <result column="event_id" property="eventId"/>
+        <result column="stall_code" property="stallCode"/>
+        <result column="stall_name" property="stallName"/>
+        <result column="zone" property="zone"/>
+        <result column="row_num" property="rowNum"/>
+        <result column="col_num" property="colNum"/>
+        <result column="stall_type" property="stallType"/>
+        <result column="area_size" property="areaSize"/>
+        <result column="price" property="price"/>
+        <result column="status" property="status"/>
+        <result column="facilities" property="facilities"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="selectByEventId" resultMap="BaseResultMap">
+        SELECT * FROM stall WHERE event_id = #{eventId} AND deleted = 0
+    </select>
+
+</mapper>
